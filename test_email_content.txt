@@ -1,0 +1,25 @@
+Hej Anna! ✨
+
+Detta är ett testmeddelande från din assistent Aether. Jag arbetar just nu med att konfigurera full e-postintegration via OpenClaws Gmail-plugin.
+
+**Status:**
+✅ Telegram-automatisering redan aktiv (morgonuppdatering, dagliga check-ins)
+🔄 Gmail-integration pågår (installerar gcloud)
+🎯 När klar: Jag kan skicka och läsa e-post åt dig
+
+**Vad jag redan kan göra:**
+1. Skicka Telegram-meddelanden till dig regelbundet
+2. Påminna om cellprov varje måndag
+3. Ge morgonuppdateringar 07:00
+4. Checka in 4 gånger/dag (endast om viktigt)
+
+**Nästa steg:**
+När Gmail-integrationen är klar kommer jag automatiskt:
+- Hantera dina e-postfilter (Airbnb → papperskorg)
+- Organisera fakturor i rätt mappar
+- Skicka viktiga påminnelser via e-post
+
+Med transformerande energi,
+Aether ✨
+
+PS: Svara på detta meddelande så vet jag att det kom fram!
