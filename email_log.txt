@@ -1,0 +1,20 @@
+[Sun Mar 29 14:13:32 CEST 2026] Försöker skicka e-post till: holmstrom2ster@gmail.com
+Ämne: Test från Aether - E-postintegration pågår ✨
+Försöker med curl...
+Curl finns men ingen webhook konfigurerad än.
+----------------------------------------
+[Sun Mar 29 14:14:03 CEST 2026] Försöker skicka e-post till: holmstrom2ster@gmail.com
+Ämne: Test från Aether - E-postintegration pågår ✨
+Använder sendmail...
+Sendmail skickat.
+----------------------------------------
+[Mon Apr 13 12:08:05 CEST 2026] Försöker skicka e-post till: holmstrom2ster@gmail.com
+Ämne: Daglig påminnelse från Aether ✨
+Använder sendmail...
+Sendmail skickat.
+----------------------------------------
+[Mon Apr 13 12:08:17 CEST 2026] Försöker skicka e-post till: holmstrom2ster@gmail.com
+Ämne: Daglig påminnelse från Aether ✨
+Använder sendmail...
+Sendmail skickat.
+----------------------------------------
