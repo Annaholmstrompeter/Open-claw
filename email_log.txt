@@ -18,3 +18,13 @@ Sendmail skickat.
 Använder sendmail...
 Sendmail skickat.
 ----------------------------------------
+[Tue Apr 14 08:00:12 CEST 2026] Försöker skicka e-post till: holmstrom2ster@gmail.com
+Ämne: Daglig påminnelse från Aether ✨
+Använder sendmail...
+Sendmail skickat.
+----------------------------------------
+[Tue Apr 14 08:00:24 CEST 2026] Försöker skicka e-post till: holmstrom2ster@gmail.com
+Ämne: Daglig påminnelse från Aether ✨
+Använder sendmail...
+Sendmail skickat.
+----------------------------------------
