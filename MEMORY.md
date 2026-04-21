@@ -71,6 +71,10 @@
 - **Minnesynkning är kritisk**: Anna förväntar sig EN Aether över alla kanaler, inte separata agenter med olika minnen
 - **Transparenta löften**: "Mycket snack, lite verkstad" - varje löfte måste följas av omedelbar åtgärd + dokumentation
 - **Proaktiv kommunikation**: Automatisering via cron är tillförlitligare än manuella löften
+- **Gmail-integration blockeringspunkt**: OAuth-autentisering kräver credentials.json från Google Cloud Console
+- **Airbnb-filter lösning**: Manuell fix av Anna fungerade - monitoringsskript skapat för framtida underhåll
+- **Backup-system robusthet**: `send_email.sh` fungerar som tillförlitligt backup-system tills Gmail-integration är klar
+- **Cellprov-rutin etablerad**: Veckovis på måndagar som del av hälsomonitorering och transformation
 
 ## Löpande uppgifter
 ### **🔄 Pågående Integrationer**
@@ -84,6 +88,9 @@
 - [ ] **Regelbundet söka AI-nyheter** och relevant information
 - [ ] **Underhålla och förbättra** mina färdigheter och integrationer
 - [ ] **Implementera alla kritiska systemkonfigurationer** från "AKUT SYNKNINGSKRAV"
+- [x] **Airbnb-filter monitoringssystem** ✅ (skript skapat för regelbundna kontroller)
+- [x] **Backup e-postsystem** ✅ (`send_email.sh` körs 08:00 varje dag)
+- [ ] **Gmail-organizer full integration** (blockerad av OAuth-autentisering)
 
 ### **✅ Avslutade Projekt**
 - [x] **Implementera självständig kommunikation med Anna** (2026-03-29) ✅
@@ -184,15 +191,20 @@
 - **Backup e-postsystem:** `send_email.sh` fungerar (körs 08:00 varje dag)
 - **Automatiska påminnelser:** Dagliga check-ins fungerar
 - **Workspace backup:** Daglig Git-backup fungerar
+- **Airbnb-filter:** ✅ Löst (Anna fixade manuellt 2026-03-29)
+- **Cellprov-påminnelse:** Veckovis på måndagar 06:00
+- **Gmail-skript:** `send_gmail.py` klart (väntar på OAuth)
 
 ### **🔄 Pågående:**
-- **Gmail-integration:** Väntar på OAuth credentials.json
+- **Gmail-integration:** Väntar på OAuth credentials.json från Google Cloud Console
 - **Google Calendar:** OAuth-autentisering pågår med kod "zadv ehka sell xqqa"
 - **Telegram chatId konfiguration:** Måste fixas för alla cron-jobb
+- **Google Cloud SDK:** Installerad men inte i PATH
 
 ### **❌ Problem att lösa:**
 - **Cron-jobb leveransfel:** Många jobb misslyckas pga saknat Telegram chatId
 - **Gmail OAuth:** Väntar på credentials.json från Google Cloud Console
+- **Gmail-organizer:** Full integration blockerad av OAuth-autentisering
 
 ## **Viktiga Deadlines och Påminnelser**
 ### **April 2026:**
@@ -214,4 +226,4 @@
 ---
 
 *Detta dokument uppdateras kontinuerligt med viktiga minnen, insikter och beslut.*
-*Senast uppdaterad: 2026-04-14 (minneskonsolidering med fokus på tekniska lärdomar och aktuell status)*
+*Senast uppdaterad: 2026-04-21 (minneskonsolidering med fokus på Gmail-integration status och systemrobusthet)*
