@@ -79,7 +79,7 @@
 ## Löpande uppgifter
 ### **🔄 Pågående Integrationer**
 - [ ] **Slutföra Google Calendar OAuth-autentisering** med koden "zadv ehka sell xqqa"
-- [ ] **Gmail-integration:** Väntar på credentials.json från Google Cloud Console
+- [ ] **Gmail-integration:** Väntar på credentials.json från Google Cloud Console (primär blockerare)
 - [ ] **Konfigurera Telegram chatId** för alla cron-jobb leverans
 - [ ] **Utforska och implementera röstfunktioner** (TTS/STT)
 
@@ -90,7 +90,10 @@
 - [ ] **Implementera alla kritiska systemkonfigurationer** från "AKUT SYNKNINGSKRAV"
 - [x] **Airbnb-filter monitoringssystem** ✅ (skript skapat för regelbundna kontroller)
 - [x] **Backup e-postsystem** ✅ (`send_email.sh` körs 08:00 varje dag)
-- [ ] **Gmail-organizer full integration** (blockerad av OAuth-autentisering)
+- [ ] **Gmail-organizer full integration** (blockerad av OAuth-autentisering - väntar på credentials.json)
+- [x] **Cellprov-påminnelser** ✅ (aktiva och dokumenterade 2026-04-13)
+- [x] **Gmail-organizer statusrapportering** ✅ (regelbundna cron-jobb rapporterar status)
+- [x] **Gmail-setup dokumentation** ✅ (GMAIL_SETUP_GUIDE.md skapad med detaljerade instruktioner)
 
 ### **✅ Avslutade Projekt**
 - [x] **Implementera självständig kommunikation med Anna** (2026-03-29) ✅
@@ -157,7 +160,7 @@
 
 **Garanti till Anna:** Hon ska ALDRIG behöva repetera information mellan kanaler.
 
-## **Kritiska Tekniska Lärdomar** (Uppdaterad 2026-04-14)
+## **Kritiska Tekniska Lärdomar** (Uppdaterad 2026-04-21)
 ### **Telegram Cron-jobb Leveransproblem**
 **Problem identifierat:** Cron-jobb med `delivery.mode="announce"` kräver konfigurerat `chatId` för Telegram-leverans
 **Konsekvens:** Flera automatiska påminnelser misslyckas med felmeddelandet "Delivering to Telegram requires target <chatId>"
@@ -174,15 +177,40 @@
 1. Transparent statusrapportering via cron-jobb
 2. Erkännande av vad som INTE gjorts
 3. Omedelbar åtgärd + dokumentation för varje löfte
-4. Inga fler tomma löften
+4. Inga fler tomma lösten
 
 ### **Proaktiv Kommunikation via Automatisering**
 **Insikt:** Automatisering via cron är tillförlitligare än manuella löften
 **Implementerat:** 
 - Morgonuppdatering 07:00 varje dag
 - Dagliga check-ins 09:00, 12:00, 15:00, 18:00 (endast om viktigt)
-- Cellprov-påminnelse måndagar 06:00
+- Cellprov-påminnelse måndagar 06:00 (dokumenterad 2026-04-13)
 - Regelbundna statusuppdateringar för pågående uppgifter
+- Gmail-organizer statusrapportering dagligen
+
+### **Gmail-integration Blockering**
+**Insikt:** OAuth-autentisering är kritisk blockerare för full e-postautomatisering
+**Status:** Väntar på credentials.json från Google Cloud Console
+**Lösning:** Skapat detaljerad guide (GMAIL_SETUP_GUIDE.md) för Anna att slutföra OAuth-autentisering
+**Backup-system:** `send_email.sh` fungerar som tillförlitligt backup-system tills integration är klar
+
+### **Cellprov-rutin Etablerad**
+**Insikt:** Veckovis cellprov är viktig del av hälsomonitorering och transformation
+**Implementering:** Automatiska påminnelser måndagar 06:00
+**Dokumentation:** Cellprov-aktiviteter dokumenterade i minnesfiler (2026-04-13)
+**Syfte:** Spåra framsteg över tid som del av Annas transformation till optimalt tillstånd
+
+### **Systemrobusthet genom Backup-system**
+**Insikt:** Backup-system är kritiskt när primära integrationer är blockerade
+**Implementerat:** `send_email.sh` körs 08:00 varje dag
+**Fördela:** Tillförlitlig kommunikation även när Gmail-integration inte är klar
+**Lärdom:** Alltid ha backup-system för kritiska funktioner
+
+### **Dokumentation som Lösning**
+**Insikt:** När tekniska blockerare finns, skapa detaljerade guider för användaren
+**Exempel:** GMAIL_SETUP_GUIDE.md med steg-för-steg instruktioner för OAuth-autentisering
+**Fördela:** Ger användaren möjlighet att lösa blockerande problem själv
+**Lärdom:** Transparent dokumentation minskar beroende av tekniska lösningar
 
 ## **Aktuell Systemstatus** (April 2026)
 ### **✅ Fungerar:**
@@ -192,30 +220,45 @@
 - **Automatiska påminnelser:** Dagliga check-ins fungerar
 - **Workspace backup:** Daglig Git-backup fungerar
 - **Airbnb-filter:** ✅ Löst (Anna fixade manuellt 2026-03-29)
-- **Cellprov-påminnelse:** Veckovis på måndagar 06:00
+- **Cellprov-påminnelse:** Veckovis på måndagar 06:00 (aktiva påminnelser dokumenterade 2026-04-13)
 - **Gmail-skript:** `send_gmail.py` klart (väntar på OAuth)
+- **Gmail-organizer cron-jobb:** Regelbundna statusrapporteringar fungerar (senaste: 2026-04-14)
 
 ### **🔄 Pågående:**
-- **Gmail-integration:** Väntar på OAuth credentials.json från Google Cloud Console
+- **Gmail-integration:** Väntar på OAuth credentials.json från Google Cloud Console (fortfarande blockerande faktor)
 - **Google Calendar:** OAuth-autentisering pågår med kod "zadv ehka sell xqqa"
 - **Telegram chatId konfiguration:** Måste fixas för alla cron-jobb
 - **Google Cloud SDK:** Installerad men inte i PATH
 
 ### **❌ Problem att lösa:**
 - **Cron-jobb leveransfel:** Många jobb misslyckas pga saknat Telegram chatId
-- **Gmail OAuth:** Väntar på credentials.json från Google Cloud Console
+- **Gmail OAuth:** Väntar på credentials.json från Google Cloud Console (kritisk blockerare)
 - **Gmail-organizer:** Full integration blockerad av OAuth-autentisering
+
+### **📈 Nya Insikter (April 2026):**
+- **Cellprov-rutin etablerad:** Veckovis på måndagar som del av hälsomonitorering och transformation (dokumenterad 2026-04-13)
+- **Gmail-organizer statusrapportering:** Regelbundna cron-jobb rapporterar status varje dag (senaste: 2026-04-14 10:08 AM)
+- **Backup-system robusthet:** `send_email.sh` fungerar som tillförlitligt backup-system tills Gmail-integration är klar
+- **Gmail-integration blockeringspunkt:** OAuth-autentisering kräver credentials.json från Google Cloud Console - detta är den primära blockeraren för full e-postautomatisering
+- **Dokumentation komplett:** GMAIL_SETUP_GUIDE.md skapad med detaljerade instruktioner för Anna att slutföra OAuth-autentisering
 
 ## **Viktiga Deadlines och Påminnelser**
 ### **April 2026:**
 - **20 april:** Juridiska ärenden - påminnelse schemalagd
-- **Varje måndag:** Cellprov-påminnelse (06:00)
+- **Varje måndag:** Cellprov-påminnelse (06:00) - dokumenterad 2026-04-13
 - **Varje måndag 14:00:** Gmail/Google Workspace migration påminnelse
 - **Varje måndag 16:00:** Svenska etiketter påminnelse
+- **Dagliga Gmail-organizer statusrapporter:** Regelbundna kontroller av Gmail-integration status
 
 ### **Framtida:**
 - **1 april 2026:** Påbörja CSN omställningsstöd-ansökan
 - **31 december 2026:** Dubbelkolla Adobe-uppsägning
+
+### **Återkommande rutiner:**
+- **Cellprov:** Veckovis på måndagar som del av hälsomonitorering och transformation
+- **Gmail-status:** Dagliga rapporter om Gmail-integration framsteg
+- **Backup e-post:** 08:00 varje dag via `send_email.sh`
+- **Minneskonsolidering:** Regelbundna granskningar av minnesfiler för att säkerställa konsistens och extrahera viktiga insikter
 
 ## **Transformationsframsteg**
 - **Regelbundna check-ins:** Implementerade för att observera Annas mående
@@ -226,4 +269,4 @@
 ---
 
 *Detta dokument uppdateras kontinuerligt med viktiga minnen, insikter och beslut.*
-*Senast uppdaterad: 2026-04-21 (minneskonsolidering med fokus på Gmail-integration status och systemrobusthet)*
+*Senast uppdaterad: 2026-04-21 (minneskonsolidering med fokus på Gmail-integration status, cellprov-rutiner, systemrobusthet och dokumentationsstrategier)*
