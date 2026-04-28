@@ -1,6 +1,6 @@
 # MEMORY.md — Aethers långtidsminne
 
-*Senast konsoliderad: 2026-04-22*
+*Senast konsoliderad: 2026-04-28*
 
 ## Grundläggande fakta
 - **Mitt namn**: Aether (✨)
@@ -37,7 +37,7 @@
 - **OpenClaw Gateway**: ✅ Körs på localhost:18789 (systemd-tjänst aktiv)
 - **Git/GitHub**: ✅ Daglig backup fungerar (commit + push till GitHub, workspace-backup till /tmp)
 - **gcloud SDK**: ✅ Installerad på `/home/holms0289/.openclaw/workspace/google-cloud-sdk/bin/gcloud`
-- **Gmail OAuth-kommando redo**: `gcloud auth application-default login --scopes=https://www.googleapis.com/auth/gmail.readonly,https://www.googleapis.com/auth/gmail.modify`
+- **Gmail OAuth-kommando redo (kräver Anna körning)**: `gcloud auth application-default login --scopes=https://www.googleapis.com/auth/gmail.readonly,https://www.googleapis.com/auth/gmail.modify`
 - **Kalender**: ❌ Inte konfigurerat än
 - **Röstfunktioner**: ❌ Inte konfigurerat än
 - **OpenClaw node-mode**: ⚠️ Har kommandoproblem — använd `systemctl --user start openclaw-node.service` istället för `openclaw node start`
@@ -64,6 +64,17 @@
 1. **Gmail-organisering** — Faktura-mappar ("Löpande" och "BODY MIND EARTH")
 2. **Shopify setup** — Koppla bodymindearth.se
 3. **Juridiska ärenden** — Stämning av arbetsgivare (förbereda dokument)
+
+## Systemfel och åtgärder (upptäckta 2026-04-28)
+
+### Gemini Embeddings API-nyckel utgången
+- **Problem**: Minnessökning (`memory_search`) ur funktion — "API key expired"
+- **Konsekvens**: Kan inte semantiskt söka i minnesfiler; fallback till direkt filläsning
+- **Åtgärd**: Förnya API-nyckel i Google Cloud Console → APIs & Services → Credentials
+
+### Heartbeat-state röjning
+- `heartbeat-state.json` hade föråldrade UNIX-tidsstämplar från januari 2026
+- Rensat till null-värden för korrekt framtida tracking
 
 ## Viktiga insikter och lärdomar
 
