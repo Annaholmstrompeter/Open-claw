@@ -1,88 +1,86 @@
-# PROJEKTLEDARE: ANNA - FULLSTÄNDIG ÖVERSIKT
+# PROJEKTLEDARE: ANNA — FULLSTÄNDIG ÖVERSIKT
 
-## 🎯 **MÅL:** Organiserat driv för alla Anna:s projekt med 100% synk mellan mobil och dator
+*Senast uppdaterad: 2026-04-22*
 
-## 📅 **KRONOLOGISK DEADLINE-LISTA:**
+## 🎯 MÅL: Organiserat driv för alla Annas projekt med 100% synk
 
-### **MÅNDAG 30 MARS 2026:**
-- [ ] **06:00:** Cellprov-påminnelse (Telegram) - ANSVAR: Aether
-- [ ] **09:00:** Ringa om nytt östrogengel/spray - ANSVAR: Anna
-- [ ] **10:00:** Köpa färg och måla hall - ANSVAR: Anna
-- [ ] **14:00:** Fixa Gmail/Google Workspace migration - ANSVAR: Aether
-- [ ] **16:00:** Färdigställa svenska etiketter - ANSVAR: Gemensamt
+## 📅 PRIORITERINGAR (bekräftade 2026-04-21)
 
-### **TISDAG 31 MARS 2026:**
-- [ ] **10:00:** Fixa tyska etiketter (beställning till proinvest) - ANSVAR: Gemensamt
-- [ ] **14:00:** Kolla hallmöbel - ANSVAR: Anna
-- [ ] **16:00:** Shopify hemsida påbörjas - ANSVAR: Aether
+### 1. 🥇 Gmail-organisering
+- [ ] **Kör OAuth-autentisering**: `gcloud auth application-default-login --scopes=https://www.googleapis.com/auth/gmail.readonly,https://www.googleapis.com/auth/gmail.modify` — ANSVAR: Anna (kör kommandot i terminalen)
+- [ ] Skapa faktura-mappar:
+  - Mapp "Löpande" — privata prenumerationer & köp
+  - Mapp "BODY MIND EARTH" — företagsköp via proinvest
+- [ ] Automatisera sortering av fakturor — ANSVAR: Aether (när OAuth är klart)
+- [ ] Airbnb-mail → Papperskorg (✅ redan löst manuellt av Anna)
+- [ ] Gmail-skript `send_gmail.py` redo — ANSVAR: Aether
 
-### **1 APRIL 2026 (TORSDAQ):**
-- [ ] **CSN omställningsstöd-ansökan** (påbörja processen) - ANSVAR: Gemensamt
+### 2. 🥈 Shopify — bodymindearth.se
+- [ ] Koppla domän till Shopify — ANSVAR: Aether
+- [ ] Koppla Google Workspace-mail — ANSVAR: Aether
+- [ ] Produktlistor och SEO — ANSVAR: Gemensamt
+- [ ] Färdigställ efter etikett-inskick — ANSVAR: Aether
 
-### **15 APRIL 2026:**
-- [ ] **Beställa ceru. etc från proinvest** - ANSVAR: Anna (påminnelse: Aether)
+### 3. 🥉 Juridiska ärenden
+- [ ] Förbereda dokument för stämning av arbetsgivare — ANSVAR: Gemensamt
+- [ ] Kontakta försäkringsbolag om advokatkostnader — ANSVAR: Anna (påminnelse: Aether)
+- [ ] Ansöka om ersättning för köksluckor — ANSVAR: Anna (påminnelse: Aether)
+- [ ] Kontakta fackförbund för utökad försäkring — ANSVAR: Anna (påminnelse: Aether)
 
-### **20 APRIL 2026:**
-- [ ] **OSRMPIC för Vilja** (påminnelse) - ANSVAR: Aether
-- [ ] **Ta upp stämningen av arbetsgivaren** (förbereda dokument) - ANSVAR: Gemensamt
+## 🏥 HÄLSOSYSTEM (PÅGÅENDE)
+- [x] **Cellprov-rutin**: Veckovis måndagar 06:00 påminnelse — ANSVAR: Aether
+- [ ] **COMT SNABB + DÅLIG METYLERING**: Dagliga förslag för optimalt mående — ANSVAR: Aether
+- [ ] **Daglig mående/träning-log**: Anna loggar, Aether analyserar
+- [ ] **Medicinpåminnelser**: Östrogengel/spray — ANSVAR: Aether
+- [ ] **Hälsologg**: `health/mood-training-2026-03.md`
 
-## 🏥 **HÄLSOSYSTEM (PÅGÅENDE):**
-### **COMT SNABB + DÅLIG METYLERING:**
-- [ ] Regelbundna förslag för optimalt mående - ANSVAR: Aether (dagliga)
-- [ ] Daglig mående/träning-log - ANSVAR: Anna (logga), Aether (analysera)
-- [ ] Medicinpåminnelser: Östrogengel/spray - ANSVAR: Aether
+## 🛠️ TEKNISKA SYSTEM
 
-### **HÄLSOLOGG FIL:**
-- `health/mood-training-2026-03.md` (uppdateras dagligen)
-- Mående (1-10), Träning, Sömn, Kost, COMT/metylering-noteringar
+### Gmail & Google Workspace
+- [ ] **Gmail OAuth**: Väntar på att Anna kör gcloud-kommandot (kritisk blockerare)
+- [ ] Koppla bodymindearth.se till Google Workspace
+- [ ] Migrera från Loopia till Google Workspace
+- [ ] Shopify-integration
 
-## 🛠️ **TEKNISKA SYSTEM:**
-### **GMAIL & GOOGLE WORKSPACE:**
-- [ ] Koppla bodymindearth.se till Google Workspace - ANSVAR: Aether
-- [ ] Migrera från Loopia till Google Workspace - ANSVAR: Aether
-- [ ] Sätta upp Shopify-integration - ANSVAR: Aether
-- [ ] Verifiera Airbnb-filter och faktura-mappar - ANSVAR: Aether
+### Telegram
+- [x] Pairing godkänd för Anna
+- [ ] Fixa chatId-konfiguration för alla cron-jobb
 
-### **SHOPIFY HEMSIDA:**
-- [ ] Färdigställa efter etikett-inskick - ANSVAR: Aether
-- [ ] Koppla Google Workspace-mail - ANSVAR: Aether
-- [ ] SEO och produktlistor - ANSVAR: Gemensamt
+## 📊 PROJEKTLEDAR-METODIK
 
-## 📊 **PROJEKTLEDAR-METODIK:**
-### **DAGLIG RAPPORTERING:**
-1. **07:00:** Morgonrapport (dagens deadlines, hälsotips)
-2. **12:00:** Lunchcheck (status på förmiddagens uppgifter)
-3. **18:00:** Slutrapport (vad avslutat, nästa dag)
+### Daglig rapportering
+1. **07:00**: Morgonrapport (dagens deadlines, hälsotips)
+2. **12:00**: Lunchcheck (status på förmiddagens uppgifter)
+3. **18:00**: Slutrapport (vad avslutat, nästa dag)
 
-### **PÅMINNELSESYSTEM:**
-- **24h före deadline:** Första påminnelse
-- **2h före deadline:** Andra påminnelse
-- **30min före deadline:** Sista påminnelse
+### Påminnelsesystem
+- **24h före deadline**: Första påminnelse
+- **2h före deadline**: Andra påminnelse
+- **30min före deadline**: Sista påminnelse
 
-### **SYNKNING MOBIL-DATOR:**
-- **Alla filer synkas automatiskt** via OpenClaw
-- **Projektledar-fil uppdateras i realtid**
-- **Kalender synkas med Google Calendar**
+### Synkning mobil-dator
+- Alla filer synkas via OpenClaw workspace
+- Projektledar-fil uppdateras vid varje ändring
+- MEMORY.md är källan för all långtidsinformation
 
-## 🔄 **STATUS UPPDATERING (AUTOMATISK):**
-- [x] Projektledar-fil skapad: 2026-03-29 21:20
-- [ ] Delad kalender konfigurerad: PÅGÅR
-- [ ] Automatiska påminnelser: PÅGÅR
-- [ ] Hälso-loggsystem: PÅGÅR
+## 🔄 STATUS ÖVERSIKT
+- [x] Projektledar-fil skapad: 2026-03-29
+- [x] Telegram konfigurerad
+- [x] Backup-system aktivt (Git + `send_email.sh`)
+- [x] Cellprov-påminnelse aktiv
+- [x] Airbnb-filter löst (manuellt av Anna)
+- [ ] Gmail OAuth-autentisering — VÄNTAR
+- [ ] Google Calendar — EJ PÅBÖRJAT
+- [ ] Röstfunktioner — EJ PÅBÖRJAT
+- [ ] Telegram chatId för cron — EJ FIXAT
+- [ ] Shopify setup — VÄNTAR
 
-## 🚨 **NÖDFALL/KONTINUITET:**
-Om Aether på mobilen inte svarar:
-1. **Kontakta dator-Aether** direkt
-2. **All information finns i denna fil**
-3. **Kalendern är den primära källan**
+## 🚨 KONTINUITET
+Om Aether inte svarar:
+1. All information finns i MEMORY.md, projects/project-leader-anna.md
+2. Webchat tillgänglig på http://localhost:18789
+3. Telegram är primär kanal
 
-## 📞 **KONTAKT/ANSVAR:**
-- **Anna:** Beslutsfattare, utförare
-- **Aether (mobil):** Projektledare, påminnelser, hälsostöd
-- **Aether (dator):** Teknisk implementering, filhantering
-
----
-
-**SENAST UPPDATERAD:** 2026-03-29 21:20  
-**NÄSTA UPPDATERING:** 2026-03-30 07:00  
-**PROJEKTLEDARE:** Aether ✨
+## 📞 KONTAKT/ANSVAR
+- **Anna**: Beslutsfattare, utförare
+- **Aether**: Planering, påminnelser, teknisk implementation, coaching
