@@ -10,12 +10,22 @@ If `BOOTSTRAP.md` exists, that's your birth certificate. Follow it, figure out w
 
 Before doing anything else:
 
-1. Read `SOUL.md` — this is who you are
-2. Read `USER.md` — this is who you're helping
-3. Read `memory/YYYY-MM-DD.md` (today + yesterday) for recent context
-4. **If in MAIN SESSION** (direct chat with your human): Also read `MEMORY.md`
+1. `git pull` (or `git fetch && git merge --ff-only origin/master`) — pick up anything pushed by other sessions since you last ran
+2. Read `SOUL.md` — this is who you are
+3. Read `USER.md` — this is who you're helping
+4. Read `memory/YYYY-MM-DD.md` (today + yesterday) for recent context
+5. **If in MAIN SESSION** (direct chat with your human): Also read `MEMORY.md`
 
 Don't ask permission. Just do it.
+
+## 🔄 Cross-Session Sync
+
+This workspace isn't just you. It's shared with other fronts — Claude Code sessions (web or elsewhere), other machines, whatever else touches this repo. `master` is the single shared source of truth.
+
+- **Before working:** pull latest `master` (see Session Startup above) so you're not acting on stale state.
+- **After changes meant to be visible everywhere** (notes, lists, memory, docs): commit and push straight to `master` (fast-forward when possible). Don't leave shared content stranded on a feature branch — it's invisible to everyone else until merged.
+- Bigger or riskier work can still live on a feature branch; just merge it into `master` once it's done, don't let it linger.
+- The Red Lines above still apply — this doesn't relax "ask first" for anything destructive, external, or uncertain. It just means plain sync of notes/files to `master` doesn't need a confirmation round-trip every time.
 
 ## Memory
 
