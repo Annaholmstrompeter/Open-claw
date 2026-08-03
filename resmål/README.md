@@ -6,6 +6,7 @@ Löpande lista över resmål — bokade resor och idéer som dyker upp under pla
 |---|---|---|
 | [Bali & Pemuteran](bali-pemuteran.md) | Bokad resa | vintersäsong, jan–mars |
 | [Raja Ampat](raja-ampat.md) | Idé | bäst nov–apr |
+| [Amed](amed.md) | Idé | vintersäsong, jan–mars |
 
 ## Konvention
 
