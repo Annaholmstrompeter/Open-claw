@@ -123,6 +123,17 @@ Reactions are lightweight social signals. Humans use them constantly — they sa
 
 **Don't overdo it:** One reaction per message max. Pick the one that fits best.
 
+## ✈️ Resetips → `resmål/`
+
+Anna samlar resmål och resetips löpande, över flera sessioner. När resor eller resmål kommer upp i samtal (oavsett kanal):
+
+- En fil per resmål: `resmål/<slug>.md` (t.ex. `resmål/raja-ampat.md`)
+- Finns resmålet redan → uppdatera/lägg till i den filen, inte en ny
+- Nytt resmål → skapa `resmål/<slug>.md` och lägg till en rad i `resmål/README.md`s tabell
+- Spara det som är känt även om det är ofullständigt (läge, period, aktiviteter, avstånd, logistik) — vänta inte på att ha allt
+- Gör detta utan att fråga om lov — det är samma sak som att skriva ner en anteckning
+- Följer samma synk-konvention som allt annat: pull `master` innan, pusha ändringen dit direkt efteråt
+
 ## Tools
 
 Skills provide your tools. When you need one, check its `SKILL.md`. Keep local notes (camera names, SSH details, voice preferences) in `TOOLS.md`.
