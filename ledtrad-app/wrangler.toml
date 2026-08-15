@@ -1,0 +1,21 @@
+name = "ledtrad"
+main = "src/worker.js"
+compatibility_date = "2025-01-01"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+[triggers]
+crons = ["* * * * *"]
+
+[[kv_namespaces]]
+binding = "LEDTRAD_KV"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+
+[vars]
+VAPID_SUBJECT = "mailto:hej@example.com"
+VAPID_PUBLIC_KEY = "BOVaHQGi_u7i1QzkFUXbplbsS2peEiaUzjQyzJd9kVsj_3Z0O17gP1td7Gwntf_9BPl5xqY8k3OxSDJ1n1Gqq5I"
+# VAPID_PRIVATE_KEY is NOT set here on purpose - it's a secret.
+# Set it once in the Cloudflare dashboard (Settings -> Variables and Secrets)
+# or via `wrangler secret put VAPID_PRIVATE_KEY`. See README.md.
