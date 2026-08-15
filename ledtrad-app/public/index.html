@@ -183,6 +183,13 @@ button:focus-visible, [tabindex]:focus-visible, input:focus-visible, select:focu
 .insightcard b { font-family:'Fredoka'; }
 .insightcard .ratio { font-family:'IBM Plex Mono'; font-size:0.78rem; opacity:0.85; }
 
+.statusbadge { border-radius:999px; padding:5px 12px; font-size:0.76rem; font-weight:700; white-space:nowrap; flex-shrink:0; }
+.statusbadge-leaf { background:var(--leaf-soft); color:var(--leaf-ink); }
+.statusbadge-coral { background:var(--coral-soft); color:var(--coral-ink); }
+.statusbadge-marigold { background:var(--marigold-soft); color:var(--marigold-ink); }
+.statusbadge-sky { background:var(--sky-soft); color:var(--sky-ink); }
+.statusbadge-ink-soft { background:var(--line); color:var(--ink-soft); }
+
 .disclaimer { font-size:0.78rem; color:var(--ink-soft); line-height:1.5; padding:12px 14px; background:var(--paper-raised);
   border:1px dashed var(--line-strong); border-radius:var(--radius-sm); }
 
@@ -318,6 +325,28 @@ var DIET_CATALOG = [
 ];
 function dietDef(key){ return DIET_CATALOG.filter(function(d){return d.key===key;})[0] || {key:key,label:key,desc:"",weeks:3}; }
 
+var SAFE_MENU = [
+  {label:"Kokt vitt ris", icon:"🍚"}, {label:"Kokt potatis", icon:"🥔"}, {label:"Zucchini", icon:"🥒"},
+  {label:"Skalad gurka", icon:"🥒"}, {label:"Väl kokt broccoli", icon:"🥦"}, {label:"Färsk kyckling", icon:"🍗"},
+  {label:"Färsk vit fisk", icon:"🐟"}, {label:"Olivolja", icon:"🫒"}, {label:"Grön/fast banan", icon:"🍌"}, {label:"Blåbär", icon:"🫐"}
+];
+var ITEM_STATUSES = {
+  untested:{label:"Otestat", color:"ink-soft"}, tolerated:{label:"Tolererat", color:"leaf"},
+  possible:{label:"Möjligt samband", color:"marigold"}, repeated:{label:"Upprepat samband", color:"coral"},
+  inconclusive:{label:"Inkonklusivt", color:"sky"}, no_home_test:{label:"Ska inte testas hemma", color:"coral"},
+  confirmed:{label:"Medicinskt bekräftad", color:"coral"}
+};
+var MILESTONES = [
+  {key:"baseline3", icon:"🐱", title:"3 dagars baslinje!", msg:"Du har gett oss precis det vi behöver för att börja. Bra jobbat.",
+    test:function(){ return baselineQualifyingDays()>=3; }},
+  {key:"first_tolerated", icon:"🎉", title:"Första trygga livsmedlet!", msg:"Du har hittat något som inte triggar dig. Det är på riktigt, och det är ditt.",
+    test:function(){ return Object.keys(state.protocol.itemStatuses).some(function(k){return state.protocol.itemStatuses[k].status==="tolerated";}); }},
+  {key:"elimination7", icon:"💪", title:"7 dagar eliminering!", msg:"En hel vecka. Kroppen har fått verklig återhämtningstid.",
+    test:function(){ return state.protocol.elimination && daysBetween(state.protocol.elimination.startDate, todayStr())>=7; }},
+  {key:"three_tolerated", icon:"🌸", title:"3 trygga livsmedel!", msg:"Din trygga lista växer. Varje sak du lägger till är riktig, uppmätt av dig själv.",
+    test:function(){ return Object.keys(state.protocol.itemStatuses).filter(function(k){return state.protocol.itemStatuses[k].status==="tolerated";}).length>=3; }}
+];
+
 var TRACKER_DEFAULTS_BY_SYMPTOM = {
   "Uppsvullenhet":["uppsvullenhet"],
   "Trötthet":["energi"],
@@ -341,7 +370,7 @@ var MEAL_PRESETS = {
   lunch:["Sallad","Soppa","Pasta","Wrap","Lax","Kyckling"],
   mellanmal:["Nötter","Frukt","Choklad","Kex","Yoghurt"],
   middag:["Kött","Fisk","Gryta","Potatis","Pasta","Sallad"],
-  tillskott:["Magnesium","D-vitamin","Omega-3","Probiotika","B12","Järn"]
+  tillskott:["Magnesiumglycinat","D-vitamin","Omega-3","Probiotika","Metylkobalamin (B12)","Metylfolat","TMG","Zink","Ubiquinol","Betain-HCl + pepsin"]
 };
 var FOLLOWUP_OFFSETS = [30, 120];
 var TRIGGER_CATEGORIES = [
@@ -417,6 +446,11 @@ function defaultState(){
     lastMorningPromptDate:null,
     activeDiet:null,
     dietHistory:[],
+    protocol:{
+      phase:0, safetyAckAt:null, baselineStartDate:null,
+      elimination:null, eliminationHistory:[],
+      testing:null, itemStatuses:{}, celebrated:[]
+    },
     screen:"welcome"
   };
 }
@@ -472,6 +506,10 @@ function load(){
     if(s.lastMorningPromptDate===undefined) s.lastMorningPromptDate = null;
     if(s.activeDiet===undefined) s.activeDiet = null;
     if(!s.dietHistory) s.dietHistory = [];
+    if(!s.protocol) s.protocol = {phase:0, safetyAckAt:null, baselineStartDate:null, elimination:null, eliminationHistory:[], testing:null, itemStatuses:{}, celebrated:[]};
+    if(!s.protocol.itemStatuses) s.protocol.itemStatuses = {};
+    if(!s.protocol.eliminationHistory) s.protocol.eliminationHistory = [];
+    if(!s.protocol.celebrated) s.protocol.celebrated = [];
     return s;
   }catch(e){ return defaultState(); }
 }
@@ -480,7 +518,7 @@ function persist(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)
 function getDay(dateStr){ if(!state.days[dateStr]) state.days[dateStr]={checkins:[],meals:[],trackerLogs:[],sleep:null}; return state.days[dateStr]; }
 function dayHasActivity(e){ return e.meals.length>0 || e.checkins.length>0 || (e.trackerLogs&&e.trackerLogs.length>0) || e.sleep; }
 
-var draft = { meal:null, checkin:null, followup:null, sleep:null };
+var draft = { meal:null, checkin:null, followup:null, sleep:null, celebration:null };
 
 function toast(msg, ms){
   var t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
@@ -605,6 +643,42 @@ function insightsIfReady(){
   return insightReadyDayCount()>=INSIGHT_MIN_DAYS ? computeInsights() : [];
 }
 
+function baselineQualifyingDays(){
+  if(!state.protocol.baselineStartDate) return 0;
+  return Object.keys(state.days).filter(function(d){
+    return d >= state.protocol.baselineStartDate && dayHasActivity(state.days[d]);
+  }).length;
+}
+function setItemStatus(item, status, note){
+  var key = item.toLowerCase();
+  var prev = state.protocol.itemStatuses[key];
+  var finalStatus = (status==="possible" && prev && prev.status==="possible") ? "repeated" : status;
+  state.protocol.itemStatuses[key] = {status:finalStatus, note:note||"", lastDate:todayStr(), label:item};
+}
+function itemStatusList(){
+  return Object.keys(state.protocol.itemStatuses).map(function(k){ return state.protocol.itemStatuses[k]; })
+    .sort(function(a,b){ return b.lastDate.localeCompare(a.lastDate); });
+}
+function protocolTileSubtitle(){
+  var p = state.protocol;
+  if(p.phase===0) return "Starta din nollställning";
+  if(p.phase===1) return "Fas 1 · Baslinje · dag "+Math.max(1,baselineQualifyingDays());
+  if(p.phase===2) return p.elimination ? "Fas 2 · Eliminerar · dag "+(daysBetween(p.elimination.startDate,todayStr())+1) : "Fas 2 · Välj vad som elimineras";
+  if(p.phase===3) return "Fas 3 · Trygg meny";
+  if(p.phase===4) return p.testing ? "Fas 4 · Testar "+p.testing.item : "Fas 4 · Redo att testa tillbaka";
+  return "Fortsätt";
+}
+function checkMilestones(){
+  var newOnes = [];
+  MILESTONES.forEach(function(m){
+    if(state.protocol.celebrated.indexOf(m.key)<0 && m.test()){
+      state.protocol.celebrated.push(m.key);
+      newOnes.push(m);
+    }
+  });
+  if(newOnes.length>0){ persist(); draft.celebration = newOnes[0]; }
+}
+
 function planFocusList(){
   var freq={};
   (state.onboarding.symptoms||[]).forEach(function(sym){
@@ -649,7 +723,38 @@ var ROOSTER_SVG = '<svg viewBox="0 0 220 170" style="width:140px;height:auto;mar
   '<line x1="99" y1="150" x2="106" y2="165" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>' +
   '</svg>';
 
-function shouldShowMorningPrompt(){ return state.onboarding.done && state.screen==="home" && state.lastMorningPromptDate!==todayStr(); }
+var KITTEN_SVG = '<svg viewBox="0 0 200 200" style="width:130px;height:auto;margin:0 auto 4px;display:block;" aria-hidden="true">' +
+  '<ellipse cx="100" cy="150" rx="58" ry="42" fill="#F3C88F"/>' +
+  '<ellipse cx="62" cy="182" rx="14" ry="9" fill="#F3C88F"/>' +
+  '<ellipse cx="138" cy="182" rx="14" ry="9" fill="#F3C88F"/>' +
+  '<path d="M148 150 C178 140 182 110 165 100 C172 122 160 142 140 150 Z" fill="#F3C88F"/>' +
+  '<circle cx="100" cy="96" r="46" fill="#F6D6A4"/>' +
+  '<path d="M64 66 L54 30 L88 58 Z" fill="#F6D6A4"/>' +
+  '<path d="M136 66 L146 30 L112 58 Z" fill="#F6D6A4"/>' +
+  '<path d="M67 60 L60 40 L82 57 Z" fill="#F2A8A0"/>' +
+  '<path d="M133 60 L140 40 L118 57 Z" fill="#F2A8A0"/>' +
+  '<path d="M74 96 C78 90 86 90 90 96" fill="none" stroke="#3A2A1E" stroke-width="4" stroke-linecap="round"/>' +
+  '<path d="M110 96 C114 90 122 90 126 96" fill="none" stroke="#3A2A1E" stroke-width="4" stroke-linecap="round"/>' +
+  '<path d="M96 108 L104 108 L100 115 Z" fill="#E8837A"/>' +
+  '<path d="M100 115 C96 122 88 122 84 118" fill="none" stroke="#3A2A1E" stroke-width="3" stroke-linecap="round"/>' +
+  '<path d="M100 115 C104 122 112 122 116 118" fill="none" stroke="#3A2A1E" stroke-width="3" stroke-linecap="round"/>' +
+  '<line x1="46" y1="102" x2="20" y2="98" stroke="#3A2A1E" stroke-width="2" stroke-linecap="round"/>' +
+  '<line x1="46" y1="110" x2="20" y2="112" stroke="#3A2A1E" stroke-width="2" stroke-linecap="round"/>' +
+  '<line x1="154" y1="102" x2="180" y2="98" stroke="#3A2A1E" stroke-width="2" stroke-linecap="round"/>' +
+  '<line x1="154" y1="110" x2="180" y2="112" stroke="#3A2A1E" stroke-width="2" stroke-linecap="round"/>' +
+  '</svg>';
+
+function renderCelebrationOverlay(m){
+  return '<div class="morningOverlay"><div class="morningcard">' +
+    '<button class="morningclose" data-action="celebration-dismiss" aria-label="Stäng">×</button>' +
+    KITTEN_SVG +
+    '<div class="morningtitle">'+m.icon+' '+escapeHtml(m.title)+'</div>' +
+    '<p class="morningtext">'+escapeHtml(m.msg)+'</p>' +
+    '<button class="btn btn-primary" data-action="celebration-dismiss">Tack! 💛</button>' +
+  '</div></div>';
+}
+
+function shouldShowMorningPrompt(){ return state.onboarding.done && state.screen==="home" && state.lastMorningPromptDate!==todayStr() && !draft.celebration; }
 function renderMorningOverlay(){
   return '<div class="morningOverlay"><div class="morningcard">' +
     '<button class="morningclose" data-action="morning-dismiss" aria-label="Stäng">×</button>' +
@@ -762,6 +867,9 @@ function screenHome(){
     '<div class="bento">' +
       '<button class="tile tile-coral full" data-action="new-checkin">' +
         '<span class="tico">💗</span><span><span class="ttitle">Hur mår du just nu?</span><br><span class="tsub">Logga mående &amp; symtom</span></span>' +
+      '</button>' +
+      '<button class="tile tile-plum full" data-action="nav:protocol">' +
+        '<span class="tico">🧪</span><span><span class="ttitle">Nollställning</span><br><span class="tsub">'+protocolTileSubtitle()+'</span></span>' +
       '</button>' +
       '<button class="tile tile-marigold" data-action="new-meal">' +
         '<span class="tico">🍽️</span><span><span class="ttitle">Logga måltid</span><br><span class="tsub">Dags för '+mealLabel.toLowerCase()+'?</span></span>' +
@@ -984,45 +1092,134 @@ function screenSleep(){
   return html;
 }
 
-function screenDiet(){
+function itemStatusBadge(st){
+  var def = ITEM_STATUSES[st] || ITEM_STATUSES.untested;
+  return '<span class="statusbadge statusbadge-'+def.color+'">'+def.label+'</span>';
+}
+
+function renderItemStatusList(){
+  var list = itemStatusList();
+  if(list.length===0) return '';
+  var html = '<div class="sectionhead"><h3>Dina resultat hittills</h3></div><div class="stack" style="margin-bottom:20px;">';
+  list.forEach(function(it){
+    html += '<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">' +
+      '<div><b>'+escapeHtml(it.label)+'</b><div style="color:var(--ink-soft);font-size:0.78rem;margin-top:2px;">'+it.lastDate+'</div></div>' +
+      itemStatusBadge(it.status) + '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function screenProtocol(){
+  var p = state.protocol;
   var html = '<div class="shell">' +
-    '<div class="backrow"><button class="iconbtn" data-action="nav:home" aria-label="Tillbaka">←</button><h2 class="screentitle">Dietförsök</h2></div>' +
-    '<div class="datecap">&nbsp;</div>' +
-    '<div class="disclaimer" style="margin-bottom:18px;">Längre uteslutningsdieter (särskilt lågoxalat och lågt FODMAP) mår bäst av att göras med stöd av en dietist, så du inte missar viktig näring. Det här är ett sätt att strukturera ett tidsbegränsat test — ingen medicinsk rådgivning.</div>';
+    '<div class="backrow"><button class="iconbtn" data-action="nav:home" aria-label="Tillbaka">←</button><h2 class="screentitle">Nollställning</h2></div>' +
+    '<div class="datecap">&nbsp;</div>';
 
-  if(state.activeDiet){
-    var def = dietDef(state.activeDiet.key);
-    var dayNum = daysBetween(state.activeDiet.startDate, todayStr())+1;
-    var totalDays = def.weeks*7;
-    var pct2 = Math.min(100, Math.round(100*dayNum/totalDays));
-    html += '<div class="card" style="background:var(--plum-soft);border-color:var(--plum-line);color:var(--plum-ink);margin-bottom:20px;">' +
-      '<div class="field-label" style="margin-bottom:6px;">Pågående försök</div>' +
-      '<h3 style="font-size:1.2rem;margin-bottom:4px;">'+escapeHtml(def.label)+'</h3>' +
-      '<p style="margin-bottom:12px;">'+escapeHtml(def.desc)+'</p>' +
-      '<div style="height:8px;background:rgba(0,0,0,0.08);border-radius:999px;overflow:hidden;margin-bottom:8px;">' +
-        '<div style="height:100%;width:'+pct2+'%;background:var(--plum);"></div></div>' +
-      '<p class="mono" style="margin-bottom:14px;">Dag '+dayNum+' av ~'+totalDays+'</p>' +
-      '<button class="btn btn-ghost btn-block" data-action="end-diet">Avsluta försök</button>' +
-    '</div>';
+  if(p.phase===0) html += screenProtocolSafety();
+  else if(p.phase===1) html += screenProtocolBaseline();
+  else if(p.phase===2) html += screenProtocolElimination();
+  else if(p.phase===3) html += screenProtocolSafeMenu();
+  else if(p.phase===4) html += screenProtocolTesting();
+
+  if(p.phase>=2) html += renderItemStatusList();
+  html += '</div>';
+  return html;
+}
+
+function screenProtocolSafety(){
+  return '<div class="disclaimer" style="margin-bottom:18px;">' +
+    'Det här är ett självobservationsverktyg. Det diagnostiserar inte inflammation, histaminintolerans, försämrad metylering eller tarmpermeabilitet — det hjälper dig dokumentera möjliga tidsmässiga samband mellan mående och det du äter, tar och gör.</div>' +
+    '<div class="card" style="margin-bottom:18px;"><div class="field-label" style="margin-bottom:10px;">Innan du börjar</div><div class="stack">' +
+    '<p>🩺 Receptbelagda läkemedel justeras aldrig utan din läkare.</p>' +
+    '<p>🚫 Vid misstänkt omedelbar allergi (svullnad i mun/svalg, andningspåverkan) — testa aldrig hemma, sök vård.</p>' +
+    '<p>⚠️ Sök akut vård vid oavsiktlig viktnedgång, blod i avföring, svåra sväljsvårigheter, neurologiska bortfall eller hög feber.</p>' +
+    '<p>👩‍⚕️ Vid graviditet, ätstörningshistorik, undervikt eller kronisk sjukdom — gör det här tillsammans med vården, inte istället för.</p>' +
+    '</div></div>' +
+    '<button class="btn btn-primary" data-action="protocol-safety-ack">Jag förstår, starta baslinjen 🌱</button>';
+}
+
+function screenProtocolBaseline(){
+  var days = baselineQualifyingDays();
+  var ready = days>=3;
+  var pct = Math.min(100, Math.round(100*days/3));
+  var html = '<div class="card" style="margin-bottom:20px;">' +
+    '<div class="field-label" style="margin-bottom:10px;">Fas 1 · Baslinje</div>' +
+    '<p style="color:var(--ink-soft);margin-bottom:14px;">Ät och må som vanligt — logga bara. Det ger oss en sann utgångspunkt att jämföra mot senare, innan vi ändrar något alls.</p>' +
+    '<div style="height:8px;background:var(--line);border-radius:999px;overflow:hidden;margin-bottom:8px;">' +
+      '<div style="height:100%;width:'+pct+'%;background:var(--leaf);"></div></div>' +
+    '<p class="mono" style="margin-bottom:14px;">'+days+' av minst 3 dagar loggade</p>';
+  if(ready){
+    html += '<p style="color:var(--leaf-ink);font-weight:700;margin-bottom:12px;">🌱 Redo! Du kan fortsätta logga baslinjen längre om du vill — ju mer data, desto tydligare blir nästa steg.</p>' +
+      '<button class="btn btn-primary" data-action="protocol-to-elimination">Fortsätt till eliminering →</button>';
   } else {
-    html += '<div class="sectionhead"><h3>Välj ett försök att prova</h3></div><div class="stack" style="margin-bottom:20px;">';
-    DIET_CATALOG.forEach(function(d){
-      html += '<div class="card"><h3 style="font-size:1.05rem;margin-bottom:4px;">'+escapeHtml(d.label)+'</h3>' +
-        '<p style="color:var(--ink-soft);margin-bottom:12px;">'+escapeHtml(d.desc)+'</p>' +
-        '<button class="btn btn-ghost btn-block" data-action="start-diet" data-key="'+d.key+'">Starta ('+d.weeks+' veckor)</button></div>';
-    });
-    html += '</div>';
-  }
-
-  if((state.dietHistory||[]).length>0){
-    html += '<div class="sectionhead"><h3>Tidigare försök</h3></div><div class="stack">';
-    state.dietHistory.slice().reverse().forEach(function(h){
-      var d2 = dietDef(h.key);
-      html += '<div class="card"><b>'+escapeHtml(d2.label)+'</b><div style="color:var(--ink-soft);font-size:0.85rem;margin-top:2px;">'+h.startDate+' – '+h.endDate+'</div></div>';
-    });
-    html += '</div>';
+    html += '<p style="color:var(--ink-soft);">Logga måltider och hur du mår som vanligt de närmaste dagarna — resten låser upp sig själv.</p>';
   }
   html += '</div>';
+  return html;
+}
+
+function screenProtocolElimination(){
+  var el = state.protocol.elimination;
+  var html = '';
+  if(!el){
+    html += '<div class="card" style="margin-bottom:20px;"><div class="field-label" style="margin-bottom:10px;">Fas 2 · Eliminering</div>' +
+      '<p style="color:var(--ink-soft);margin-bottom:14px;">Välj EN misstänkt sak att ta bort just nu. Allt annat behåller du som vanligt, så blir resultatet tydligt att tolka.</p>' +
+      '<div class="chiprow" style="margin-bottom:12px;">';
+    DIET_CATALOG.forEach(function(d){
+      html += '<button class="chip" data-action="start-elimination" data-key="'+d.key+'">'+escapeHtml(d.label)+'</button>';
+    });
+    html += '</div><div class="addrow"><input type="text" id="customElimination" class="textinput" placeholder="eller skriv eget, t.ex. ägg">' +
+      '<button class="btn btn-ghost btn-sm" data-action="start-elimination-custom">Ta bort</button></div></div>';
+  } else {
+    var label = el.custom ? el.target : (dietDef(el.target).label);
+    var dayNum = daysBetween(el.startDate, todayStr())+1;
+    html += '<div class="card" style="background:var(--coral-soft);border-color:var(--coral-line);color:var(--coral-ink);margin-bottom:20px;">' +
+      '<div class="field-label" style="margin-bottom:6px;">Fas 2 · Eliminerar just nu</div>' +
+      '<h3 style="font-size:1.2rem;margin-bottom:8px;">'+escapeHtml(label)+'</h3>' +
+      '<p class="mono" style="margin-bottom:10px;">Dag '+dayNum+'</p>' +
+      '<p style="margin-bottom:16px;">Det är vanligt att märka skillnad efter 1–2 veckor. Fortsätt logga mående som vanligt.</p>' +
+      '<button class="btn btn-primary btn-block" data-action="protocol-to-safemenu" style="margin-bottom:8px;">Jag känner mig stabil nu →</button>' +
+      '<button class="btn btn-ghost btn-block" data-action="end-elimination">Avsluta / byt eliminering</button>' +
+    '</div>';
+  }
+  return html;
+}
+
+function screenProtocolSafeMenu(){
+  var html = '<div class="card" style="margin-bottom:20px;"><div class="field-label" style="margin-bottom:10px;">Fas 3 · Trygg meny</div>' +
+    '<p style="color:var(--ink-soft);margin-bottom:14px;">Här är några förslag som många tål bra — en startpunkt, inte ett facit. Använd som inspiration medan du är stabil.</p>' +
+    '<div class="chiprow" style="margin-bottom:16px;">';
+  SAFE_MENU.forEach(function(f){ html += '<span class="chip">'+f.icon+' '+escapeHtml(f.label)+'</span>'; });
+  html += '</div><button class="btn btn-primary btn-block" data-action="protocol-to-testing">Redo att testa tillbaka något →</button></div>';
+  return html;
+}
+
+function screenProtocolTesting(){
+  var t = state.protocol.testing;
+  var html = '';
+  if(!t){
+    html += '<div class="card" style="margin-bottom:20px;"><div class="field-label" style="margin-bottom:10px;">Fas 4 · Återintroduktion</div>' +
+      '<p style="color:var(--ink-soft);margin-bottom:14px;">Testa tillbaka en sak i taget. Vänta minst 72 timmar innan du testar nästa — fördröjda reaktioner kan komma efter 1–3 dygn.</p>' +
+      '<div class="addrow"><input type="text" id="testingItem" class="textinput" placeholder="vad vill du testa?">' +
+      '<button class="btn btn-primary btn-sm" data-action="start-testing">Starta test</button></div></div>';
+  } else {
+    var dueMs = new Date(t.dueAt).getTime() - Date.now();
+    var hoursLeft = Math.max(0, Math.ceil(dueMs/3600000));
+    html += '<div class="card" style="background:var(--sky-soft);border-color:var(--sky-line);color:var(--sky-ink);margin-bottom:20px;">' +
+      '<div class="field-label" style="margin-bottom:6px;">Fas 4 · Testar nu</div>' +
+      '<h3 style="font-size:1.2rem;margin-bottom:8px;">'+escapeHtml(t.item)+'</h3>';
+    if(hoursLeft>0){
+      html += '<p class="mono" style="margin-bottom:14px;">'+hoursLeft+' timmar kvar av 72-timmarsfönstret</p>' +
+        '<p style="margin-bottom:16px;">Logga hur du mår som vanligt. Vänta med resultatet tills fönstret är slut, eller svara nu om du redan vet.</p>';
+    } else {
+      html += '<p style="margin-bottom:16px;">72-timmarsfönstret är slut. Hur gick det?</p>';
+    }
+    html += '<div class="row" style="gap:10px;">' +
+      '<button class="btn btn-primary" style="flex:1;" data-action="testing-result" data-key="ok">Inga reaktioner</button>' +
+      '<button class="btn btn-ghost" style="flex:1;border-color:var(--coral-line);color:var(--coral-ink);" data-action="testing-result" data-key="reacted">Reagerade</button>' +
+      '</div></div>';
+  }
   return html;
 }
 
@@ -1057,9 +1254,9 @@ function screenInsights(){
   var readyDays = insightReadyDayCount();
   var html = '<div class="shell">' +
     '<div class="backrow"><button class="iconbtn" data-action="nav:home" aria-label="Tillbaka">←</button><h2 class="screentitle">Insikter</h2></div>';
-  if(state.activeDiet){
-    var dd = dietDef(state.activeDiet.key);
-    html += '<div class="datecap">Pågående försök: '+escapeHtml(dd.label)+', dag '+(daysBetween(state.activeDiet.startDate, todayStr())+1)+'</div>';
+  if(state.protocol.elimination){
+    var dd = state.protocol.elimination.custom ? state.protocol.elimination.target : dietDef(state.protocol.elimination.target).label;
+    html += '<div class="datecap">Eliminerar just nu: '+escapeHtml(dd)+', dag '+(daysBetween(state.protocol.elimination.startDate, todayStr())+1)+'</div>';
   } else {
     html += '<div class="datecap">&nbsp;</div>';
   }
@@ -1074,7 +1271,9 @@ function screenInsights(){
   } else {
     html += '<div class="stack" style="margin-bottom:18px;">';
     insights.forEach(function(row){
-      html += '<div class="insightcard"><b>'+escapeHtml(cap(row.trig))+'</b> har förekommit vid <span class="ratio">'+row.count+' av '+row.total+'</span> tillfällen med <b>'+escapeHtml(row.symptom.toLowerCase())+'</b>.</div>';
+      var strength = (row.count>=4 || row.ratio>=0.8) ? "Upprepat tidsmässigt samband" : (row.count>=3 ? "Möjligt tidsmässigt samband" : "Svagt tidsmässigt samband");
+      html += '<div class="insightcard"><div style="font-weight:700;margin-bottom:4px;">'+strength+'</div>' +
+        '<b>'+escapeHtml(cap(row.trig))+'</b> har förekommit vid <span class="ratio">'+row.count+' av '+row.total+'</span> tillfällen med <b>'+escapeHtml(row.symptom.toLowerCase())+'</b>. Dagboken kan inte avgöra mekanismen bakom.</div>';
     });
     html += '</div><div class="disclaimer">Det här är mönster i din egen logg, inte en diagnos. Ta gärna med det som underlag till ett vårdbesök.</div>';
   }
@@ -1096,7 +1295,7 @@ function screenPlanView(){
   }
   html += '<div class="stack" style="margin-top:20px;">' +
     '<button class="btn btn-ghost btn-block" data-action="edit-plan">Uppdatera min plan</button>' +
-    '<button class="btn btn-ghost btn-block" data-action="nav:diet">🧪 Prova ett dietförsök</button>' +
+    '<button class="btn btn-ghost btn-block" data-action="nav:protocol">🧪 Nollställningsprotokoll</button>' +
     '</div></div>';
   return html;
 }
@@ -1175,13 +1374,14 @@ function render(){
   else if(s==="log-checkin") html = screenLogCheckin();
   else if(s==="trackers") html = screenTrackers();
   else if(s==="sleep") html = screenSleep();
-  else if(s==="diet") html = screenDiet();
+  else if(s==="protocol") html = screenProtocol();
   else if(s==="followup") html = screenFollowup();
   else if(s==="insights") html = screenInsights();
   else if(s==="plan-view") html = screenPlanView();
   else if(s==="settings") html = screenSettings();
   else if(s==="paywall") html = screenPaywall();
   else html = screenHome();
+  if(draft.celebration) html += renderCelebrationOverlay(draft.celebration);
   app.innerHTML = html;
 }
 
@@ -1231,6 +1431,10 @@ document.getElementById("app").addEventListener("click", function(e){
   if(action==="new-checkin"){
     draft.checkin = {moods:[], tags:[], severity:null};
     nav("log-checkin"); return;
+  }
+  if(action==="celebration-dismiss"){
+    draft.celebration = null;
+    render(); return;
   }
   if(action==="morning-dismiss"){
     state.lastMorningPromptDate = todayStr();
@@ -1286,7 +1490,7 @@ document.getElementById("app").addEventListener("click", function(e){
     day6.meals.push({id:mealId, type:draft.meal.type, time:time, items:draft.meal.items.slice(), followups:followups});
     followups.forEach(function(f){ scheduleServerPush(f, draft.meal.type, draft.meal.items); });
     draft.meal = null;
-    persist(); nav("home");
+    checkMilestones(); persist(); nav("home");
     var followupTimes = followups.map(function(f){ return isoToClock(f.dueAt); }).join(" och ");
     toast("Måltid sparad ✓ Uppföljning kl "+followupTimes, 3400);
     return;
@@ -1331,7 +1535,7 @@ document.getElementById("app").addEventListener("click", function(e){
     day3.checkins.push({id:uid(), time:nowTime(), moods:d2.moods.slice(), tags:d2.tags.slice(), severity:d2.severity, note:note,
       linkedMealId:null, offsetMin:null});
     draft.checkin = null;
-    persist(); nav("home"); toast("Sparat ✓"); return;
+    checkMilestones(); persist(); nav("home"); toast("Sparat ✓"); return;
   }
   if(action==="delete-checkin"){
     var day4 = getDay(todayStr());
@@ -1343,7 +1547,7 @@ document.getElementById("app").addEventListener("click", function(e){
     var val = parseInt(el.getAttribute("data-value"),10);
     var day7 = getDay(todayStr());
     day7.trackerLogs.push({id:uid(), key:key, value:val, time:nowTime()});
-    persist(); render(); toast(trackerDef(key).label+": "+val+"/5 sparat ✓"); return;
+    checkMilestones(); persist(); render(); toast(trackerDef(key).label+": "+val+"/5 sparat ✓"); return;
   }
   if(action==="delete-tracker"){
     var day8 = getDay(todayStr());
@@ -1376,7 +1580,7 @@ document.getElementById("app").addEventListener("click", function(e){
     var day9 = getDay(todayStr());
     day9.sleep = {hours: hoursVal?parseFloat(hoursVal):null, quality: draft.sleep.quality, time: nowTime()};
     draft.sleep = null;
-    persist(); nav("home"); toast("Sömn sparad ✓"); return;
+    checkMilestones(); persist(); nav("home"); toast("Sömn sparad ✓"); return;
   }
 
   if(action==="open-followup"){
@@ -1397,16 +1601,62 @@ document.getElementById("app").addEventListener("click", function(e){
   if(action==="save-followup"){ commitFollowup(false); return; }
   if(action==="skip-followup"){ e.preventDefault(); commitFollowup(true); return; }
 
-  if(action==="start-diet"){
-    state.activeDiet = {key:key, startDate:todayStr()};
-    persist(); render(); toast(dietDef(key).label+" startat 🧪"); return;
+  if(action==="protocol-safety-ack"){
+    state.protocol.safetyAckAt = todayStr();
+    state.protocol.phase = 1;
+    state.protocol.baselineStartDate = todayStr();
+    persist(); render(); toast("Baslinjen har börjat 🌱"); return;
   }
-  if(action==="end-diet"){
-    if(state.activeDiet){
-      state.dietHistory.push({key:state.activeDiet.key, startDate:state.activeDiet.startDate, endDate:todayStr()});
-      state.activeDiet = null;
+  if(action==="protocol-to-elimination"){
+    checkMilestones();
+    state.protocol.phase = 2;
+    persist(); render(); return;
+  }
+  if(action==="start-elimination"){
+    state.protocol.elimination = {target:key, custom:false, startDate:todayStr()};
+    persist(); render(); toast(dietDef(key).label+" borttaget 🧪"); return;
+  }
+  if(action==="start-elimination-custom"){
+    var elInput = document.getElementById("customElimination");
+    var elVal = elInput.value.trim();
+    if(!elVal) return;
+    state.protocol.elimination = {target:elVal, custom:true, startDate:todayStr()};
+    persist(); render(); toast(elVal+" borttaget 🧪"); return;
+  }
+  if(action==="end-elimination"){
+    var elim = state.protocol.elimination;
+    if(elim){
+      state.protocol.eliminationHistory.push({target:elim.target, custom:elim.custom, startDate:elim.startDate, endDate:todayStr()});
+      state.protocol.elimination = null;
     }
-    persist(); render(); toast("Försök avslutat"); return;
+    persist(); render(); return;
+  }
+  if(action==="protocol-to-safemenu"){
+    checkMilestones();
+    state.protocol.phase = 3;
+    persist(); render(); return;
+  }
+  if(action==="protocol-to-testing"){
+    state.protocol.phase = 4;
+    persist(); render(); return;
+  }
+  if(action==="start-testing"){
+    var tiInput = document.getElementById("testingItem");
+    var tiVal = tiInput.value.trim();
+    if(!tiVal) return;
+    state.protocol.testing = {item:tiVal, startDate:todayStr(), dueAt:addMinutesISO(todayStr(), nowTime(), 72*60)};
+    persist(); render(); toast("Test startat — vänta minst 72 tim innan nästa"); return;
+  }
+  if(action==="testing-result"){
+    var t = state.protocol.testing;
+    if(t){
+      setItemStatus(t.item, key==="reacted" ? "possible" : "tolerated");
+      state.protocol.testing = null;
+      checkMilestones();
+    }
+    persist(); render();
+    toast(key==="reacted" ? "Noterat — vila i bas-zonen 48–72 tim innan nästa test" : "Bra! Tillagt i din trygga lista ✓");
+    return;
   }
 
   if(action==="enable-notifications"){ enableNotifications().then(function(){ render(); }); return; }
@@ -1493,11 +1743,17 @@ function buildReportText(){
   lines.push("");
   var focus = planFocusList();
   if(focus.length>0){ lines.push("Fokusområden: " + focus.join(", ")); lines.push(""); }
-  if(state.activeDiet){
-    var dd2 = dietDef(state.activeDiet.key);
-    lines.push("Pågående dietförsök: " + dd2.label + " (sedan " + state.activeDiet.startDate + ")");
-    lines.push("");
+  lines.push("Nollställningsprotokoll: Fas " + state.protocol.phase);
+  if(state.protocol.elimination){
+    var dd2 = state.protocol.elimination.custom ? state.protocol.elimination.target : dietDef(state.protocol.elimination.target).label;
+    lines.push("Eliminerar just nu: " + dd2 + " (sedan " + state.protocol.elimination.startDate + ")");
   }
+  var statusList = itemStatusList();
+  if(statusList.length>0){
+    lines.push("Testresultat:");
+    statusList.forEach(function(it){ lines.push("- " + it.label + ": " + (ITEM_STATUSES[it.status]||{label:it.status}).label + " (" + it.lastDate + ")"); });
+  }
+  lines.push("");
   var insights = insightsIfReady();
   if(insights.length>0){
     lines.push("MÖNSTER I LOGGEN (ej diagnos):");
