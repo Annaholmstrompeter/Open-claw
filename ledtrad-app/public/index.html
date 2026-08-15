@@ -124,17 +124,41 @@ button:focus-visible, [tabindex]:focus-visible, input:focus-visible, select:focu
 .stack { display:flex; flex-direction:column; gap:14px; }
 .row { display:flex; align-items:center; justify-content:space-between; gap:10px; }
 
+.journeystrip { display:flex; align-items:flex-start; }
+.journeystep { display:flex; flex-direction:column; align-items:center; gap:8px; width:64px; flex-shrink:0; }
+.journeydot { width:44px; height:44px; border-radius:50%; background:var(--paper-raised); border:1.5px solid var(--line-strong);
+  display:flex; align-items:center; justify-content:center; font-size:1.2rem; box-shadow:var(--shadow-sm); }
+.journeylabel { font-size:0.68rem; font-weight:700; color:var(--ink-soft); text-align:center; line-height:1.25; }
+.journeyline { flex:1; height:1.5px; background:var(--line-strong); margin-top:22px; }
+
 /* onboarding */
 .ob-progress { display:flex; gap:6px; margin-bottom:20px; }
 .ob-progress i { flex:1; height:4px; border-radius:4px; background:var(--line); display:block; }
 .ob-progress i.done { background:var(--ink); }
-.ob-hero { width:64px; height:64px; border-radius:20px; display:flex; align-items:center; justify-content:center; font-size:30px; margin-bottom:18px; }
 
 /* home */
 .greetrow { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px; }
 .trialchip { background:var(--leaf-soft); color:var(--leaf-ink); border:1px solid var(--leaf-line); border-radius:999px;
   padding:6px 12px; font-size:0.78rem; font-weight:700; font-family:'Manrope'; white-space:nowrap; }
 .trialchip.premium { background:var(--plum-soft); color:var(--plum-ink); border-color:var(--plum-line); }
+
+.herocard { background:#5B3A8C; color:#FFFFFF; border-radius:var(--radius-lg); padding:20px; margin-bottom:16px;
+  box-shadow:var(--shadow-card); display:block; width:100%; text-align:left; border:none; }
+.herocard .eyebrow { color:rgba(255,255,255,0.72); }
+.herocard .herotitle { font-family:'Fredoka'; font-weight:600; font-size:1.35rem; margin:8px 0 6px; }
+.herocard .herotext { color:rgba(255,255,255,0.88); font-size:0.92rem; margin-bottom:16px; line-height:1.5; }
+.herocard .herobar { height:7px; background:rgba(255,255,255,0.2); border-radius:999px; overflow:hidden; margin-bottom:14px; }
+.herocard .herobar div { height:100%; background:#fff; }
+.herocard .btn-primary { background:#FFFFFF; color:#5B3A8C; }
+
+.miniheader { display:flex; align-items:center; justify-content:space-between; margin:22px 0 10px; }
+.miniheader h3 { font-size:0.95rem; color:var(--ink-soft); font-weight:700; text-transform:uppercase; letter-spacing:0.04em; }
+.toolgrid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:8px; }
+.tooltile { border-radius:var(--radius-md); padding:13px; text-align:left; border:1px solid var(--line); background:var(--paper-raised);
+  box-shadow:var(--shadow-sm); display:flex; align-items:center; gap:10px; position:relative; }
+.tooltile .tico { font-size:1.15rem; }
+.tooltile .ttitle { font-family:'Manrope'; font-weight:700; font-size:0.85rem; color:var(--ink); }
+.tooltile .tile-badge { top:8px; right:8px; }
 
 .banner { display:flex; align-items:center; gap:12px; background:var(--marigold-soft); border:1.5px solid var(--marigold-line);
   color:var(--marigold-ink); border-radius:var(--radius-md); padding:13px 15px; margin-bottom:16px; text-align:left; width:100%; }
@@ -659,14 +683,39 @@ function itemStatusList(){
   return Object.keys(state.protocol.itemStatuses).map(function(k){ return state.protocol.itemStatuses[k]; })
     .sort(function(a,b){ return b.lastDate.localeCompare(a.lastDate); });
 }
-function protocolTileSubtitle(){
+var PROTOCOL_PHASE_NAMES = {1:"Baslinje", 2:"Eliminering", 3:"Trygg meny", 4:"Återintroduktion"};
+
+function protocolHeroCard(){
   var p = state.protocol;
-  if(p.phase===0) return "Starta din nollställning";
-  if(p.phase===1) return "Fas 1 · Baslinje · dag "+Math.max(1,baselineQualifyingDays());
-  if(p.phase===2) return p.elimination ? "Fas 2 · Eliminerar · dag "+(daysBetween(p.elimination.startDate,todayStr())+1) : "Fas 2 · Välj vad som elimineras";
-  if(p.phase===3) return "Fas 3 · Trygg meny";
-  if(p.phase===4) return p.testing ? "Fas 4 · Testar "+p.testing.item : "Fas 4 · Redo att testa tillbaka";
-  return "Fortsätt";
+  var html = '<button class="herocard" data-action="nav:protocol">' +
+    '<div class="eyebrow">🧪 NOLLSTÄLLNINGSPROTOKOLL</div>';
+
+  if(p.phase===0){
+    html += '<div class="herotitle">Starta din nollställning</div>' +
+      '<p class="herotext">En skonsam process, steg för steg, för att hitta vad som faktiskt triggar dig. Ingen diagnos — din egen uppmätta sanning.</p>' +
+      '<span class="btn btn-primary btn-block">Kom igång →</span>';
+  } else {
+    var sub = "";
+    if(p.phase===1){
+      var days = baselineQualifyingDays();
+      var pct = Math.min(100, Math.round(100*days/3));
+      html += '<div class="herotitle">Fas 1 · Baslinje</div>' +
+        '<div class="herobar"><div style="width:'+pct+'%;"></div></div>' +
+        '<p class="herotext">'+Math.max(1,days)+' av minst 3 dagar loggade. Ät och må som vanligt tills nästa steg låses upp.</p>';
+    } else if(p.phase===2){
+      sub = p.elimination ? "Dag "+(daysBetween(p.elimination.startDate,todayStr())+1)+" utan "+escapeHtml(p.elimination.custom?p.elimination.target:dietDef(p.elimination.target).label)
+        : "Dags att välja vad som ska bort — en sak i taget.";
+      html += '<div class="herotitle">Fas 2 · Eliminering</div><p class="herotext">'+sub+'</p>';
+    } else if(p.phase===3){
+      html += '<div class="herotitle">Fas 3 · Trygg meny</div><p class="herotext">Redo att testa tillbaka när du känner dig stabil.</p>';
+    } else if(p.phase===4){
+      sub = p.testing ? "Testar just nu: "+escapeHtml(p.testing.item) : "Välj nästa sak att testa tillbaka.";
+      html += '<div class="herotitle">Fas 4 · Återintroduktion</div><p class="herotext">'+sub+'</p>';
+    }
+    html += '<span class="btn btn-primary btn-block">Fortsätt →</span>';
+  }
+  html += '</button>';
+  return html;
 }
 function checkMilestones(){
   var newOnes = [];
@@ -768,13 +817,26 @@ function renderMorningOverlay(){
 /* ---------- screens ---------- */
 
 function screenWelcome(){
+  var steps = [
+    {icon:"🌱", label:"Logga baslinje"},
+    {icon:"🧪", label:"Nollställ en sak"},
+    {icon:"🔍", label:"Testa tillbaka"},
+    {icon:"✨", label:"Se mönstret"}
+  ];
+  var stripHtml = '<div class="journeystrip">';
+  steps.forEach(function(s, i){
+    stripHtml += '<div class="journeystep"><div class="journeydot">'+s.icon+'</div><div class="journeylabel">'+s.label+'</div></div>';
+    if(i<steps.length-1) stripHtml += '<div class="journeyline"></div>';
+  });
+  stripHtml += '</div>';
+
   return '' +
   '<div class="shell">' +
-    '<div class="ob-hero" style="background:var(--coral-soft);color:var(--coral-ink);">🔎</div>' +
-    '<div class="eyebrow">MAT · MÅENDE · MÖNSTER</div>' +
-    '<h1 style="font-size:2rem;margin:10px 0 14px;">Redo att hitta dina ledtrådar?</h1>' +
-    '<p style="color:var(--ink-soft);font-size:1rem;margin-bottom:26px;">Ledtråd hjälper dig se kopplingar mellan det du äter och hur du mår — så du slutar gissa och börjar förstå din kropp.</p>' +
-    '<button class="btn btn-primary" data-action="nav:goals">Kom igång →</button>' +
+    '<div class="eyebrow">NÄR PROVERNA SER BRA UT — MEN DU INTE GÖR DET</div>' +
+    '<h1 style="font-size:1.9rem;margin:10px 0 14px;">Din kropp vet något provsvaren missar.</h1>' +
+    '<p style="color:var(--ink-soft);font-size:1rem;margin-bottom:22px;">Ledtråd guidar dig genom en skonsam nollställning, steg för steg — så du hittar vilken mat, vilka vanor och tillskott som faktiskt triggar dig. Ingen diagnos. Din egen, uppmätta sanning.</p>' +
+    stripHtml +
+    '<button class="btn btn-primary" data-action="nav:goals" style="margin-top:24px;">Kom igång →</button>' +
     '<p style="text-align:center;color:var(--ink-soft);font-size:0.8rem;margin-top:12px;">Tar under 2 minuter</p>' +
   '</div>';
 }
@@ -860,33 +922,27 @@ function screenHome(){
     '</button>';
   }
 
+  html += protocolHeroCard();
+
   html += '<div class="statrow">' +
       '<div class="statbox"><b class="mono">'+computeStreak()+'</b><span>dagars svit</span></div>' +
       '<div class="statbox"><b class="mono">'+totalDaysLogged()+'</b><span>dagar loggade totalt</span></div>' +
     '</div>' +
     '<div class="bento">' +
-      '<button class="tile tile-coral full" data-action="new-checkin">' +
-        '<span class="tico">💗</span><span><span class="ttitle">Hur mår du just nu?</span><br><span class="tsub">Logga mående &amp; symtom</span></span>' +
-      '</button>' +
-      '<button class="tile tile-plum full" data-action="nav:protocol">' +
-        '<span class="tico">🧪</span><span><span class="ttitle">Nollställning</span><br><span class="tsub">'+protocolTileSubtitle()+'</span></span>' +
+      '<button class="tile tile-coral" data-action="new-checkin">' +
+        '<span class="tico">💗</span><span><span class="ttitle">Hur mår du?</span><br><span class="tsub">Mående &amp; symtom</span></span>' +
       '</button>' +
       '<button class="tile tile-marigold" data-action="new-meal">' +
         '<span class="tico">🍽️</span><span><span class="ttitle">Logga måltid</span><br><span class="tsub">Dags för '+mealLabel.toLowerCase()+'?</span></span>' +
       '</button>' +
-      '<button class="tile tile-plum" data-action="nav:trackers">' +
-        '<span class="tico">📊</span><span><span class="ttitle">Mina mätare</span><br><span class="tsub">Energi, lugn, mm — 1–5</span></span>' +
-      '</button>' +
-      '<button class="tile tile-leaf" data-action="nav:sleep">' +
-        '<span class="tico">😴</span><span><span class="ttitle">Sömn</span><br><span class="tsub">Timmar &amp; kvalitet</span></span>' +
-      '</button>' +
-      '<button class="tile tile-sky" data-action="nav:insights">' +
-        (insights.length>0?'<span class="tile-badge mono">'+insights.length+'</span>':'') +
-        '<span class="tico">✨</span><span><span class="ttitle">Insikter</span><br><span class="tsub">'+(insights.length>0?"mönster hittade":"fortsätt logga")+'</span></span>' +
-      '</button>' +
-      '<button class="tile tile-leaf full" data-action="nav:plan-view">' +
-        '<span class="tico">🌱</span><span><span class="ttitle">Din spårningsplan</span><br><span class="tsub">Se vad du valde att hålla koll på</span></span>' +
-      '</button>' +
+    '</div>' +
+    '<div class="miniheader"><h3>Fler verktyg</h3></div>' +
+    '<div class="toolgrid">' +
+      '<button class="tooltile" data-action="nav:trackers"><span class="tico">📊</span><span class="ttitle">Mina mätare</span></button>' +
+      '<button class="tooltile" data-action="nav:sleep"><span class="tico">😴</span><span class="ttitle">Sömn</span></button>' +
+      '<button class="tooltile" data-action="nav:insights">' + (insights.length>0?'<span class="tile-badge mono">'+insights.length+'</span>':'') +
+        '<span class="tico">✨</span><span class="ttitle">Insikter</span></button>' +
+      '<button class="tooltile" data-action="nav:plan-view"><span class="tico">🌱</span><span class="ttitle">Spårningsplan</span></button>' +
     '</div>' +
     '<div class="sectionhead"><h3>Idag</h3><span class="eyebrow">'+formatDateLong(todayStr())+'</span></div>' +
     renderTodayTimeline(day) +
