@@ -1,6 +1,7 @@
-name = "ledtrad"
+name = "open-claw"
 main = "src/worker.js"
 compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
 
 [assets]
 directory = "./public"
@@ -11,7 +12,7 @@ crons = ["* * * * *"]
 
 [[kv_namespaces]]
 binding = "LEDTRAD_KV"
-id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+id = "5787af3a332a4af68caa3403757421a6"
 
 [vars]
 VAPID_SUBJECT = "mailto:hej@example.com"
