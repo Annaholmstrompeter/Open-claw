@@ -283,7 +283,10 @@ function enableNotifications(){
       return reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) })
         .then(function(sub){
           return fetch("/api/subscribe", { method:"POST", headers:{"content-type":"application/json"},
-            body: JSON.stringify({deviceId:DEVICE_ID, subscription: sub.toJSON()}) });
+            body: JSON.stringify({deviceId:DEVICE_ID, subscription: sub.toJSON()}) })
+            .then(function(res){
+              if(!res.ok) throw new Error("subscribe endpoint returned "+res.status);
+            });
         }).then(function(){
           notificationsEnabled = true;
           localStorage.setItem("ledtrad-notif-enabled","1");
@@ -291,7 +294,22 @@ function enableNotifications(){
           return true;
         });
     });
-  }).catch(function(){ toast("Kunde inte aktivera påminnelser"); return false; });
+  }).catch(function(){
+    notificationsEnabled = false;
+    localStorage.removeItem("ledtrad-notif-enabled");
+    toast("Kunde inte aktivera påminnelser — försök igen");
+    return false;
+  });
+}
+function testNotification(){
+  if(!notificationsEnabled){ toast("Aktivera påminnelser först"); return; }
+  fetch("/api/schedule", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({
+    deviceId: DEVICE_ID, id: "test-"+Date.now(), dueAt: new Date(Date.now()+15000).toISOString(),
+    title: "Ledtråd", body: "Testnotis — allt fungerar! 🎉", url: "/"
+  })}).then(function(res){
+    if(res.ok) toast("Testnotis skickad — dyker upp inom ~1 min");
+    else toast("Kunde inte schemalägga testnotis (serverfel)");
+  }).catch(function(){ toast("Kunde inte nå servern"); });
 }
 function scheduleServerPush(followup, mealTypeKey, mealItems){
   if(!notificationsEnabled) return;
@@ -1381,7 +1399,9 @@ function screenSettings(){
 
   html += '<div class="card"><div class="field-label" style="margin-bottom:10px;">Påminnelser på låst skärm</div>';
   if(notificationsEnabled){
-    html += '<p style="color:var(--ink-soft);">Aktiverat ✓ — 30 min och 2 tim efter varje loggad måltid får du en riktig notis, även med låst skärm eller stängd app.</p>';
+    html += '<p style="color:var(--ink-soft);margin-bottom:14px;">Aktiverat ✓ — 30 min och 2 tim efter varje loggad måltid får du en riktig notis, även med låst skärm eller stängd app.</p>' +
+      '<button class="btn btn-ghost btn-block" data-action="test-notification" style="margin-bottom:10px;">🔔 Skicka en testnotis nu</button>' +
+      '<button class="btn btn-ghost btn-block" data-action="enable-notifications">Aktivera igen</button>';
   } else {
     html += '<p style="color:var(--ink-soft);margin-bottom:14px;">Tryck nedan och tillåt notiser en gång. Därefter får du automatiskt en notis 30 min och 2 tim efter varje loggad måltid — även med låst skärm.</p>' +
       '<button class="btn btn-primary btn-block" data-action="enable-notifications">🔔 Aktivera påminnelser</button>';
@@ -1716,6 +1736,7 @@ document.getElementById("app").addEventListener("click", function(e){
   }
 
   if(action==="enable-notifications"){ enableNotifications().then(function(){ render(); }); return; }
+  if(action==="test-notification"){ testNotification(); return; }
 
   if(action==="export-report"){ exportReport(); return; }
   if(action==="reset-all"){
