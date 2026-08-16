@@ -439,7 +439,6 @@ var MEAL_PRESETS = {
   tillskott:["Magnesiumglycinat","D-vitamin","Omega-3","Probiotika","Metylkobalamin (B12)","Metylfolat","TMG","Zink","Ubiquinol","Betain-HCl + pepsin"]
 };
 var FOLLOWUP_OFFSETS = [30, 120];
-var FOLLOWUP_EXPIRY_MS = 60*60*1000;
 var TRIGGER_CATEGORIES = [
   {key:"mejeriprodukter", match:["mjölk","yoghurt","fil","ost","grädde","smör","kvarg","glass"]},
   {key:"gluten/vete", match:["bröd","pasta","pizza","bulle","kaka","vete","mjöl","couscous","knäckebröd","kex"]},
@@ -782,19 +781,53 @@ function planFocusList(){
 
 function getDueFollowups(){
   var now = new Date().toISOString();
-  var nowMs = Date.now();
   var out = [];
-  Object.keys(state.days).forEach(function(dateStr){
-    state.days[dateStr].meals.forEach(function(m){
-      (m.followups||[]).forEach(function(f){
-        if(f.done || f.dueAt>now) return;
-        if(nowMs - new Date(f.dueAt).getTime() > FOLLOWUP_EXPIRY_MS) return;
-        out.push({dateStr:dateStr, meal:m, followup:f});
-      });
-    });
+  var latest = latestMealEntry();
+  if(!latest) return out;
+  (latest.meal.followups||[]).forEach(function(f){
+    if(f.done || f.dueAt>now) return;
+    out.push({dateStr:latest.dateStr, meal:latest.meal, followup:f});
   });
   out.sort(function(a,b){ return a.followup.dueAt.localeCompare(b.followup.dueAt); });
   return out;
+}
+
+function mealEntries(){
+  var entries = [];
+  Object.keys(state.days).forEach(function(dateStr){
+    (state.days[dateStr].meals||[]).forEach(function(meal){
+      entries.push({dateStr:dateStr, meal:meal, at:dateTimeToISO(dateStr, meal.time||"12:00")});
+    });
+  });
+  entries.sort(function(a,b){ return a.at.localeCompare(b.at); });
+  return entries;
+}
+
+function latestMealEntry(){
+  var entries = mealEntries();
+  return entries.length ? entries[entries.length-1] : null;
+}
+
+function closeSupersededFollowups(latest){
+  mealEntries().forEach(function(entry){
+    if(latest && entry.dateStr===latest.dateStr && entry.meal.id===latest.meal.id) return;
+    (entry.meal.followups||[]).forEach(function(f){
+      if(f.done) return;
+      f.done = true;
+      f.closedByNextMeal = true;
+      unscheduleServerPush(f.id);
+    });
+  });
+}
+
+function openFinalFollowupBeforeNextMeal(){
+  var previousMeal = latestMealEntry();
+  closeSupersededFollowups(previousMeal);
+  var pendingPrevious = previousMeal ? (previousMeal.meal.followups||[]).filter(function(f){return !f.done;}) : [];
+  persist();
+  if(!pendingPrevious.length) return false;
+  openFollowup({dateStr:previousMeal.dateStr, meal:previousMeal.meal, followup:pendingPrevious[0]}, {finalBeforeNextMeal:true});
+  return true;
 }
 
 function nav(screen){ state.screen=screen; persist(); render(); window.scrollTo(0,0); }
@@ -1336,12 +1369,19 @@ function screenFollowup(){
   var fu = meal ? (meal.followups||[]).filter(function(f){return f.id===d.followupId;})[0] : null;
   if(!fu){ state.screen="home"; persist(); return screenHome(); }
   if(!draft.followup.tags) draft.followup.tags=[];
+  var finalBeforeNextMeal = !!draft.followup.finalBeforeNextMeal;
   var mealLabel = meal ? (MEAL_TYPES.filter(function(t){return t.key===meal.type;})[0]||{}).label : "måltiden";
   var itemsTxt = meal && meal.items.length ? " ("+meal.items.join(", ")+")" : "";
   var html = '<div class="shell">' +
-    '<div class="backrow"><button class="iconbtn" data-action="nav:home" aria-label="Tillbaka">←</button><h2 class="screentitle">Uppföljning</h2></div>' +
-    '<div class="datecap">'+offsetLabel(fu.offsetMin)+' efter '+mealLabel.toLowerCase()+itemsTxt+'</div>' +
-    '<div class="stack">' +
+    '<div class="backrow"><button class="iconbtn" data-action="nav:home" aria-label="Tillbaka">←</button><h2 class="screentitle">'+(finalBeforeNextMeal?'Sista chansen':'Uppföljning')+'</h2></div>' +
+    '<div class="datecap">'+(finalBeforeNextMeal?'Innan nästa måltid · ':offsetLabel(fu.offsetMin)+' efter ')+mealLabel.toLowerCase()+itemsTxt+'</div>' +
+    '<div class="stack">';
+  if(finalBeforeNextMeal){
+    html += '<div class="card" style="background:var(--marigold-soft);border-color:var(--marigold-line);">' +
+      '<b>Hur kändes det efter den förra måltiden?</b>' +
+      '<p style="color:var(--ink-soft);margin-top:6px;">Det här är sista tillfället att checka in. När du går vidare stängs den måltiden och fokus flyttas till den nya.</p></div>';
+  }
+  html +=
     '<div><span class="field-label">Några symtom just nu?</span><div class="chiprow">';
   SYMPTOMS.forEach(function(s){
     var active = draft.followup.tags.indexOf(s)>-1;
@@ -1349,8 +1389,8 @@ function screenFollowup(){
   });
   html += '<button class="chip'+(draft.followup.none?' active':'')+'" data-action="toggle-followup-none">Inga symptom</button>' +
     '</div></div>';
-  html += '<button class="btn btn-primary" data-action="save-followup">Spara incheckning</button>' +
-    '<a class="skiplink" href="#" data-action="skip-followup">Hoppa över den här uppföljningen</a>' +
+  html += '<button class="btn btn-primary" data-action="save-followup">'+(finalBeforeNextMeal?'Spara och logga nästa måltid':'Spara incheckning')+'</button>' +
+    '<a class="skiplink" href="#" data-action="skip-followup">'+(finalBeforeNextMeal?'Hoppa över och gå vidare':'Hoppa över den här uppföljningen')+'</a>' +
     '</div></div>';
   return html;
 }
@@ -1533,7 +1573,8 @@ document.getElementById("app").addEventListener("click", function(e){
 
   if(action==="new-meal"){
     draft.meal = {type: suggestedMealType(), items: [], time: nowTime(), editingId:null};
-    nav("log-meal"); return;
+    if(!openFinalFollowupBeforeNextMeal()) nav("log-meal");
+    return;
   }
   if(action==="new-checkin"){
     draft.checkin = {moods:[], tags:[], severity:null};
@@ -1583,6 +1624,8 @@ document.getElementById("app").addEventListener("click", function(e){
     var customInput = document.getElementById("mealCustomItem");
     if(customInput && customInput.value.trim()) addItemsToDraftMeal(customInput.value);
     if(draft.meal.items.length===0){ toast("Lägg till minst något"); return; }
+    draft.meal.time = time;
+    if(!draft.meal.editingId && openFinalFollowupBeforeNextMeal()) return;
     learnPresets(draft.meal.items);
     var day6 = getDay(todayStr());
     if(draft.meal.editingId){
@@ -1787,8 +1830,10 @@ function addMinutesISO(dateStr, timeStr, minutes){
   return d.toISOString();
 }
 
-function openFollowup(item){
-  draft.followup = {dateStr:item.dateStr, mealId:item.meal.id, followupId:item.followup.id, tags:[], severity:null, none:false};
+function openFollowup(item, options){
+  options = options || {};
+  draft.followup = {dateStr:item.dateStr, mealId:item.meal.id, followupId:item.followup.id, tags:[], severity:null, none:false,
+    finalBeforeNextMeal:!!options.finalBeforeNextMeal};
   nav("followup");
 }
 
@@ -1797,18 +1842,30 @@ function commitFollowup(skipped){
   var day = state.days[d.dateStr];
   var meal = day ? day.meals.filter(function(m){return m.id===d.mealId;})[0] : null;
   var fu = meal ? (meal.followups||[]).filter(function(f){return f.id===d.followupId;})[0] : null;
+  if(!skipped && d.tags.length===0 && !d.none){ toast("Välj ett symtom eller Inga symptom"); return; }
   if(fu){
-    unscheduleServerPush(fu.id);
-    fu.done = true;
+    var followupsToClose = d.finalBeforeNextMeal ? (meal.followups||[]).filter(function(f){return !f.done;}) : [fu];
+    followupsToClose.forEach(function(f){
+      unscheduleServerPush(f.id);
+      f.done = true;
+      if(d.finalBeforeNextMeal) f.closedByNextMeal = true;
+    });
     if(!skipped && (d.tags.length>0 || d.none)){
       fu.result = {tags:d.tags.slice(), severity:d.severity, note:""};
+      var mealAt = new Date(d.dateStr+"T"+(meal.time||"12:00")+":00").getTime();
+      var elapsedMin = Math.max(1, Math.round((Date.now()-mealAt)/60000));
       day.checkins.push({id:uid(), time:nowTime(), moods:[], tags:d.tags.slice(), severity:d.severity, note:"",
-        linkedMealId:d.mealId, offsetMin:fu.offsetMin});
+        linkedMealId:d.mealId, offsetMin:d.finalBeforeNextMeal?elapsedMin:fu.offsetMin});
     }
   }
+  var continueToMeal = d.finalBeforeNextMeal && !!draft.meal;
   draft.followup = null;
-  persist(); nav("home");
-  toast(skipped ? "Uppföljning överhoppad" : "Incheckning sparad ✓");
+  persist(); nav(continueToMeal?"log-meal":"home");
+  if(continueToMeal){
+    toast(skipped ? "Förra måltiden avslutad — nu nästa" : "Incheckning sparad — nu nästa måltid ✓", 3000);
+  } else {
+    toast(skipped ? "Uppföljning överhoppad" : "Incheckning sparad ✓");
+  }
 }
 
 /* audio + polling for follow-up reminders */
