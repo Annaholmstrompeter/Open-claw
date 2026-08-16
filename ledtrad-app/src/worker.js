@@ -75,13 +75,16 @@ export default {
   },
 };
 
+const MAX_PUSH_ATTEMPTS = 3;
+const PUSH_RETRY_DELAY_MS = 2 * 60 * 1000;
+
 async function sendDuePushes(env) {
   const queue = await readPendingQueue(env);
   if (queue.length === 0) return;
 
   const now = new Date().toISOString();
   const due = queue.filter((it) => it.dueAt <= now);
-  const remaining = queue.filter((it) => it.dueAt > now);
+  const notYetDue = queue.filter((it) => it.dueAt > now);
   if (due.length === 0) return;
 
   const vapid = {
@@ -90,10 +93,13 @@ async function sendDuePushes(env) {
     privateKey: env.VAPID_PRIVATE_KEY,
   };
 
+  const retry = [];
+
   for (const item of due) {
+    const attempts = (item.attempts || 0) + 1;
     try {
       const subRaw = await env.LEDTRAD_KV.get(`sub:${item.deviceId}`);
-      if (!subRaw) continue;
+      if (!subRaw) throw new Error("no subscription saved yet for " + item.deviceId);
       const subscription = JSON.parse(subRaw);
       const message = {
         data: { title: item.title, body: item.body, url: item.url, tag: item.id },
@@ -101,14 +107,21 @@ async function sendDuePushes(env) {
       const payload = await buildPushPayload(message, subscription, vapid);
       const res = await fetch(subscription.endpoint, payload);
       if (res.status === 404 || res.status === 410) {
-        // Subscription is gone (user uninstalled / revoked) - drop it.
+        // Subscription is gone (user uninstalled / revoked) - drop it, retrying won't help.
         await env.LEDTRAD_KV.delete(`sub:${item.deviceId}`);
+        continue;
       }
+      if (!res.ok) throw new Error("push endpoint returned " + res.status);
+      // Sent successfully - don't requeue.
     } catch (err) {
-      // Don't let one bad push block the rest of the batch.
-      console.error("push failed for", item.id, err);
+      console.error("push failed for", item.id, "attempt", attempts, err);
+      if (attempts < MAX_PUSH_ATTEMPTS) {
+        retry.push({ ...item, attempts, dueAt: new Date(Date.now() + PUSH_RETRY_DELAY_MS).toISOString() });
+      } else {
+        console.error("push permanently failed for", item.id, "after", attempts, "attempts");
+      }
     }
   }
 
-  await writePendingQueue(env, remaining);
+  await writePendingQueue(env, notYetDue.concat(retry));
 }
