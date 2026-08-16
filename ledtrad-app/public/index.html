@@ -414,7 +414,8 @@ var MEAL_PRESETS = {
   middag:["Kött","Fisk","Gryta","Potatis","Pasta","Sallad"],
   tillskott:["Magnesiumglycinat","D-vitamin","Omega-3","Probiotika","Metylkobalamin (B12)","Metylfolat","TMG","Zink","Ubiquinol","Betain-HCl + pepsin"]
 };
-var FOLLOWUP_OFFSETS = [30, 120];
+var FOLLOWUP_OFFSETS = [30];
+var FOLLOWUP_EXPIRY_MS = 60*60*1000;
 var TRIGGER_CATEGORIES = [
   {key:"mejeriprodukter", match:["mjölk","yoghurt","fil","ost","grädde","smör","kvarg","glass"]},
   {key:"gluten/vete", match:["bröd","pasta","pizza","bulle","kaka","vete","mjöl","couscous","knäckebröd","kex"]},
@@ -757,11 +758,14 @@ function planFocusList(){
 
 function getDueFollowups(){
   var now = new Date().toISOString();
+  var nowMs = Date.now();
   var out = [];
   Object.keys(state.days).forEach(function(dateStr){
     state.days[dateStr].meals.forEach(function(m){
       (m.followups||[]).forEach(function(f){
-        if(!f.done && f.dueAt<=now) out.push({dateStr:dateStr, meal:m, followup:f});
+        if(f.done || f.dueAt>now) return;
+        if(nowMs - new Date(f.dueAt).getTime() > FOLLOWUP_EXPIRY_MS) return;
+        out.push({dateStr:dateStr, meal:m, followup:f});
       });
     });
   });
