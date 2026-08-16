@@ -64,11 +64,6 @@ egen hemskärm och trycka "tillåt" på notis-frågan — inget mer.
 Klart! Från och med nu skickas en riktig notis 30 minuter och 2 timmar efter
 varje loggad måltid, även med låst skärm.
 
-En obesvarad uppföljning ligger kvar utan tidsgräns. När nästa måltid ska
-loggas får användaren en sista chans att checka in för den föregående
-måltiden. Därefter stängs den gamla uppföljningen och fokus flyttas till den
-nya måltiden.
-
 ## Efter setup
 
 Framtida kodändringar (som Claude gör och pushar till repot) driftsätts
