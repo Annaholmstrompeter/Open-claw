@@ -318,7 +318,11 @@ function scheduleServerPush(followup, mealTypeKey, mealItems){
   fetch("/api/schedule", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({
     deviceId: DEVICE_ID, id: followup.id, dueAt: followup.dueAt,
     title: "Ledtråd", body: "Hur kändes det efter "+label.toLowerCase()+itemsTxt+"?", url: "/"
-  })}).catch(function(){});
+  })}).then(function(res){
+    if(!res.ok) toast("⚠️ Kunde inte schemalägga påminnelsen — logga gärna manuellt", 4000);
+  }).catch(function(){
+    toast("⚠️ Kunde inte nå servern — påminnelsen kanske inte kommer", 4000);
+  });
 }
 function unscheduleServerPush(followupId){
   if(!notificationsEnabled) return;
