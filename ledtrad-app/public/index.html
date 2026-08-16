@@ -264,9 +264,7 @@ var DEVICE_ID = (function(){
   if(!id){ id = Date.now().toString(36)+Math.random().toString(36).slice(2,10); localStorage.setItem(k, id); }
   return id;
 })();
-var notificationsEnabled = localStorage.getItem("ledtrad-notif-enabled")==="1" &&
-  ("Notification" in window) && Notification.permission==="granted";
-if(!notificationsEnabled) localStorage.removeItem("ledtrad-notif-enabled");
+var notificationsEnabled = localStorage.getItem("ledtrad-notif-enabled")==="1";
 function urlBase64ToUint8Array(base64String){
   var padding = "=".repeat((4 - base64String.length % 4) % 4);
   var base64 = (base64String + padding).replace(/-/g,"+").replace(/_/g,"/");
@@ -282,9 +280,8 @@ function enableNotifications(){
   return navigator.serviceWorker.register("/sw.js").then(function(reg){
     return Notification.requestPermission().then(function(perm){
       if(perm !== "granted"){ toast("Du behöver tillåta notiser för att detta ska fungera"); return false; }
-      return reg.pushManager.getSubscription().then(function(existing){
-        return existing || reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) });
-      }).then(function(sub){
+      return reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) })
+        .then(function(sub){
           return fetch("/api/subscribe", { method:"POST", headers:{"content-type":"application/json"},
             body: JSON.stringify({deviceId:DEVICE_ID, subscription: sub.toJSON()}) })
             .then(function(res){
@@ -303,23 +300,6 @@ function enableNotifications(){
     toast("Kunde inte aktivera påminnelser — försök igen");
     return false;
   });
-}
-function syncExistingNotificationSubscription(){
-  if(!notificationsEnabled || !("serviceWorker" in navigator) || !("PushManager" in window)) return;
-  navigator.serviceWorker.register("/sw.js").then(function(reg){
-    return reg.pushManager.getSubscription();
-  }).then(function(sub){
-    if(!sub){
-      notificationsEnabled = false;
-      localStorage.removeItem("ledtrad-notif-enabled");
-      render();
-      return;
-    }
-    return fetch("/api/subscribe", { method:"POST", headers:{"content-type":"application/json"},
-      body: JSON.stringify({deviceId:DEVICE_ID, subscription:sub.toJSON()}) }).then(function(res){
-        if(!res.ok) throw new Error("subscribe endpoint returned "+res.status);
-      });
-  }).catch(function(){ /* nästa manuella aktivering kan försöka igen */ });
 }
 function testNotification(){
   if(!notificationsEnabled){ toast("Aktivera påminnelser först"); return; }
@@ -849,10 +829,7 @@ function renderCelebrationOverlay(m){
   '</div></div>';
 }
 
-function shouldShowMorningPrompt(){
-  var hour = new Date().getHours();
-  return hour>=5 && hour<11 && state.onboarding.done && state.screen==="home" && state.lastMorningPromptDate!==todayStr() && !draft.celebration;
-}
+function shouldShowMorningPrompt(){ return state.onboarding.done && state.screen==="home" && state.lastMorningPromptDate!==todayStr() && !draft.celebration; }
 function renderMorningOverlay(){
   return '<div class="morningOverlay"><div class="morningcard">' +
     '<button class="morningclose" data-action="morning-dismiss" aria-label="Stäng">×</button>' +
@@ -1916,7 +1893,6 @@ function exportReport(){
 if(state.onboarding.done) state.screen = "home";
 if(state.screen==="log-checkin" && !draft.checkin) draft.checkin = {moods:[], tags:[], severity:null};
 render();
-syncExistingNotificationSubscription();
 checkFollowupsTick();
 })();
 </script>

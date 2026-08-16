@@ -10,14 +10,6 @@ binding = "ASSETS"
 [triggers]
 crons = ["* * * * *"]
 
-[[durable_objects.bindings]]
-name = "REMINDER_SCHEDULER"
-class_name = "ReminderScheduler"
-
-[exports.ReminderScheduler]
-type = "durable-object"
-storage = "sqlite"
-
 [[kv_namespaces]]
 binding = "LEDTRAD_KV"
 id = "5787af3a332a4af68caa3403757421a6"

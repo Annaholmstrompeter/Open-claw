@@ -12,10 +12,9 @@ bakgrundstjänst som skickar riktiga notiser via Web Push.
 
 - `public/` — själva appen (samma UI/logik som testades i Claude-artefakten,
   plus stöd för att installera som app och prenumerera på notiser).
-- `src/worker.js` — en Cloudflare Worker som (1) svarar på API-anrop för att
-  spara notis-prenumerationer och schemalägga påminnelser, och (2) använder
-  en Durable Object med alarm för att skicka varje påminnelse vid rätt tid.
-  Minutjobbet finns kvar som ett extra säkerhetsnät.
+- `src/worker.js` — en Cloudflare Worker som (1) svarar på ett par API-anrop
+  för att spara notis-prenumerationer och schemalägga påminnelser, och
+  (2) kör en gång i minuten och skickar iväg de påminnelser som är dags för.
 - `wrangler.toml` — konfiguration (KV-lagring, cron-schema, statiska filer).
 
 Bara du (som ägare av Cloudflare-kontot) behöver göra driftsättningen en
@@ -49,8 +48,8 @@ egen hemskärm och trycka "tillåt" på notis-frågan — inget mer.
    nyckel ska aldrig ligga i git).
 
 6. **Kontrollera att schemat är på:** *Settings → Triggers → Cron Triggers*
-   ska visa `* * * * *` (varje minut). Det är ett säkerhetsnät för Durable
-   Object-alarmen och kommer automatiskt från `wrangler.toml`.
+   ska visa `* * * * *` (varje minut). Det kommer automatiskt från
+   `wrangler.toml`, men kolla gärna att det inte behöver aktiveras manuellt.
 
 7. **Öppna appen på din telefon** (URL:en Cloudflare gav dig, t.ex.
    `ledtrad.<ditt-konto>.workers.dev`), tryck **"Lägg till på hemskärmen"**
