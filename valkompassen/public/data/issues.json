@@ -1,0 +1,38 @@
+[
+  {
+    "id": "skatter",
+    "title": "Skatter",
+    "axis_label_low": "Sänkta skatter",
+    "axis_label_high": "Höjda skatter för omfördelning",
+    "factbrief": "PLACEHOLDER faktabrief - ersätts av research-agentens output.",
+    "factbrief_sources": [],
+    "positions": {
+      "S": { "stance": "PLACEHOLDER", "score": 1, "source": { "label": "TBD", "url": "" }, "source_note": "" },
+      "M": { "stance": "PLACEHOLDER", "score": -2, "source": { "label": "TBD", "url": "" }, "source_note": "" },
+      "SD": { "stance": "PLACEHOLDER", "score": -1, "source": { "label": "TBD", "url": "" }, "source_note": "" },
+      "C": { "stance": "PLACEHOLDER", "score": -1, "source": { "label": "TBD", "url": "" }, "source_note": "" },
+      "V": { "stance": "PLACEHOLDER", "score": 2, "source": { "label": "TBD", "url": "" }, "source_note": "" },
+      "KD": { "stance": "PLACEHOLDER", "score": -1, "source": { "label": "TBD", "url": "" }, "source_note": "" },
+      "L": { "stance": "PLACEHOLDER", "score": -2, "source": { "label": "TBD", "url": "" }, "source_note": "" },
+      "MP": { "stance": "PLACEHOLDER", "score": 1, "source": { "label": "TBD", "url": "" }, "source_note": "" }
+    }
+  },
+  {
+    "id": "klimat-energi",
+    "title": "Klimat & energi",
+    "axis_label_low": "Marknadsdriven omställning",
+    "axis_label_high": "Kraftfull statlig styrning",
+    "factbrief": "PLACEHOLDER faktabrief - ersätts av research-agentens output.",
+    "factbrief_sources": [],
+    "positions": {
+      "S": { "stance": "PLACEHOLDER", "score": 0, "source": { "label": "TBD", "url": "" }, "source_note": "" },
+      "M": { "stance": "PLACEHOLDER", "score": -1, "source": { "label": "TBD", "url": "" }, "source_note": "" },
+      "SD": { "stance": "PLACEHOLDER", "score": -2, "source": { "label": "TBD", "url": "" }, "source_note": "" },
+      "C": { "stance": "PLACEHOLDER", "score": -1, "source": { "label": "TBD", "url": "" }, "source_note": "" },
+      "V": { "stance": "PLACEHOLDER", "score": 1, "source": { "label": "TBD", "url": "" }, "source_note": "" },
+      "KD": { "stance": "PLACEHOLDER", "score": -1, "source": { "label": "TBD", "url": "" }, "source_note": "" },
+      "L": { "stance": "PLACEHOLDER", "score": -1, "source": { "label": "TBD", "url": "" }, "source_note": "" },
+      "MP": { "stance": "PLACEHOLDER", "score": 2, "source": { "label": "TBD", "url": "" }, "source_note": "" }
+    }
+  }
+]

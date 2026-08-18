@@ -1,0 +1,14 @@
+name = "valkompassen"
+main = "src/worker.js"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+# ANTHROPIC_API_KEY is NOT set here on purpose - it's a secret.
+# Set it once in the Cloudflare dashboard (Settings -> Variables and Secrets)
+# or via `wrangler secret put ANTHROPIC_API_KEY`. See README.md.
+# Without it, the compass itself still works fully - only the AI chat
+# ("Fråga om resultatet") is disabled.

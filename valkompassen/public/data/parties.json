@@ -1,0 +1,10 @@
+[
+  { "id": "S", "name": "Socialdemokraterna", "color": "#E8112D", "short_description": "PLACEHOLDER - ersätts av research." },
+  { "id": "M", "name": "Moderaterna", "color": "#52BDEC", "short_description": "PLACEHOLDER - ersätts av research." },
+  { "id": "SD", "name": "Sverigedemokraterna", "color": "#DDDD00", "short_description": "PLACEHOLDER - ersätts av research." },
+  { "id": "C", "name": "Centerpartiet", "color": "#009933", "short_description": "PLACEHOLDER - ersätts av research." },
+  { "id": "V", "name": "Vänsterpartiet", "color": "#DA291C", "short_description": "PLACEHOLDER - ersätts av research." },
+  { "id": "KD", "name": "Kristdemokraterna", "color": "#000077", "short_description": "PLACEHOLDER - ersätts av research." },
+  { "id": "L", "name": "Liberalerna", "color": "#006AB3", "short_description": "PLACEHOLDER - ersätts av research." },
+  { "id": "MP", "name": "Miljöpartiet", "color": "#83CF39", "short_description": "PLACEHOLDER - ersätts av research." }
+]
