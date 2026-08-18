@@ -1,0 +1,900 @@
+[
+  {
+    "id": "skatter",
+    "title": "Skatter",
+    "axis_label_low": "Vill sänka skatterna mest",
+    "axis_label_high": "Vill höja skatterna mest / mest omfördelande",
+    "factbrief": "Skattepolitiken handlar om hur staten finansierar gemensamma åtaganden som vård, skola, infrastruktur och försvar, samt om hur skattesystemet påverkar drivkrafter att arbeta, spara och investera. Sverige har ett progressivt inkomstskattesystem där statlig inkomstskatt tas ut över en viss brytpunkt utöver kommunalskatten, medan bolagsskatten är proportionell och förmögenhetsskatten avskaffades 2007. Den politiska konflikten handlar dels om skattetryckets totala nivå, dels om fördelningen mellan inkomstgrupper och mellan skatt på arbete, kapital och konsumtion. En central avvägning är att lägre skatter kan stärka drivkrafter att arbeta och investera, medan högre skatter ger mer resurser till gemensam välfärd och omfördelning men i vissa fall kan dämpa dessa drivkrafter.",
+    "factbrief_sources": [
+      {
+        "label": "Skatteverket",
+        "url": "https://www.skatteverket.se/"
+      },
+      {
+        "label": "SCB – Offentlig ekonomi",
+        "url": "https://www.scb.se/hitta-statistik/statistik-efter-amne/offentlig-ekonomi/"
+      }
+    ],
+    "positions": {
+      "S": {
+        "stance": "Socialdemokraterna vill sänka skatten för personer med vanliga inkomster och pekar på att nio av tio fått sänkt skatt i senaste budgeten, samtidigt som partiet anser att de med högst inkomster kan behöva bidra mer för att finansiera välfärd och försvar. Partiet har föreslagit en bankskatt för att finansiera reformer och vill avskaffa karensavdraget.",
+        "score": 1,
+        "source": {
+          "label": "Socialdemokraternas budgetmotion för 2026",
+          "url": "https://www.socialdemokraterna.se/download/18.6ed00dea19998e1c3e03d50/1759747290476/Socialdemokraternas%20Budgetmotion%202026.pdf"
+        },
+        "source_note": "Budgetmotion 2026 samt partiets sida om skattepolitik (socialdemokraterna.se/var-politik/a-till-o/skatter)."
+      },
+      "M": {
+        "stance": "Moderaterna prioriterar sänkt skatt på arbete och driver bland annat förslag om skattefritt ISK-sparande upp till 500 000 kronor. Partiet, som leder regeringen, för under 2026 en linje med fortsatt sänkt skatt på arbete kombinerad med en bidragsreform i syfte att öka antalet arbetade timmar i ekonomin.",
+        "score": -2,
+        "source": {
+          "label": "Moderaternas politik",
+          "url": "https://moderaterna.se/var-politik/"
+        },
+        "source_note": "Moderaternas politiksidor om skatt och ekonomi 2026, bl.a. förslaget om skattefritt ISK-sparande."
+      },
+      "SD": {
+        "stance": "Sverigedemokraterna vill bygga ett friare Sverige genom lägre skatter, minskad byråkrati och stärkta äganderätter, och utlovar bland annat lägre matpriser, lägre bränslepriser och sänkta skatter för hushåll och företag.",
+        "score": -2,
+        "source": {
+          "label": "Sverigedemokraterna – Sverige på väg",
+          "url": "https://www.sd.se/vad-vi-vill/sverige-pa-vag/"
+        },
+        "source_note": "SD:s partisidor om ekonomisk politik och lägre skatter."
+      },
+      "C": {
+        "stance": "Centerpartiet vill sänka skatten på jobb och företagande, bland annat genom sänkta arbetsgivaravgifter för mindre företag, för att stärka konkurrenskraft och sysselsättning. Partiet ser skattesänkningar som ett verktyg för tillväxt snarare än för ökad omfördelning.",
+        "score": -1,
+        "source": {
+          "label": "Centerpartiets politik – Företagande",
+          "url": "https://www.centerpartiet.se/centerpartiets-politik/centerpartiets-politik-a-o/foretagande"
+        },
+        "source_note": "Centerpartiets sida om företagande, som är partiets långvariga profilfråga i skattepolitiken."
+      },
+      "V": {
+        "stance": "Vänsterpartiet vill genomföra en omfattande skattereform där skatternas huvudsyfte är att finansiera välfärden och jämna ut inkomst- och konsumtionsskillnader mellan grupper. Partiet vill höja skatten för höginkomsttagare och kapitalägare.",
+        "score": 2,
+        "source": {
+          "label": "Vänsterpartiet – Skattepolitik",
+          "url": "https://www.vansterpartiet.se/var-politik/politik-a-o/skattepolitik/"
+        },
+        "source_note": "Vänsterpartiets sida om skattepolitik."
+      },
+      "KD": {
+        "stance": "Kristdemokraterna verkar för lägre skatt, särskilt för barnfamiljer, och driver principen att man ska få behålla åtminstone hälften av sin inkomst efter skatt. Partiet vill kombinera skattesänkningar med stärkt familjeekonomi genom barnbidrag och valfrihet i vård och skola.",
+        "score": -1,
+        "source": {
+          "label": "Kristdemokraterna – Skatter",
+          "url": "https://kristdemokraterna.se/var-politik/politik-a-till-o/skatter"
+        },
+        "source_note": "KD:s sida om skattepolitik."
+      },
+      "L": {
+        "stance": "Liberalerna förespråkar sänkta marginalskatter på arbete och har historiskt drivit igenom avskaffandet av förmögenhetsskatten. Partiet vill fortsätta sänka skatten på arbete och företagande som en del av sin liberala ekonomiska politik.",
+        "score": -1,
+        "source": {
+          "label": "Liberalerna – Vår politik",
+          "url": "https://www.liberalerna.se/politik"
+        },
+        "source_note": "Liberalernas politiksidor samt riksdagsmotioner om skattepolitik."
+      },
+      "MP": {
+        "stance": "Miljöpartiet ser skatter som det huvudsakliga sättet att gemensamt finansiera vård, skola och omsorg och är öppna för att höja skattetrycket under kommande mandatperiod. Partiet vill också använda skatter för att styra mot en grön omställning.",
+        "score": 1,
+        "source": {
+          "label": "Miljöpartiet – Vår politik",
+          "url": "https://www.mp.se/politik/"
+        },
+        "source_note": "Baserat på MP:s uttalade öppenhet för höjt skattetryck för att finansiera välfärd och klimatomställning."
+      }
+    }
+  },
+  {
+    "id": "vinster-i-valfarden",
+    "title": "Vinster i välfärden",
+    "axis_label_low": "Vill förbjuda/starkt begränsa vinstuttag",
+    "axis_label_high": "Vill värna fri etableringsrätt och vinstmöjlighet",
+    "factbrief": "Vinster i välfärden handlar om huruvida privata företag ska få driva skattefinansierad verksamhet inom skola, vård och omsorg och ta ut vinst ur den. Sedan friskolereformen 1992 och lagen om valfrihetssystem (LOV) 2009 har andelen privata utförare inom välfärden ökat, finansierade med skattemedel via skolpeng respektive ersättning från regioner och kommuner. Den politiska konflikten handlar om huruvida vinstmotiv driver fram effektivitet och innovation eller riskerar att gå ut över kvalitet och personaltäthet, samt om offentliga medel avsedda för välfärd bör kunna bli aktieutdelning. En central avvägning är mellan valfrihet och mångfald av utförare å ena sidan, och risken för att kvalitet nedprioriteras för att maximera vinst å andra sidan.",
+    "factbrief_sources": [
+      {
+        "label": "Inspektionen för vård och omsorg (IVO)",
+        "url": "https://www.ivo.se/"
+      },
+      {
+        "label": "Konkurrensverket",
+        "url": "https://www.konkurrensverket.se/"
+      }
+    ],
+    "positions": {
+      "V": {
+        "stance": "Vänsterpartiet motsätter sig vinstdrivande verksamhet inom skattefinansierad välfärd och vill utreda och genomföra ett förbud mot vinstuttag i skola, vård och omsorg. Partiet menar att personalkostnader ofta blir den post som pressas för att skapa vinst, vilket enligt partiet riskerar kvaliteten.",
+        "score": -2,
+        "source": {
+          "label": "Vänsterpartiet – Vinster i välfärden",
+          "url": "https://www.vansterpartiet.se/var-politik/politik-a-o/vinster-i-valfarden/"
+        },
+        "source_note": "Vänsterpartiets sida om vinster i välfärden."
+      },
+      "MP": {
+        "stance": "Miljöpartiet vill fasa ut vinstdrivande aktiebolag ur skolan och beskriver sin vision som en skola fri från vinstutdelande bolag. Partiet vill att riskkapitalbolag med kortsiktiga vinstintressen inte ska bedriva skattefinansierad välfärd.",
+        "score": -2,
+        "source": {
+          "label": "Miljöpartiet – Vår politik",
+          "url": "https://www.mp.se/politik/"
+        },
+        "source_note": "Baserat på MP:s uttalade linje om en skola och välfärd fri från vinstutdelande bolag."
+      },
+      "S": {
+        "stance": "Socialdemokraterna vill förbjuda vinstuttag i grund- och gymnasieskolor samt förskolor och vill finansiera reformer bland annat genom en föreslagen bankskatt. Partiet är mer uttalat restriktivt mot vinstuttag i skolan än inom vård och omsorg generellt.",
+        "score": -1,
+        "source": {
+          "label": "Socialdemokraternas budgetmotion för 2026",
+          "url": "https://www.socialdemokraterna.se/download/18.6ed00dea19998e1c3e03d50/1759747290476/Socialdemokraternas%20Budgetmotion%202026.pdf"
+        },
+        "source_note": "Budgetmotion 2026 med förslag om förbud mot vinstuttag i skolan och en bankskatt för att finansiera reformerna."
+      },
+      "L": {
+        "stance": "Liberalerna försvarar valfrihet och fristående skolor och vård men har samtidigt drivit fram skärpta ägar- och ledningsprövningar för att motverka oseriösa aktörer som prioriterar vinst före kvalitet. Partiets linje är att fasa ut renodlade vinstintressen på ett kontrollerat sätt snarare än att förbjuda dem helt.",
+        "score": 0,
+        "source": {
+          "label": "Liberalerna – Vår politik",
+          "url": "https://www.liberalerna.se/politik"
+        },
+        "source_note": "Baserat på L:s politik för skärpt ägar- och ledningsprövning och ansvarsfull utfasning av renodlade vinstintressen i skolan."
+      },
+      "C": {
+        "stance": "Centerpartiet försvarar valfriheten och den fria etableringsrätten för privata aktörer inom vård, skola och omsorg och motsätter sig ett generellt vinstförbud. Partiet har istället stött skärpta kvalitetskrav och ägarprövning för att komma åt oseriösa aktörer.",
+        "score": 1,
+        "source": {
+          "label": "Centerpartiet – Vinster i välfärden",
+          "url": "https://www.centerpartiet.se/landningssidor/2018/januari-2018/vinster-i-valfarden"
+        },
+        "source_note": "Centerpartiets sida om vinster i välfärden."
+      },
+      "KD": {
+        "stance": "Kristdemokraterna anser att valfrihet och mångfald av utförare ökar kvaliteten och individens makt samt ger fler arbetsgivare att välja mellan, och motsätter sig ett generellt vinstförbud. Partiet vill samtidigt ha tydliga regler som hindrar oseriösa aktörer från att sänka kvaliteten för att pressa fram mer vinst.",
+        "score": 1,
+        "source": {
+          "label": "Kristdemokraterna – Vinster i välfärden",
+          "url": "https://kristdemokraterna.se/var-politik/politik-a-till-o/vinster-i-valfarden"
+        },
+        "source_note": "KD:s sida om vinster i välfärden."
+      },
+      "SD": {
+        "stance": "Sverigedemokraterna accepterar privata utförare inom skattefinansierad välfärd men har i riksdagen historiskt röstat tillsammans med övriga högerpartier mot förslag om generell vinstbegränsning, och förespråkar istället skärpta krav på ägare och kvalitet.",
+        "score": 1,
+        "source": {
+          "label": "Sverigedemokraterna – Vad vi vill",
+          "url": "https://www.sd.se/vad-vi-vill/"
+        },
+        "source_note": "Baserat på partiets långvariga röstmönster i riksdagen (bl.a. avslag på förslag om vinstbegränsning i välfärden 2016–2018); ingen specifik 2026-sida om vinster i välfärden hittades, så detta speglar partiets etablerade allmänna hållning."
+      },
+      "M": {
+        "stance": "Moderaterna försvarar starkt valfriheten inom skattefinansierad välfärd och motsätter sig vinstförbud, och vill att privata och offentliga vårdgivare ska samverka snarare än ställas mot varandra. Partiet vill att privata utförare används systematiskt för att bland annat korta vårdköer.",
+        "score": 2,
+        "source": {
+          "label": "Moderaterna – Sjukvård",
+          "url": "https://moderaterna.se/var-politik/sjukvard/"
+        },
+        "source_note": "Moderaternas politiksida om sjukvård, som beskriver linjen om samverkan mellan privata och offentliga utförare."
+      }
+    }
+  },
+  {
+    "id": "migration-integration",
+    "title": "Migration & integration",
+    "axis_label_low": "Mest restriktiv migrationspolitik",
+    "axis_label_high": "Mest generös/öppen migrationspolitik",
+    "factbrief": "Migrationspolitiken handlar om vilka regler som ska gälla för asylsökande, anhöriginvandrare och arbetskraftsinvandrare, samt hur nyanlända ska integreras i samhället genom exempelvis språk, utbildning och arbete. Sverige tog 2015 emot ett historiskt stort antal asylsökande, vilket följdes av kraftiga lagändringar, och migrationspolitiken har sedan dess gradvis blivit mer restriktiv under flera olika regeringar. Den politiska konflikten rör dels mottagningsnivåer och asylrättens omfattning, dels vilka krav som bör ställas för uppehållstillstånd och medborgarskap. En central avvägning är mellan humanitärt ansvarstagande och internationella åtaganden å ena sidan, och kommuners och myndigheters kapacitet att hantera bostäder, skola och arbetsmarknadsintegration å andra sidan.",
+    "factbrief_sources": [
+      {
+        "label": "Migrationsverket",
+        "url": "https://www.migrationsverket.se/"
+      }
+    ],
+    "positions": {
+      "SD": {
+        "stance": "Sverigedemokraterna vill föra en fortsatt strikt migrationspolitik med tydliga integrationskrav och prioriterar återvandring, bland annat genom höjda återvandringsbidrag. Migrationsfrågan är partiets ursprungliga kärnfråga och partiet vill hålla asylmottagandet på lägsta möjliga nivå.",
+        "score": -2,
+        "source": {
+          "label": "Sverigedemokraterna – Vad vi vill",
+          "url": "https://www.sd.se/vad-vi-vill/"
+        },
+        "source_note": "Baserat på partiets långvariga, väldokumenterade profilfråga om restriktiv migrationspolitik."
+      },
+      "M": {
+        "stance": "Moderaterna driver som ledande regeringsparti ett uttalat paradigmskifte i migrationspolitiken, med kraftigt begränsad möjlighet till eget boende (EBO) från oktober 2026 och höjda återvandringsbidrag (350 000 kr för vuxna, 25 000 kr för barn sedan januari 2026). Partiet vill återta kontrollen över vilka som vistas i landet och begränsa asylmottagandet.",
+        "score": -2,
+        "source": {
+          "label": "Moderaterna – Migration",
+          "url": "https://moderaterna.se/var-politik/migration/"
+        },
+        "source_note": "Moderaternas politiksida om migration, inklusive besluten om EBO-begränsning och återvandringsbidrag 2026."
+      },
+      "KD": {
+        "stance": "Kristdemokraterna vill att säkra och lagliga vägar, som kvotflyktingsystemet, ska vara huvudmetoden för asyl, utifrån principen att skydd i första hand ska sökas i första säkra land. Partiet menar att Sverige tidigare tagit emot fler asylsökande än man förmått integrera och vill stärka kraven på introduktion i svenska värderingar.",
+        "score": -1,
+        "source": {
+          "label": "Kristdemokraterna – Migration",
+          "url": "https://kristdemokraterna.se/var-politik/politik-a-till-o/migration"
+        },
+        "source_note": "KD:s sida om migrationspolitik."
+      },
+      "S": {
+        "stance": "Socialdemokraterna har intagit en mer restriktiv linje i migrationsfrågor och stödjer en stram politik nära EU:s miniminivå, med motiveringen att mottagandet behöver hållas lågt för att klara sammanhållning och integration av redan anlända. Partiet står bakom flera av de senaste årens åtstramningar.",
+        "score": -1,
+        "source": {
+          "label": "Socialdemokraterna – Vår politik",
+          "url": "https://www.socialdemokraterna.se/var-politik"
+        },
+        "source_note": "Baserat på partiets uttalade linje sedan 2015 om en stramare migrationspolitik nära EU:s miniminivå; en specifik 2026-undersida för migration kunde inte separat bekräftas."
+      },
+      "L": {
+        "stance": "Liberalerna beskriver sin migrationspolitik som både sträng och human, där den som sköter sig, arbetar och integreras i samhället ska ha goda möjligheter att stanna. Partiet vill samtidigt se mer kvalificerad arbetskraftsinvandring för att lösa kompetensbrist.",
+        "score": 0,
+        "source": {
+          "label": "Liberalerna – Arbetskraftsinvandring",
+          "url": "https://www.liberalerna.se/eu-politik/arbetskraftsinvandring"
+        },
+        "source_note": "Liberalernas politiksidor om integration och arbetskraftsinvandring."
+      },
+      "C": {
+        "stance": "Centerpartiet vill kombinera medmänsklighet med ordning och struktur i migrationspolitiken, med jobb som väg in i samhället, och ser positivt på arbetskraftsinvandring. Partiet vill att EU tar gemensamt ansvar för en hållbar integrationspolitik.",
+        "score": 1,
+        "source": {
+          "label": "Centerpartiet – Migration",
+          "url": "https://www.centerpartiet.se/var-politik/politik-a-o/migration-och-integration/migration"
+        },
+        "source_note": "Centerpartiets sida om migration."
+      },
+      "MP": {
+        "stance": "Miljöpartiet vill att Sverige tar internationellt ansvar och erbjuder trygga och lagliga vägar till skydd, och vill att Sverige tar emot minst 5 000 kvotflyktingar per år enligt UNHCR:s bedömning av särskild utsatthet. Partiet har drivit en mer generös migrationspolitik än de flesta andra riksdagspartier.",
+        "score": 2,
+        "source": {
+          "label": "Miljöpartiet – Migration och lika rätt",
+          "url": "https://www.mp.se/politik/migration-och-lika-ratt/"
+        },
+        "source_note": "Miljöpartiets sida om migrationspolitik."
+      },
+      "V": {
+        "stance": "Vänsterpartiet vill att Sverige och EU för en human och välkomnande flyktingpolitik som värnar asylrätten, och vill skapa fler lagliga och säkra vägar för människor på flykt. Partiet vill att fler länder tar gemensamt ansvar för mottagandet och motsätter sig EU:s externalisering av gränskontroll.",
+        "score": 2,
+        "source": {
+          "label": "Vänsterpartiet – Flyktingpolitik",
+          "url": "https://www.vansterpartiet.se/var-politik/politik-a-o/flyktingpolitik/"
+        },
+        "source_note": "Vänsterpartiets sida om flyktingpolitik."
+      }
+    }
+  },
+  {
+    "id": "klimat-energi",
+    "title": "Klimat & energi",
+    "axis_label_low": "Mest fokus på kärnkraft / mindre pådrivande klimatmål",
+    "axis_label_high": "Mest fokus på förnybart och pådrivande klimatmål",
+    "factbrief": "Klimat- och energipolitiken rör hur Sverige ska nå sina klimatmål – bland annat nettonollutsläpp senast 2045 – samtidigt som elförsörjningen ska vara stabil och prisvärd inför en väntat kraftigt ökad elanvändning. En central stridsfråga är energimixen: om kärnkraft, som ger planerbar men dyr och långsamt uppbyggd baskraft, ska byggas ut, eller om tyngdpunkten ska ligga på snabbare men väderberoende förnybar energi som vind- och solkraft. Partierna skiljer sig även åt i hur långtgående och bindande klimatmålen bör vara och i vilken utsträckning styrmedel som skatter, subventioner och regleringar ska användas. En central avvägning är mellan kostnad och utbyggnadstakt för olika kraftslag, samt mellan statlig styrning och marknadslösningar i energiomställningen.",
+    "factbrief_sources": [
+      {
+        "label": "Naturvårdsverket",
+        "url": "https://www.naturvardsverket.se/"
+      },
+      {
+        "label": "Energimyndigheten",
+        "url": "https://www.energimyndigheten.se/"
+      }
+    ],
+    "positions": {
+      "MP": {
+        "stance": "Miljöpartiet vill att Sverige höjer takten mot att bli fossilfritt och har som mål att sista droppen fossil bensin och diesel ska säljas senast 2030. Partiet prioriterar snabb utbyggnad av förnybar energi och menar att klimatomställningen ska genomsyra all politik.",
+        "score": 2,
+        "source": {
+          "label": "Miljöpartiet – Klimat",
+          "url": "https://www.mp.se/politik/klimat/"
+        },
+        "source_note": "Miljöpartiets sida om klimatpolitik."
+      },
+      "V": {
+        "stance": "Vänsterpartiet vill se en kraftfull klimatpolitik med satsningar på förnybar energi och är kritiskt till att ny kärnkraft prioriteras framför utbyggnad av sol och vind. Partiet vill att staten tar ett större ansvar för klimatomställningen och energiförsörjningen.",
+        "score": 1,
+        "source": {
+          "label": "Vänsterpartiet – Vår politik",
+          "url": "https://www.vansterpartiet.se/var-politik/"
+        },
+        "source_note": "Baserat på V:s budgetmotioner (bl.a. om klimat och tillväxt) och partiets långvariga skepsis mot ny kärnkraft till förmån för förnybart."
+      },
+      "C": {
+        "stance": "Centerpartiet vill fördubbla den utsläppsfria och förnybara energiproduktionen i Sverige och satsa på utbyggda elnät för att möta det gröna industrilyftet. Partiet har historiskt varit skeptiskt till ny kärnkraft och prioriterar sol, vind och vattenkraft.",
+        "score": 1,
+        "source": {
+          "label": "Centerpartiets politik",
+          "url": "https://www.centerpartiet.se/centerpartiets-politik"
+        },
+        "source_note": "Baserat på C:s mål om fördubblad förnybar energiproduktion och partiets kärnkraftskritiska profil sedan bildandet av dagens Centerparti kring kärnkraftsomröstningen 1980."
+      },
+      "S": {
+        "stance": "Socialdemokraterna stödjer fortsatt kärnkraft men anser att staten måste ha kontroll över säkerhet, ekonomi och lokalisering, och förordar att ny kärnkraft i första hand byggs där kärnkraft redan finns (Ringhals, Oskarshamn och Forsmark). Partiet driver samtidigt klimatmål och satsningar på förnybar energi.",
+        "score": 0,
+        "source": {
+          "label": "Socialdemokraterna – Kärnkraft",
+          "url": "https://www.socialdemokraterna.se/var-politik/a-till-o/karnkraft"
+        },
+        "source_note": "Socialdemokraternas sida om kärnkraft."
+      },
+      "KD": {
+        "stance": "Kristdemokraterna vill förlänga livslängden på befintliga reaktorer och bygga ny kärnkraft för att möta ett fördubblat elbehov vid omställningen till fossilfritt samhälle, och ser kärnkraften som väderoberoende baskraft. Partiet vill även bygga ut sol och vind men med bibehållet kommunalt veto.",
+        "score": -1,
+        "source": {
+          "label": "Kristdemokraterna – Kärnkraft",
+          "url": "https://kristdemokraterna.se/var-politik/politik-a-till-o/karnkraft"
+        },
+        "source_note": "KD:s sida om kärnkraft och miljö/energi."
+      },
+      "L": {
+        "stance": "Liberalerna drev igenom avskaffandet av förbudet mot ny kärnkraft i Sverige och menar att kärnkraft är den enda planerbara, fossilfria kraftkällan som kan skalas upp i stor volym. Partiet prioriterar kärnkraftsutbyggnad som grund för klimatomställningen.",
+        "score": -1,
+        "source": {
+          "label": "Liberalerna – Kärnkraft",
+          "url": "https://www.liberalerna.se/politik/karnkraft"
+        },
+        "source_note": "Liberalernas sida om kärnkraft."
+      },
+      "M": {
+        "stance": "Moderaterna, som leder regeringen, vill bygga ny kärnkraft och behålla den kärnkraft som redan finns, och har genom sin partistämma 2025 beslutat att staten ska minska risken för ny kärnkraft genom uppdaterade regelverk, en finansieringslösning och statligt ägande. Partiet ser kärnkraften som avgörande för elförsörjning och klimatmål.",
+        "score": -1,
+        "source": {
+          "label": "Moderaterna – Klimat, miljö och energi",
+          "url": "https://moderaterna.se/var-politik/klimat-miljo-och-energi/"
+        },
+        "source_note": "Moderaternas politiksida om klimat, miljö och energi, samt beslut från partistämman 2025."
+      },
+      "SD": {
+        "stance": "Sverigedemokraterna planerar en stor, långsiktig satsning på ny kärnkraft samt kostnadsskydd för att stoppa dyra elprischocker, och lägger relativt större vikt vid energisäkerhet och elpriser än vid bindande klimatmål. Partiet är en av kärnkraftens mest uttalade förespråkare i riksdagen.",
+        "score": -2,
+        "source": {
+          "label": "Sverigedemokraterna – Vad vi vill",
+          "url": "https://www.sd.se/vad-vi-vill/"
+        },
+        "source_note": "Baserat på SD:s uttalade satsningar på kärnkraft och kostnadsskydd mot elprischocker; ingen specifik fristående 2026-sida för kärnkraft hittades separat."
+      }
+    }
+  },
+  {
+    "id": "brottslighet-straff",
+    "title": "Brottslighet & straff",
+    "axis_label_low": "Mest fokus på straffskärpningar",
+    "axis_label_high": "Mest fokus på förebyggande arbete/rehabilitering",
+    "factbrief": "Kriminalpolitiken handlar om hur samhället ska förebygga och bekämpa brott – särskilt den gängrelaterade och organiserade brottsligheten som ökat i Sverige under 2010- och 2020-talet – samt om hur straffsystemet ska utformas. Sedan 2022 har flera straffskärpningar genomförts, bland annat avskaffade mängdrabatter och höjda minimistraff för vissa brott, samtidigt som polisen tillförts mer resurser. Den politiska konflikten rör balansen mellan straffskärpningar som avskräckningsmedel och satsningar på förebyggande arbete, socialtjänst och skola som åtgärder mot brottslighetens grundorsaker. Forskningen är delad om hur starkt sambandet är mellan strängare straff och minskad brottslighet, vilket gör frågan omdiskuterad även bland experter.",
+    "factbrief_sources": [
+      {
+        "label": "Brottsförebyggande rådet (Brå)",
+        "url": "https://bra.se/"
+      }
+    ],
+    "positions": {
+      "SD": {
+        "stance": "Sverigedemokraterna vill se skärpta straff, fler kameror i det offentliga rummet och utökade polisiära befogenheter för att återupprätta tryggheten i Sverige. Partiet prioriterar bekämpning av brott samt ett stärkt rättsväsende och försvar.",
+        "score": -2,
+        "source": {
+          "label": "Sverigedemokraterna – Brott och straff",
+          "url": "https://www.sd.se/vad-vi-vill/brott-och-straff/"
+        },
+        "source_note": "SD:s sida om brott och straff."
+      },
+      "M": {
+        "stance": "Moderaterna driver ett straffpolitiskt paradigmskifte med skärpta straff, avskaffade strafflindringar och begränsad villkorlig frigivning, samtidigt som partiet satsat på förebyggande arbete genom skola, socialtjänst och missbruksvård. Sedan oktober 2022 uppger partiet att vårdköerna inom rättsväsendet minskat med 36 procent.",
+        "score": -1,
+        "source": {
+          "label": "Moderaterna – Kriminalitet",
+          "url": "https://moderaterna.se/var-politik/kriminalitet/"
+        },
+        "source_note": "Moderaternas politiksida om kriminalitet och brottsförebyggande arbete."
+      },
+      "KD": {
+        "stance": "Kristdemokraterna har som del av Tidöavtalet och regeringssamarbetet drivit på för straffskärpningar och en mer repressiv kriminalpolitik riktad mot gängkriminalitet. Partiet betonar samtidigt föräldraansvar och tidiga insatser mot ungdomsbrottslighet.",
+        "score": -1,
+        "source": {
+          "label": "Kristdemokraterna – Vår politik",
+          "url": "https://kristdemokraterna.se/var-politik"
+        },
+        "source_note": "Baserat på KD:s roll i Tidöavtalets kriminalpolitiska reformer 2022–2026; partiets övergripande politiksida, eftersom ingen enskild fristående sida om kriminalpolitik kunde bekräftas separat."
+      },
+      "L": {
+        "stance": "Liberalerna har medverkat till att skärpa straffen för flera grova brott, avskaffa mängdrabatten och begränsa automatisk frigivning, och vill bekämpa gängkriminalitet med både hård och öppen hand. Partiet vill samtidigt att kriminalvården ska hjälpa dömda att lämna kriminaliteten.",
+        "score": -1,
+        "source": {
+          "label": "Liberalerna – Gängkriminalitet",
+          "url": "https://www.liberalerna.se/politik/gangkriminalitet"
+        },
+        "source_note": "Liberalernas sida om gängkriminalitet samt om kriminalvård."
+      },
+      "S": {
+        "stance": "Socialdemokraterna vill se fler fällda domar och skärpta straff för brott kopplade till gängkriminalitet, organiserad brottslighet och mäns våld mot kvinnor, bland annat genom en föreslagen svensk mafialag med dubbla straff för gängkriminella. Partiet vill samtidigt ge skolan ett tydligare brottsförebyggande uppdrag.",
+        "score": -1,
+        "source": {
+          "label": "Socialdemokraterna – Brottsbekämpning och trygghet",
+          "url": "https://www.socialdemokraterna.se/var-politik/a-till-o/brottsbekampning-och-trygghet"
+        },
+        "source_note": "Socialdemokraternas sida om brottsbekämpning och trygghet."
+      },
+      "C": {
+        "stance": "Centerpartiet vill stärka polis och rättsväsende för att bättre bekämpa grov organiserad brottslighet, med fler poliser och bättre utredningsresultat där otryggheten är som störst, samt stärkt vittnesskydd. Partiet lägger relativt mer vikt vid resurser till rättsväsendet än vid retorik om generella straffskärpningar.",
+        "score": 0,
+        "source": {
+          "label": "Centerpartiet – Organiserad brottslighet",
+          "url": "https://www.centerpartiet.se/var-politik/politik-a-o/lag-och-ratt/organiserad-brottslighet"
+        },
+        "source_note": "Centerpartiets sida om organiserad brottslighet."
+      },
+      "MP": {
+        "stance": "Miljöpartiet vill kombinera förebyggande arbete, ett starkt och effektivt rättsväsende och straff som står i proportion till brottets allvar, med tidiga insatser, reformerad sluten ungdomsvård och fler poliser närmare medborgarna. Partiet lägger relativt större vikt vid förebyggande insatser än vid generella straffskärpningar.",
+        "score": 1,
+        "source": {
+          "label": "Miljöpartiet – Partiprogram om effektiv brottsbekämpning",
+          "url": "https://www.mp.se/om/partiprogram/partiprogram-effektiv-brottsbekampning/"
+        },
+        "source_note": "Miljöpartiets partiprogram om trygghet och effektiv brottsbekämpning."
+      },
+      "V": {
+        "stance": "Vänsterpartiet menar att forskning visar att längre och hårdare straff inte i sig minskar brottsligheten, och vill istället prioritera brottsförebyggande arbete och investeringar i gemensam välfärd som skola, socialtjänst och bostäder. Partiet är kritiskt till straffskärpningar som huvudsaklig lösning på gängkriminalitet.",
+        "score": 2,
+        "source": {
+          "label": "Vänsterpartiet – Kriminalitet och kriminalvård",
+          "url": "https://www.vansterpartiet.se/var-politik/politik-a-o/kriminalitet-och-kriminalvard/"
+        },
+        "source_note": "Vänsterpartiets sida om kriminalitet och kriminalvård."
+      }
+    }
+  },
+  {
+    "id": "sjukvard",
+    "title": "Sjukvård",
+    "axis_label_low": "Mest förespråkande av privat/marknad i vården",
+    "axis_label_high": "Mest förespråkande av rent offentligt finansierad vård",
+    "factbrief": "Sjukvårdspolitiken rör hur den svenska hälso- och sjukvården, som är skattefinansierad och organiseras huvudsakligen av 21 regioner, ska styras och finansieras för att korta vårdköer och stärka primärvården. En central fråga är vilken roll privata vårdgivare och privata sjukvårdsförsäkringar ska spela inom eller vid sidan av den offentligt finansierade vården. Sverige har jämfört med många andra länder relativt långa väntetider för planerad vård, vilket gjort vårdköer till en återkommande politisk stridsfråga. En central avvägning är mellan ökad valfrihet och konkurrens som drivkraft för effektivitet, och risken för att en tudelad vård efter betalningsförmåga uppstår.",
+    "factbrief_sources": [
+      {
+        "label": "Socialstyrelsen",
+        "url": "https://www.socialstyrelsen.se/"
+      },
+      {
+        "label": "Myndigheten för vård- och omsorgsanalys (Vårdanalys)",
+        "url": "https://www.vardanalys.se/"
+      }
+    ],
+    "positions": {
+      "V": {
+        "stance": "Vänsterpartiet vill att sjukvården ska vara solidariskt finansierad och styras efter behov snarare än efter vinstintresse, och är kritiskt till privata sjukvårdsförsäkringar som partiet menar riskerar att undergräva jämlik vård. Partiet vill stärka den offentliga primärvården i hela landet.",
+        "score": 2,
+        "source": {
+          "label": "Vänsterpartiet – Välfärden",
+          "url": "https://www.vansterpartiet.se/var-politik/politik-a-o/valfard/"
+        },
+        "source_note": "Baserat på V:s generella välfärdspolitik och motstånd mot vinstdrivna privata sjukvårdsförsäkringar; en separat fristående sjukvårdssida kunde inte bekräftas."
+      },
+      "S": {
+        "stance": "Socialdemokraterna vill korta vårdköerna genom miljardsatsningar till regionerna och fler anställda inom äldreomsorgen, och har motsatt sig att privata sjukvårdsförsäkringar ska kunna ge snabbare tillgång till den skattefinansierade vården. Partiet vill stärka den offentligt drivna primärvården.",
+        "score": 1,
+        "source": {
+          "label": "Socialdemokraterna – Sjukvård",
+          "url": "https://www.socialdemokraterna.se/var-politik/a-till-o/sjukvard"
+        },
+        "source_note": "Socialdemokraternas sida om sjukvårdspolitik."
+      },
+      "MP": {
+        "stance": "Miljöpartiet vill se en generell sjukvård med fler anställda på rimliga villkor, finansierad gemensamt via skatten, och är skeptiskt till att vinstintressen ska styra vårdens prioriteringar. Partiet talar om en grön välfärdsstat byggd på kollektiv finansiering.",
+        "score": 1,
+        "source": {
+          "label": "Miljöpartiet – Vår politik",
+          "url": "https://www.mp.se/politik/"
+        },
+        "source_note": "Baserat på MP:s beskrivning av en generell, kollektivt finansierad sjukvård fri från vinstdrivande styrning."
+      },
+      "C": {
+        "stance": "Centerpartiet vill se en välfärd utan geografisk orättvisa, där skola, vård och omsorg fungerar i hela landet, med särskilt fokus på primärvårdens tillgänglighet utanför storstäderna. Partiets linje i frågan om privata utförares roll ligger mellan blockens ytterpunkter.",
+        "score": 0,
+        "source": {
+          "label": "Centerpartiets politik",
+          "url": "https://www.centerpartiet.se/centerpartiets-politik"
+        },
+        "source_note": "Baserat på C:s generella profil om jämlik välfärd i hela landet oavsett driftsform."
+      },
+      "SD": {
+        "stance": "Sverigedemokraterna menar att sjukvården inte prioriterats tillräckligt under senare mandatperioder och vill se ökade resurser till vården, med ett visst utrymme för privata utförare inom ramen för skattefinansieringen. Partiet har genom regeringssamarbetet varit med och beslutat om satsningar för att korta vårdköer.",
+        "score": -1,
+        "source": {
+          "label": "Sverigedemokraterna – Vad vi vill",
+          "url": "https://www.sd.se/vad-vi-vill/"
+        },
+        "source_note": "Baserat på partiföreträdares uttalanden om vårdens prioritering och regeringssamarbetets vårdsatsningar; ingen fristående SD-sjukvårdssida kunde bekräftas separat."
+      },
+      "KD": {
+        "stance": "Kristdemokraterna vill att staten tar huvudansvaret för sjukvårdens finansiering och styrning för att uppnå en jämlik, högkvalitativ vård i hela landet, med förebyggande arbete och vård på patientens villkor som prioriterade områden. Partiet har drivit frågan om statligt huvudmannaskap för sjukvården längre än de flesta andra partier.",
+        "score": -1,
+        "source": {
+          "label": "Kristdemokraterna – Sjukvård",
+          "url": "https://kristdemokraterna.se/var-politik/politik-a-till-o/sjukvard"
+        },
+        "source_note": "KD:s sida om sjukvårdspolitik."
+      },
+      "L": {
+        "stance": "Liberalerna förespråkar en blandning av offentliga och privata vårdgivare med stor valfrihet för patienten inom den skattefinansierade vården. Partiet har historiskt drivit på för vårdvalssystem och ökad konkurrens mellan utförare för att korta köer.",
+        "score": -1,
+        "source": {
+          "label": "Liberalerna – Vår politik",
+          "url": "https://www.liberalerna.se/politik"
+        },
+        "source_note": "Baserat på L:s långvariga profil kring vårdval och patientens valfrihet inom sjukvården."
+      },
+      "M": {
+        "stance": "Moderaterna vill ha en skattefinansierad sjukvård som grund men där privata sjukvårdsförsäkringar kan fungera som komplement för den som önskar, och menar att offentliga och privata vårdgivare bör samverka snarare än ställas mot varandra. Partiet vill att privata utförare systematiskt används i hela landet för att korta vårdköerna.",
+        "score": -2,
+        "source": {
+          "label": "Moderaterna – Sjukvård",
+          "url": "https://moderaterna.se/var-politik/sjukvard/"
+        },
+        "source_note": "Moderaternas politiksida om sjukvård."
+      }
+    }
+  },
+  {
+    "id": "skola",
+    "title": "Skola",
+    "axis_label_low": "Mest marknadsliberal (fritt skolval, vinstuttag)",
+    "axis_label_high": "Mest restriktiv mot vinst/marknad, mer statlig styrning",
+    "factbrief": "Skolpolitiken handlar om hur den svenska grund- och gymnasieskolan ska styras, finansieras och hålla ihop kunskapsresultat och likvärdighet. Sedan friskolereformen 1992 kan fristående skolor, inklusive vinstdrivande aktiebolag, finansieras med skattemedel via skolpengen och konkurrera med kommunala skolor om elever. Sveriges resultat i internationella kunskapsmätningar som PISA har varierat under 2000- och 2010-talen, samtidigt som lärarbrist och skillnader i resultat mellan skolor och områden är återkommande diskussionsämnen. Den politiska konflikten rör dels vinstuttagets vara eller inte vara, dels graden av statlig kontra kommunal och lokal styrning av skolan.",
+    "factbrief_sources": [
+      {
+        "label": "Skolverket",
+        "url": "https://www.skolverket.se/"
+      },
+      {
+        "label": "Skolinspektionen",
+        "url": "https://www.skolinspektionen.se/"
+      }
+    ],
+    "positions": {
+      "M": {
+        "stance": "Moderaterna försvarar det fria skolvalet och fristående skolors rätt att verka på samma villkor som kommunala, och motsätter sig förslag om vinstförbud i skolan. Partiet vill istället fokusera på kunskapsresultat, ordning och studiero.",
+        "score": -2,
+        "source": {
+          "label": "Moderaterna – Vår politik",
+          "url": "https://moderaterna.se/var-politik/"
+        },
+        "source_note": "Baserat på M:s generella och långvariga försvar av det fria skolvalet och motstånd mot vinstförbud i skolan."
+      },
+      "SD": {
+        "stance": "Sverigedemokraterna vill förstatliga skolan för att skapa en mer likvärdig skola i hela landet, kombinerat med skärpta ordningsregler och tydligare betygssystem. Partiet accepterar fristående skolor men vill se hårdare krav på huvudmän snarare än ett generellt vinstförbud.",
+        "score": -1,
+        "source": {
+          "label": "Sverigedemokraterna – Vad vi vill",
+          "url": "https://www.sd.se/vad-vi-vill/"
+        },
+        "source_note": "Baserat på SD:s långvariga profilfråga om att förstatliga skolan; ingen fristående 2026-sida om skolpolitik kunde bekräftas separat."
+      },
+      "KD": {
+        "stance": "Kristdemokraterna vill stärka föräldraansvaret och inför så kallade föräldrakontrakt mellan skola, föräldrar och elev, och försvarar valfriheten inom skolan. Partiet motsätter sig ett generellt vinstförbud men vill se tydligare kvalitetskrav på huvudmän.",
+        "score": -1,
+        "source": {
+          "label": "Kristdemokraterna – Skola & utbildning",
+          "url": "https://kristdemokraterna.se/var-politik/politikomraden/skola--utbildning"
+        },
+        "source_note": "KD:s sida om skola och utbildning."
+      },
+      "C": {
+        "stance": "Centerpartiet försvarar det fria skolvalet och friskolornas roll för valfrihet och lokal förankring, särskilt i glesbygd, och motsätter sig ett generellt vinstförbud. Partiet vill se en mer decentraliserad styrning av skolan.",
+        "score": -1,
+        "source": {
+          "label": "Centerpartiets politik",
+          "url": "https://www.centerpartiet.se/centerpartiets-politik"
+        },
+        "source_note": "Baserat på C:s generella profil för valfrihet och decentralisering, som konsekvent tillämpas även på skolpolitiken."
+      },
+      "L": {
+        "stance": "Liberalerna vill se maximalt 20 elever per klass och en lärobok per elev och ämne som konkreta skolreformer, och har drivit på för att fasa ut renodlade vinstintressen ur skolan på ett kontrollerat sätt genom skärpt ägar- och ledningsprövning. Partiet försvarar samtidigt det fria skolvalet i grunden.",
+        "score": 0,
+        "source": {
+          "label": "Liberalerna – För skolelever",
+          "url": "https://www.liberalerna.se/for-skolelever"
+        },
+        "source_note": "Liberalernas skolpolitiska sidor."
+      },
+      "S": {
+        "stance": "Socialdemokraterna vill förbjuda vinstuttag i grund- och gymnasieskolor samt förskolor, och vill stoppa vad partiet kallar överetablering av friskolor. Partiet vill finansiera sina förslag bland annat genom en föreslagen bankskatt.",
+        "score": 1,
+        "source": {
+          "label": "Socialdemokraternas budgetmotion för 2026",
+          "url": "https://www.socialdemokraterna.se/download/18.6ed00dea19998e1c3e03d50/1759747290476/Socialdemokraternas%20Budgetmotion%202026.pdf"
+        },
+        "source_note": "Budgetmotion 2026 med förslag om vinstförbud i skolan."
+      },
+      "V": {
+        "stance": "Vänsterpartiet vill fasa ut vinstdrivande aktörer ur skolan helt och ser marknadsstyrningen, inklusive det fria skolvalet, som en starkt bidragande orsak till ökad skolsegregation. Partiet vill ge kommunerna ett tydligare huvudansvar för skolan.",
+        "score": 2,
+        "source": {
+          "label": "Vänsterpartiet – Vinster i välfärden",
+          "url": "https://www.vansterpartiet.se/var-politik/politik-a-o/vinster-i-valfarden/"
+        },
+        "source_note": "Vänsterpartiets sida om vinster i välfärden, tillämpad specifikt på partiets skolpolitik."
+      },
+      "MP": {
+        "stance": "Miljöpartiet vill se en skola fri från vinstutdelande bolag och vill genomföra stora satsningar på skolor och förskolor för att bryta segregation. Partiet ser vinstintressen som oförenliga med skolans kunskaps- och likvärdighetsuppdrag.",
+        "score": 2,
+        "source": {
+          "label": "Miljöpartiet – Vår politik",
+          "url": "https://www.mp.se/politik/"
+        },
+        "source_note": "Baserat på MP:s uttalade vision om en skola fri från vinstutdelande bolag."
+      }
+    }
+  },
+  {
+    "id": "bostader",
+    "title": "Bostäder",
+    "axis_label_low": "Mest marknadslösning (fri hyressättning, avreglering)",
+    "axis_label_high": "Mest statlig styrning/hyresreglering",
+    "factbrief": "Bostadspolitiken rör hur bostadsbyggandet ska öka och hur den befintliga bostadsmarknaden, inklusive hyresmarknaden, ska regleras. Sverige har sedan lång tid ett bruksvärdessystem som dämpar hyreshöjningar i det befintliga beståndet, samtidigt som nyproduktion och andrahandsmarknaden i stor utsträckning har friare prissättning, vilket bidrar till en delad bostadsmarknad med brist på lediga bostäder i flera storstadsregioner. Den politiska konflikten handlar om huruvida friare hyressättning skulle öka rörligheten och byggandet, eller om det riskerar att driva upp boendekostnaderna för befintliga hyresgäster. En central avvägning är mellan marknadslösningar som ska stimulera byggande, och reglering och statliga investeringar som ska skydda hyresgäster och säkerställa bostäder till rimlig kostnad.",
+    "factbrief_sources": [
+      {
+        "label": "Boverket",
+        "url": "https://www.boverket.se/"
+      }
+    ],
+    "positions": {
+      "M": {
+        "stance": "Moderaterna vill se fler marknadslösningar och minskad reglering för att öka bostadsbyggandet, med förenklade regler för byggande och en mer rörlig hyresmarknad. Partiet prioriterar ökat utbud framför fortsatt hyresreglering.",
+        "score": -2,
+        "source": {
+          "label": "Moderaterna – Vår politik",
+          "url": "https://moderaterna.se/var-politik/"
+        },
+        "source_note": "Baserat på M:s generella marknadsorienterade bostadslinje, i linje med Moderaternas regeringssamarbete; ingen fristående bostadssida kunde bekräftas separat."
+      },
+      "L": {
+        "stance": "Liberalerna vill se fri hyressättning i nyproduktion och andra liberala reformer på bostadsmarknaden för att öka rörligheten och byggandet. Partiet ser dagens hyresreglering som en delförklaring till bostadsbristen i storstäderna.",
+        "score": -2,
+        "source": {
+          "label": "Liberalerna – Vår politik",
+          "url": "https://www.liberalerna.se/politik"
+        },
+        "source_note": "Liberalernas politik för liberala reformer av bostads- och hyresmarknaden."
+      },
+      "C": {
+        "stance": "Centerpartiet vill se ökat bostadsbyggande i hela landet genom förenklade regler och satsningar på infrastruktur som gör det möjligt att bo och verka utanför storstäderna. Partiet lutar åt marknadslösningar snarare än utökad hyresreglering.",
+        "score": -1,
+        "source": {
+          "label": "Centerpartiets politik",
+          "url": "https://www.centerpartiet.se/centerpartiets-politik"
+        },
+        "source_note": "Baserat på C:s generella landsbygds- och infrastrukturprofil tillämpad på bostadsfrågan."
+      },
+      "KD": {
+        "stance": "Kristdemokraterna vill se ökat bostadsbyggande genom förenklade regelverk och betonar även barnfamiljers boendetrygghet. Partiet tillhör högerblocket, som generellt förespråkar mer marknadsstyrning på bostadsmarknaden framför utökad reglering.",
+        "score": -1,
+        "source": {
+          "label": "Kristdemokraterna – Vår politik",
+          "url": "https://kristdemokraterna.se/var-politik"
+        },
+        "source_note": "Ingen fristående KD-bostadssida kunde bekräftas i sökningen; bedömningen speglar partiets generella hållning i linje med regeringssamarbetets bostadspolitik."
+      },
+      "SD": {
+        "stance": "Sverigedemokraterna vill göra mer mark tillgänglig för byggande som ett sätt att möta bostadsbristen. Partiet är i grunden marknadsorienterat på bostadsmarknaden men lägger stor vikt vid ordnat byggande snarare än en radikal avreglering av hyror.",
+        "score": -1,
+        "source": {
+          "label": "Sverigedemokraterna – Vad vi vill",
+          "url": "https://www.sd.se/vad-vi-vill/"
+        },
+        "source_note": "Baserat på partiets uttalade fokus på ökad tillgång till byggbar mark; ingen fristående bostadssida kunde bekräftas separat."
+      },
+      "MP": {
+        "stance": "Miljöpartiet vill använda befintliga bostäder mer effektivt eftersom nyproduktion har stor klimatpåverkan, och vill främja industriellt byggande av trähus, vilket partiet menar stärker kvalitet och skapar jobb på landsbygden. Partiet kombinerar klimathänsyn med ambitionen att öka bostadsbyggandet.",
+        "score": 1,
+        "source": {
+          "label": "Miljöpartiet – Bostäder (Stockholm)",
+          "url": "https://www.mp.se/stockholm/politik/bostader/"
+        },
+        "source_note": "Lokal politiksida som speglar partiets nationella linje om klimatsmart och effektivt bostadsbyggande."
+      },
+      "S": {
+        "stance": "Socialdemokraterna vill se ett statligt ansvarstagande för bostadsbyggandet och motsätter sig fri marknadshyra, samtidigt som partiet vill att unga ska ha tillgång till bostad oavsett var i landet de växer upp. Partiet förespråkar fortsatt reglerad hyressättning via bruksvärdessystemet och en stark allmännytta.",
+        "score": 1,
+        "source": {
+          "label": "Riksdagen – Bostadspolitik (debatt 1 april 2026)",
+          "url": "https://www.riksdagen.se/sv/webb-tv/video/debatt-om-forslag/bostadspolitik_hd01cu18/"
+        },
+        "source_note": "Baserat på riksdagens bostadspolitiska debatt och branschsammanställningar som beskriver S som förespråkare av statligt ansvar och reglerad hyressättning."
+      },
+      "V": {
+        "stance": "Vänsterpartiet vill stärka allmännyttan och hyresgästernas skydd genom fortsatt reglerad hyressättning, och motsätter sig marknadshyror som partiet menar riskerar att driva upp boendekostnaderna. Partiet vill se kraftigt ökade statliga investeringar i byggande av hyresrätter med rimliga hyror.",
+        "score": 2,
+        "source": {
+          "label": "Riksdagen – Motion 2025/26:2821, Bostadspolitik, planering och byggande (V)",
+          "url": "https://www.riksdagen.se/sv/dokument-och-lagar/dokument/motion/bostadspolitik-planering-och-byggande_hd022821/html/"
+        },
+        "source_note": "Vänsterpartiets riksdagsmotion om bostadspolitik, planering och byggande."
+      }
+    }
+  },
+  {
+    "id": "sverige-i-varlden",
+    "title": "Sverige i världen",
+    "axis_label_low": "Mest EU-/Nato-skeptisk",
+    "axis_label_high": "Mest pådrivande för EU-integration/Nato-fördjupning",
+    "factbrief": "Frågan om Sveriges roll i världen rör landets medlemskap och engagemang i EU sedan 1995 och i Nato sedan 2024, samt nivån på försvarsanslagen efter en försämrad säkerhetspolitisk situation i Europa sedan Rysslands fullskaliga invasion av Ukraina 2022. Natomedlemskapet innebar ett historiskt brott med Sveriges tidigare militära alliansfrihet och har brett, men inte helt enhälligt, stöd bland riksdagens partier. Den politiska konflikten rör i vilken takt och omfattning försvaret ska byggas ut, hur mycket makt som bör flyttas till EU-nivå inom olika politikområden, och hur Sverige bör balansera nationellt självbestämmande mot fördjupat internationellt samarbete. En central avvägning är mellan kostnaden för ökad försvars- och säkerhetspolitisk förmåga och andra offentliga prioriteringar.",
+    "factbrief_sources": [
+      {
+        "label": "Regeringen – utrikes- och säkerhetspolitik",
+        "url": "https://www.regeringen.se/regeringens-politik/utrikes--och-sakerhetspolitik/"
+      },
+      {
+        "label": "Försvarsmakten",
+        "url": "https://www.forsvarsmakten.se/"
+      }
+    ],
+    "positions": {
+      "V": {
+        "stance": "Vänsterpartiet motsatte sig svenskt Natomedlemskap och vill att Sverige, även som medlem, ska föra en självständig utrikes-, försvars- och säkerhetspolitik. Partiet är kritiskt till EU:s överstatlighet och vill prioritera nordiskt samarbete och samverkan med andra demokratiska länder.",
+        "score": -2,
+        "source": {
+          "label": "Vänsterpartiet – Nato",
+          "url": "https://www.vansterpartiet.se/var-politik/politik-a-o/nato/"
+        },
+        "source_note": "Vänsterpartiets sida om Nato."
+      },
+      "SD": {
+        "stance": "Sverigedemokraterna var historiskt skeptiska till Natomedlemskap men röstade till slut för Sveriges anslutning 2024. Partiet är EU-kritiskt och vill se ett Sverige som behåller mer nationellt självbestämmande gentemot EU.",
+        "score": -1,
+        "source": {
+          "label": "Sverigedemokraterna – Vad vi vill",
+          "url": "https://www.sd.se/vad-vi-vill/"
+        },
+        "source_note": "Baserat på partiets riksdagsröstning för svensk Natoanslutning 2024 efter tidigare skepsis, samt partiets långvariga EU-kritiska hållning."
+      },
+      "MP": {
+        "stance": "Miljöpartiet verkar inte för ett svenskt utträde ur Nato men vill i första hand stärka europeisk försvarsförmåga och säkerhet samt fördjupa det nordisk-baltiska samarbetet inom Nato, snarare än driva vidare militarisering. Partiet prioriterar samtidigt internationellt samarbete kring klimat och global rättvisa.",
+        "score": 0,
+        "source": {
+          "label": "Miljöpartiet – Fred och försvar",
+          "url": "https://www.mp.se/politik/fred-och-forsvar/"
+        },
+        "source_note": "Miljöpartiets sida om fred och försvar."
+      },
+      "S": {
+        "stance": "Socialdemokraterna drev igenom Sveriges ansökan om och anslutning till Nato 2022–2024 som dåvarande regeringsparti, och står bakom fortsatt svenskt medlemskap. Partiet är övergripande positivt till EU-samarbetet men vill behålla nationellt beslutsfattande inom vissa politikområden.",
+        "score": 1,
+        "source": {
+          "label": "Regeringen – Sveriges Natoansökan 2022",
+          "url": "https://www.regeringen.se/regeringens-politik/utrikes--och-sakerhetspolitik/"
+        },
+        "source_note": "Baserat på att den dåvarande S-ledda regeringen fattade beslutet om svensk Nato-ansökan i maj 2022."
+      },
+      "KD": {
+        "stance": "Kristdemokraterna ser Nato som den främsta garanten för Europas försvar och vill att EU i högre grad ska fylla en kompletterande roll, bland annat genom en försvarskommissionär och gemensamt cyberförsvar. Partiet vill ha ett smalare men vassare EU-samarbete kring säkerhet, miljö, migration och handel.",
+        "score": 1,
+        "source": {
+          "label": "Kristdemokraterna – Säkerhetspolitik",
+          "url": "https://kristdemokraterna.se/var-politik/politik-a-till-o/sakerhetspolitik"
+        },
+        "source_note": "KD:s sida om säkerhetspolitik."
+      },
+      "M": {
+        "stance": "Moderaterna ledde som statsministerparti Sveriges anslutning till Nato 2022–2024 och driver en atlantiskt orienterad, säkerhetspolitiskt aktiv linje med höjda försvarsanslag. Partiet är även ett av de mest uttalat EU-positiva partierna i riksdagen.",
+        "score": 2,
+        "source": {
+          "label": "Moderaterna – Vår politik",
+          "url": "https://moderaterna.se/var-politik/"
+        },
+        "source_note": "Baserat på M:s roll som statsministerparti under Natoanslutningsprocessen 2022–2024 och partiets övergripande EU-positiva linje."
+      },
+      "C": {
+        "stance": "Centerpartiet är ett av de mest uttalat EU-positiva partierna och var tidigt pådrivande för ett svenskt Natomedlemskap, redan innan de flesta andra partier ändrade sin linje. Partiet vill fördjupa både EU- och Natosamarbetet.",
+        "score": 2,
+        "source": {
+          "label": "Centerpartiets politik",
+          "url": "https://www.centerpartiet.se/centerpartiets-politik"
+        },
+        "source_note": "Baserat på C:s långvariga, väldokumenterade EU- och Natopositiva linje."
+      },
+      "L": {
+        "stance": "Liberalerna vill fortsätta fördjupa Sveriges samarbete inom EU och Nato, fortsätta stödja Ukrainas försvarskrig och återuppbyggnad, samt snabbt stärka det civila och militära försvaret. Partiet har historiskt varit ett av de mest uttalat Nato- och EU-positiva partierna.",
+        "score": 2,
+        "source": {
+          "label": "Liberalerna – Beslut från landsmötet 2025",
+          "url": "https://www.liberalerna.se/nyheter/beslut-fran-landsmotet-2025"
+        },
+        "source_note": "Liberalernas landsmötesbeslut 2025 om utrikes- och försvarspolitik."
+      }
+    }
+  },
+  {
+    "id": "arbetsmarknad",
+    "title": "Arbetsmarknad",
+    "axis_label_low": "Mest avreglerad arbetsmarknad / lättare uppsägning",
+    "axis_label_high": "Mest stärkt anställningsskydd/fackligt inflytande",
+    "factbrief": "Arbetsmarknadspolitiken rör balansen mellan flexibilitet för arbetsgivare och trygghet för anställda, konkretiserat bland annat i lagen om anställningsskydd (LAS) och den statligt subventionerade men fackligt administrerade arbetslöshetsförsäkringen (a-kassan). År 2022 genomfördes en större LAS-reform, framförhandlad av arbetsmarknadens parter inom ramen för januariavtalet, som gav arbetsgivare fler undantag vid uppsägning i utbyte mot stärkt omställningsstöd. Den politiska konflikten rör dels hur mycket anställningsskyddet ska luckras upp för att öka rörligheten på arbetsmarknaden, dels vilka krav och vilken ersättningsnivå som ska gälla i a-kassan. En central avvägning är mellan en mer dynamisk arbetsmarknad som kan gynna nyanställning och omställning, och risken för minskad trygghet för redan anställda.",
+    "factbrief_sources": [
+      {
+        "label": "Medlingsinstitutet",
+        "url": "https://www.mi.se/"
+      },
+      {
+        "label": "Arbetsförmedlingen",
+        "url": "https://arbetsformedlingen.se/"
+      }
+    ],
+    "positions": {
+      "C": {
+        "stance": "Centerpartiet var en av huvudarkitekterna bakom januariavtalets uppgörelse om reformerat anställningsskydd (LAS) 2022, som gjorde det enklare för mindre företag att göra undantag vid uppsägning. Partiet ser en flexiblare arbetsmarknad och sänkta arbetsgivaravgifter för småföretag som centralt för jobbskapande.",
+        "score": -2,
+        "source": {
+          "label": "Centerpartiets politik",
+          "url": "https://www.centerpartiet.se/centerpartiets-politik"
+        },
+        "source_note": "Baserat på C:s roll som pådrivande part i LAS-överenskommelsen 2020–2022 (del av januariavtalet)."
+      },
+      "M": {
+        "stance": "Moderaterna stödde 2022 års LAS-reform, som gav arbetsgivare fler undantag vid uppsägning, och ser en flexiblare arbetsmarknad som viktig för konkurrenskraften. Partiet har som regeringsparti också genomfört åtstramningar av a-kassan.",
+        "score": -1,
+        "source": {
+          "label": "Moderaterna – Vår politik",
+          "url": "https://moderaterna.se/var-politik/"
+        },
+        "source_note": "Baserat på M:s stöd för LAS-reformen 2022 och regeringens a-kassepolitik."
+      },
+      "L": {
+        "stance": "Liberalerna stödde 2022 års reform av anställningsskyddet och vill se en generell, statlig och obligatorisk arbetslöshetsförsäkring som ersätter dagens fackligt kopplade a-kassor. Partiet kombinerar denna omreglering med lägre skatt på jobb och företagande.",
+        "score": -1,
+        "source": {
+          "label": "Liberalerna – Arbetsmarknad",
+          "url": "https://www.liberalerna.se/politik/arbetsmarknad"
+        },
+        "source_note": "Liberalernas sida om arbetsmarknadspolitik."
+      },
+      "KD": {
+        "stance": "Kristdemokraterna vill sätta tillväxt, arbetslinjen och egen försörjning i centrum och anser att arbetslöshet främst motverkas genom ett bättre företagsklimat och sänkta trösklar in på arbetsmarknaden, snarare än genom stärkt anställningsskydd. Partiet stödde 2022 års LAS-reform.",
+        "score": -1,
+        "source": {
+          "label": "Kristdemokraterna – Arbetsmarknad",
+          "url": "https://kristdemokraterna.se/var-politik/politik-a-till-o/arbetsmarknad"
+        },
+        "source_note": "KD:s sida om arbetsmarknadspolitik."
+      },
+      "SD": {
+        "stance": "Sverigedemokraterna intar en position som delvis skiljer sig från övriga högerpartier i arbetsmarknadsfrågor, med retorik om att värna trygghet för redan etablerade arbetstagare, samtidigt som partiet ingått i ett regeringssamarbete som genomfört åtstramningar av a-kassan. Partiets linje i LAS-frågan har varit mindre pådrivande än exempelvis Centerpartiets eller Moderaternas.",
+        "score": 0,
+        "source": {
+          "label": "Sverigedemokraterna – Vad vi vill",
+          "url": "https://www.sd.se/vad-vi-vill/"
+        },
+        "source_note": "Ingen fristående SD-sida om LAS kunde bekräftas; bedömningen bygger på partiets röstmönster och offentliga uttalanden och speglar en generell partiposition."
+      },
+      "S": {
+        "stance": "Socialdemokraterna accepterade efter förhandlingar den LAS-reform som arbetsmarknadens parter enades om 2020–2022, men drev ursprungligen på för att begränsa försämringar av anställningsskyddet. Partiet har motsatt sig regeringens åtstramningar av a-kassan och vill återställa villkoren.",
+        "score": 1,
+        "source": {
+          "label": "Socialdemokraterna – Vår politik",
+          "url": "https://www.socialdemokraterna.se/var-politik"
+        },
+        "source_note": "Baserat på S:s hantering av LAS-frågan inom ramen för januariavtalet 2019–2021 och partiets kritik av a-kassereformen 2023."
+      },
+      "MP": {
+        "stance": "Miljöpartiet vill värna den svenska modellen, där arbetsmarknadens parter förhandlar om anställningsvillkor, snarare än att politiskt detaljreglera anställningsskyddet. Partiet har drivit frågor om arbetslivstrygghet och rimliga anställningsvillkor.",
+        "score": 1,
+        "source": {
+          "label": "Miljöpartiet – Arbetslivstrygghet",
+          "url": "https://www.mp.se/politik/arbetslivstrygghet/"
+        },
+        "source_note": "Miljöpartiets sida om arbetslivstrygghet."
+      },
+      "V": {
+        "stance": "Vänsterpartiet motsatte sig 2022 års försvagning av anställningsskyddet (LAS) och vill stärka det igen, samt motsätter sig regeringens åtstramningar av a-kassan. Partiet vill se ett starkare fackligt inflytande och bättre skydd för anställda.",
+        "score": 2,
+        "source": {
+          "label": "Vänsterpartiet – Vår politik",
+          "url": "https://www.vansterpartiet.se/var-politik/"
+        },
+        "source_note": "Baserat på V:s riksdagsvotering mot LAS-reformen 2022 och mot a-kasseförsämringarna 2023."
+      }
+    }
+  }
+]

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Valkompassen</title>
+<meta name="description" content="Faktabaserad, källbelagd valkompass som visar din partimatchning på djupet och förklarar sakfrågorna utan att vara till lags." />
+<meta name="theme-color" content="#2f2b7a" />
+<link rel="manifest" href="/manifest.json" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<div class="app-shell">
+
+  <div class="brand">
+    <div class="brand-name">Valkompassen</div>
+    <div class="brand-tagline">Faktabaserad.<br />Källbelagd. Inte till lags.</div>
+  </div>
+
+  <!-- INTRO -->
+  <section id="screen-intro" class="screen active">
+    <div class="hero-card">
+      <h1>Hitta din partitillhörighet – på riktigt, på djupet.</h1>
+      <p>Det här är inte en snabb ja/nej-quiz. Du tar ställning i ett tiotal sakfrågor, väger hur viktiga de är för dig, och får en matchning byggd på källbelagda partipositioner – inte på vad som känns bekvämt.</p>
+      <p>Varje fråga inleds med en kort, neutral faktabrief så att du kan ta ställning med koll på sakfrågan, inte bara på magkänsla.</p>
+      <div class="pill-row">
+        <span class="pill">~10 sakfrågor</span>
+        <span class="pill">Källor till varje påstående</span>
+        <span class="pill">~5 minuter</span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Så funkar det</h2>
+      <p>1. Du tar ställning i varje sakfråga på en skala, och anger hur viktig frågan är för dig.<br />
+      2. Vi räknar ut din matchning mot alla riksdagspartier utifrån deras faktiska, källbelagda positioner.<br />
+      3. Du kan gräva djupare i varje parti och fråga vår faktaassistent – som aldrig gissar och aldrig försöker vara till lags.</p>
+    </div>
+    <div class="btn-row">
+      <span></span>
+      <button class="btn btn-primary" id="btn-start">Starta valkompassen</button>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="screen-quiz" class="screen">
+    <div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="progress-label" id="progress-label"></div>
+    </div>
+
+    <div class="card">
+      <div class="question-eyebrow">Sakfråga</div>
+      <div class="question-title" id="question-title"></div>
+
+      <div class="factbrief">
+        <strong>Bakgrund:</strong> <span id="question-factbrief"></span>
+        <div class="sources" id="question-sources"></div>
+      </div>
+
+      <div class="slider-wrap">
+        <div class="slider-labels">
+          <span id="label-low"></span>
+          <span id="label-high"></span>
+        </div>
+        <input type="range" id="answer-slider" min="-2" max="2" step="1" value="0" />
+        <div class="scale-ticks"><span>-2</span><span>-1</span><span>0</span><span>+1</span><span>+2</span></div>
+      </div>
+
+      <div class="weight-row">
+        <div class="weight-row-label">Hur viktig är den här frågan för dig?</div>
+        <div class="weight-options" id="weight-options">
+          <div class="weight-chip" data-weight="1">Lite viktig</div>
+          <div class="weight-chip selected" data-weight="2">Viktig</div>
+          <div class="weight-chip" data-weight="3">Mycket viktig</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="btn-prev">Föregående</button>
+      <button class="btn btn-primary" id="btn-next">Nästa</button>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="screen-results" class="screen">
+    <div class="results-summary">
+      <h1>Din matchning</h1>
+      <p>Baserat på dina svar, viktade efter hur viktiga du sa att frågorna var.</p>
+    </div>
+
+    <div id="party-results"></div>
+
+    <div class="card">
+      <details class="methodology">
+        <summary>Metodik & källor</summary>
+        <div id="methodology-text">Laddar…</div>
+      </details>
+    </div>
+
+    <div class="card chat-panel">
+      <h2>Fråga faktaassistenten</h2>
+      <p>Grundad enbart i datan ovan – inte i egna åsikter. Fråga t.ex. "Varför skiljer sig S och M om vinster i välfärden?"</p>
+      <div class="chat-log" id="chat-log"></div>
+      <div class="chat-input-row">
+        <input type="text" id="chat-input" placeholder="Skriv din fråga…" />
+        <button class="btn btn-primary" id="chat-send">Skicka</button>
+      </div>
+      <div class="chat-hint" id="chat-hint"></div>
+    </div>
+
+    <div class="restart-link"><a href="#" id="btn-restart">Gör om valkompassen</a></div>
+  </section>
+
+  <div class="footer-note">
+    Valkompassen ger inte röstningsrekommendationer och är inte kopplad till något parti. Se metodik och källor ovan. Granska alltid mot partiernas egna, aktuella valmanifest inför valet.
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
