@@ -1,10 +1,50 @@
 [
-  { "id": "S", "name": "Socialdemokraterna", "color": "#E8112D", "short_description": "PLACEHOLDER - ersätts av research." },
-  { "id": "M", "name": "Moderaterna", "color": "#52BDEC", "short_description": "PLACEHOLDER - ersätts av research." },
-  { "id": "SD", "name": "Sverigedemokraterna", "color": "#DDDD00", "short_description": "PLACEHOLDER - ersätts av research." },
-  { "id": "C", "name": "Centerpartiet", "color": "#009933", "short_description": "PLACEHOLDER - ersätts av research." },
-  { "id": "V", "name": "Vänsterpartiet", "color": "#DA291C", "short_description": "PLACEHOLDER - ersätts av research." },
-  { "id": "KD", "name": "Kristdemokraterna", "color": "#000077", "short_description": "PLACEHOLDER - ersätts av research." },
-  { "id": "L", "name": "Liberalerna", "color": "#006AB3", "short_description": "PLACEHOLDER - ersätts av research." },
-  { "id": "MP", "name": "Miljöpartiet", "color": "#83CF39", "short_description": "PLACEHOLDER - ersätts av research." }
+  {
+    "id": "S",
+    "name": "Socialdemokraterna",
+    "color": "#E8112D",
+    "short_description": "Socialdemokraterna är ett socialdemokratiskt parti som förespråkar en stark offentlig välfärdsstat finansierad via progressiv beskattning."
+  },
+  {
+    "id": "M",
+    "name": "Moderaterna",
+    "color": "#52BDEC",
+    "short_description": "Moderaterna är ett liberalkonservativt parti som förespråkar sänkta skatter, marknadslösningar i välfärden och en åtstramad migrationspolitik."
+  },
+  {
+    "id": "SD",
+    "name": "Sverigedemokraterna",
+    "color": "#DDDD00",
+    "short_description": "Sverigedemokraterna är ett nationalkonservativt parti som prioriterar en restriktiv migrationspolitik, hårdare straff och nationell sammanhållning."
+  },
+  {
+    "id": "C",
+    "name": "Centerpartiet",
+    "color": "#009933",
+    "short_description": "Centerpartiet är ett socialliberalt och grönt mittenparti med rötter i lantbrukarrörelsen, som förespråkar decentralisering, företagande och marknadslösningar."
+  },
+  {
+    "id": "V",
+    "name": "Vänsterpartiet",
+    "color": "#DA291C",
+    "short_description": "Vänsterpartiet är ett socialistiskt parti som förespråkar en starkt utbyggd offentlig välfärd, omfördelning genom höjda skatter och motstånd mot vinstuttag i välfärden."
+  },
+  {
+    "id": "KD",
+    "name": "Kristdemokraterna",
+    "color": "#000077",
+    "short_description": "Kristdemokraterna är ett kristdemokratiskt, värdekonservativt parti som betonar familjens roll, valfrihet i välfärden och en stram men human migrationspolitik."
+  },
+  {
+    "id": "L",
+    "name": "Liberalerna",
+    "color": "#006AB3",
+    "short_description": "Liberalerna är ett socialliberalt parti som förespråkar marknadsekonomi, individens frihet och en internationellt orienterad utrikes- och säkerhetspolitik."
+  },
+  {
+    "id": "MP",
+    "name": "Miljöpartiet",
+    "color": "#83CF39",
+    "short_description": "Miljöpartiet är ett grönt parti som prioriterar klimat- och miljöfrågor, social rättvisa och en internationellt solidarisk migrationspolitik."
+  }
 ]
