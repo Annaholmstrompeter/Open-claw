@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Världens underverk</title>
+<meta name="description" content="Utforska världens underverk och testa dig själv i quizet.">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#4f2c5c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Underverk">
+<style>
+  :root {
+    --bg-top: #1a0f2e;
+    --bg-bottom: #2d1b4e;
+    --panel: #251540;
+    --panel-2: #2f1c4f;
+    --gold: #f7c56a;
+    --gold-soft: #ffe09e;
+    --sand: #d8a85c;
+    --text: #f2ecff;
+    --text-dim: #b9aed6;
+    --ok: #7ed6a5;
+    --bad: #e97c7c;
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: radial-gradient(ellipse at top, var(--bg-bottom), var(--bg-top) 70%);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  body {
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  #app {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+  header.top {
+    text-align: center;
+    padding: 18px 0 8px;
+  }
+  header.top h1 {
+    margin: 0;
+    font-size: 1.6rem;
+    letter-spacing: 0.02em;
+  }
+  header.top h1 .emoji { filter: drop-shadow(0 0 8px rgba(247,197,106,0.5)); }
+  header.top p {
+    margin: 6px 0 0;
+    color: var(--text-dim);
+    font-size: 0.92rem;
+  }
+  nav.tabs {
+    display: flex;
+    gap: 8px;
+    background: var(--panel);
+    border-radius: 999px;
+    padding: 5px;
+    margin: 18px 0 20px;
+  }
+  nav.tabs button {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 10px 0;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  nav.tabs button.active {
+    background: linear-gradient(135deg, var(--gold), var(--sand));
+    color: #241407;
+  }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .surprise-btn {
+    display: block;
+    width: 100%;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    border: 1px solid rgba(247,197,106,0.35);
+    background: rgba(247,197,106,0.08);
+    color: var(--gold-soft);
+    border-radius: var(--radius);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .surprise-btn:active { transform: scale(0.98); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .card {
+    background: var(--panel);
+    border-radius: var(--radius);
+    padding: 14px 12px 12px;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: transform 0.15s, border-color 0.15s;
+    text-align: center;
+  }
+  .card:active { transform: scale(0.97); }
+  .card.highlight {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 2px rgba(247,197,106,0.25);
+  }
+  .card .icon-wrap {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+  .card svg { width: 100%; height: 100%; color: var(--gold); }
+  .card .icon-wrap img, .modal-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+    display: block;
+  }
+  .card h3 {
+    margin: 0 0 2px;
+    font-size: 0.92rem;
+    line-height: 1.25;
+  }
+  .card p {
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+  }
+
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 5, 20, 0.72);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 20;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--panel-2);
+    width: 100%;
+    max-width: 720px;
+    border-radius: 24px 24px 0 0;
+    padding: 22px 20px calc(28px + env(safe-area-inset-bottom));
+    max-height: 88vh;
+    overflow-y: auto;
+    animation: slideUp 0.22s ease-out;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(24px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .modal-icon {
+    width: 96px;
+    height: 72px;
+    margin: 0 auto 10px;
+    color: var(--gold);
+  }
+  .modal h2 {
+    margin: 0 0 2px;
+    text-align: center;
+    font-size: 1.3rem;
+  }
+  .modal .native {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    margin-bottom: 14px;
+  }
+  .modal .meta-row {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .modal .meta-item {
+    text-align: center;
+  }
+  .modal .meta-item .label {
+    display: block;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+  }
+  .modal .meta-item .value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--gold-soft);
+  }
+  .modal p.desc {
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: var(--text);
+  }
+  .fun-fact {
+    margin-top: 14px;
+    background: rgba(247,197,106,0.1);
+    border: 1px solid rgba(247,197,106,0.25);
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+  .fun-fact b { color: var(--gold-soft); }
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .modal-actions a, .modal-actions button {
+    flex: 1;
+    text-align: center;
+    text-decoration: none;
+    padding: 12px 0;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border: none;
+    cursor: pointer;
+  }
+  .modal-actions a {
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+  }
+  .modal-actions button.close-btn {
+    background: linear-gradient(135deg, var(--gold), var(--sand));
+    color: #241407;
+  }
+
+  /* Quiz */
+  .quiz-card {
+    background: var(--panel);
+    border-radius: var(--radius);
+    padding: 22px 18px;
+  }
+  .quiz-progress {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+  }
+  .progress-bar {
+    height: 6px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--sand));
+    transition: width 0.25s;
+  }
+  .quiz-icon {
+    width: 120px;
+    height: 90px;
+    margin: 0 auto 12px;
+    color: var(--gold);
+  }
+  .quiz-question {
+    text-align: center;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 18px;
+  }
+  .quiz-options {
+    display: grid;
+    gap: 10px;
+  }
+  .quiz-options button {
+    padding: 13px 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04);
+    color: var(--text);
+    font-size: 0.95rem;
+    text-align: left;
+    cursor: pointer;
+  }
+  .quiz-options button:active { transform: scale(0.99); }
+  .quiz-options button.correct {
+    background: rgba(126, 214, 165, 0.18);
+    border-color: var(--ok);
+    color: var(--ok);
+  }
+  .quiz-options button.wrong {
+    background: rgba(233, 124, 124, 0.18);
+    border-color: var(--bad);
+    color: var(--bad);
+  }
+  .quiz-options button:disabled { cursor: default; }
+  .quiz-next {
+    margin-top: 18px;
+    width: 100%;
+    padding: 13px 0;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, var(--gold), var(--sand));
+    color: #241407;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: none;
+  }
+  .quiz-next.show { display: block; }
+
+  .quiz-result {
+    text-align: center;
+  }
+  .quiz-result .score {
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--gold);
+    margin: 10px 0 6px;
+  }
+  .quiz-result p { color: var(--text-dim); margin: 0 0 20px; }
+  .quiz-result button {
+    padding: 13px 28px;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, var(--gold), var(--sand));
+    color: #241407;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
+
+  footer.credits {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    margin-top: 30px;
+    opacity: 0.7;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <h1><span class="emoji">🌍</span> Världens underverk</h1>
+    <p>Åtta byggnadsverk som fått hela världen att häpna</p>
+  </header>
+
+  <nav class="tabs">
+    <button id="tab-explore" class="active">Utforska</button>
+    <button id="tab-quiz">Quiz</button>
+  </nav>
+
+  <section id="view-explore" class="view active">
+    <button class="surprise-btn" id="surprise-btn">🎲 Slumpa ett underverk</button>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section id="view-quiz" class="view">
+    <div id="quiz-container"></div>
+  </section>
+
+  <footer class="credits">Byggd med ❤ av Aether</footer>
+</div>
+
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+const WONDERS = [
+  {
+    id: "giza",
+    name: "Pyramiderna i Giza",
+    native: "أهرامات الجيزة",
+    country: "Egypten",
+    location: "Giza, nära Kairo",
+    year: "ca 2560 f.Kr.",
+    era: "Forntida",
+    coords: "29.9792,31.1342",
+    desc: "Giza-pyramiderna är det enda kvarvarande av antikens sju underverk. Störst av dem är Cheopspyramiden, som var världens högsta byggnadsverk i över 3 800 år.",
+    fact: "Pyramiderna byggdes utan hjul eller järnverktyg – ändå är stenblocken monterade med en precision på någon enstaka millimeter.",
+    icon: "giza",
+    image: "giza.jpg"
+  },
+  {
+    id: "great-wall",
+    name: "Kinesiska muren",
+    native: "长城 (Chángchéng)",
+    country: "Kina",
+    location: "Norra Kina",
+    year: "ca 700-talet f.Kr. – 1600-talet e.Kr.",
+    era: "Byggd i etapper",
+    coords: "40.4319,116.5704",
+    desc: "En kedja av murar, torn och befästningar som byggdes under flera dynastier för att skydda Kina mot invasioner norrifrån. Det mesta av det vi ser idag byggdes under Mingdynastin.",
+    fact: "Muren är inte en enda sammanhängande linje – den grenar och dubblerar sig på många ställen och är sammanlagt över 21 000 km lång.",
+    icon: "wall",
+    image: "great-wall.jpg"
+  },
+  {
+    id: "petra",
+    name: "Petra",
+    native: "البتراء",
+    country: "Jordanien",
+    location: "Ma'an-provinsen",
+    year: "ca 300 f.Kr.",
+    era: "Nabateisk",
+    coords: "30.3285,35.4444",
+    desc: "En hel stad uthuggen i rosafärgad klippa av nabateerna, som gjorde Petra till en blomstrande handelsknutpunkt för karavaner mellan Arabien, Egypten och Medelhavet.",
+    fact: "Petra var bortglömt för västvärlden i nästan 500 år tills en schweizisk upptäcktsresande hittade det igen 1812.",
+    icon: "petra",
+    image: "petra.jpg"
+  },
+  {
+    id: "christ",
+    name: "Kristusstatyn",
+    native: "Cristo Redentor",
+    country: "Brasilien",
+    location: "Rio de Janeiro",
+    year: "1931",
+    era: "1900-talet",
+    coords: "-22.9519,-43.2105",
+    desc: "En 30 meter hög staty av Jesus Kristus med utsträckta armar, placerad på toppen av berget Corcovado med utsikt över hela Rio de Janeiro.",
+    fact: "Statyn har blivit träffad av blixten flera gånger – ett sådant strejk 2014 skadade till och med en av fingrarna.",
+    icon: "statue",
+    image: "christ.jpg"
+  },
+  {
+    id: "machu",
+    name: "Machu Picchu",
+    native: "Machu Pikchu",
+    country: "Peru",
+    location: "Anderna, Cusco-regionen",
+    year: "ca 1450",
+    era: "Inkarike",
+    coords: "-13.1631,-72.5450",
+    desc: "En inkastad högt uppe i Anderna, byggd som en kunglig egendom. Terrasserna, templen och stenmurarna klarade sig oskadda genom seklerna, gömda för spanska erövrare.",
+    fact: "Stenblocken är så exakt tillskurna att de sitter ihop utan murbruk – och har överlevt flera stora jordbävningar.",
+    icon: "terraces",
+    image: "machu.jpg"
+  },
+  {
+    id: "chichen",
+    name: "Chichén Itzá",
+    native: "Chichén Itzá",
+    country: "Mexiko",
+    location: "Yucatánhalvön",
+    year: "ca 600–900 e.Kr.",
+    era: "Maya",
+    coords: "20.6843,-88.5678",
+    desc: "En av mayafolkets viktigaste städer, känd för den stora stegpyramiden El Castillo som byggdes som en kalender i sten tillägnad guden Kukulkán.",
+    fact: "Vid vår- och höstdagjämningen skapar solens skugga på pyramidens trappa en illusion av en orm som kryper nedför trappan.",
+    icon: "step-pyramid",
+    image: "chichen.jpg"
+  },
+  {
+    id: "colosseum",
+    name: "Colosseum",
+    native: "Colosseo",
+    country: "Italien",
+    location: "Rom",
+    year: "80 e.Kr.",
+    era: "Romerska riket",
+    coords: "41.8902,12.4922",
+    desc: "Antikens största amfiteater, där gladiatorstrider, djurjakter och skådespel underhöll upp till 50 000 åskådare samtidigt.",
+    fact: "Colosseum hade ett avancerat system av schakt och hissar under arenagolvet för att föra upp djur och dekor från underjordiska tunnlar.",
+    icon: "colosseum",
+    image: "colosseum.jpg"
+  },
+  {
+    id: "taj",
+    name: "Taj Mahal",
+    native: "ताज महल",
+    country: "Indien",
+    location: "Agra",
+    year: "1632–1653",
+    era: "Mogulriket",
+    coords: "27.1751,78.0421",
+    desc: "Ett vitt marmormausoleum byggt av kejsar Shah Jahan till minne av sin älskade hustru Mumtaz Mahal. Byggnaden anses vara ett av världens vackraste exempel på mogul-arkitektur.",
+    fact: "Marmorn skiftar färg under dagen – rosaaktig på morgonen, bländande vit mitt på dagen och gyllene i månljus.",
+    icon: "taj",
+    image: "taj.jpg"
+  }
+];
+
+let currentQuiz = null;
+
+const svgIcons = {
+  giza: `<svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="sky-giza" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ffb168"/><stop offset="1" stop-color="#ffe1a8"/>
+      </linearGradient>
+    </defs>
+    <rect width="200" height="150" rx="18" fill="url(#sky-giza)"/>
+    <circle cx="150" cy="42" r="30" fill="#fff1c2" opacity="0.35"/>
+    <circle cx="150" cy="42" r="17" fill="#fff6da"/>
+    <rect x="0" y="116" width="200" height="34" fill="#d99a5b"/>
+    <polygon points="142,116 167,84 192,116" fill="#8a4426"/>
+    <polygon points="18,116 78,44 138,116" fill="#5c2a1a"/>
+    <polygon points="78,44 138,116 78,116" fill="#46200f"/>
+  </svg>`,
+  wall: `<svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="sky-wall" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#cfe8ea"/><stop offset="1" stop-color="#9fd8b0"/>
+      </linearGradient>
+    </defs>
+    <rect width="200" height="150" rx="18" fill="url(#sky-wall)"/>
+    <path d="M0 118 Q40 90 80 108 T200 92 V150 H0 Z" fill="#bfe6c8"/>
+    <path d="M0 122 Q30 96 60 108 T130 100 Q165 92 200 100 V112 Q165 104 130 112 T60 120 Q30 108 0 134 Z" fill="#2f5d50"/>
+    <g fill="#24463c">
+      <rect x="24" y="97" width="10" height="10"/>
+      <rect x="52" y="101" width="10" height="10"/>
+      <rect x="80" y="97" width="10" height="10"/>
+      <rect x="108" y="94" width="10" height="10"/>
+      <rect x="136" y="91" width="10" height="10"/>
+      <rect x="164" y="89" width="10" height="10"/>
+    </g>
+    <rect x="88" y="76" width="20" height="26" rx="2" fill="#24463c"/>
+  </svg>`,
+  petra: `<svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="sky-petra" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#f0b98a"/><stop offset="1" stop-color="#c1654f"/>
+      </linearGradient>
+    </defs>
+    <rect width="200" height="150" rx="18" fill="url(#sky-petra)"/>
+    <path d="M0 150 V40 Q30 20 46 60 Q56 100 40 150 Z" fill="#a85a48"/>
+    <path d="M200 150 V44 Q172 22 154 62 Q144 102 162 150 Z" fill="#a85a48"/>
+    <polygon points="70,58 100,26 130,58" fill="#6b2f3a"/>
+    <rect x="70" y="58" width="60" height="62" fill="#6b2f3a"/>
+    <rect x="80" y="58" width="8" height="62" fill="#7c3944"/>
+    <rect x="112" y="58" width="8" height="62" fill="#7c3944"/>
+    <rect x="92" y="88" width="16" height="32" rx="8" fill="#4a1f28"/>
+  </svg>`,
+  statue: `<svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="sky-christ" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#bfe3f7"/><stop offset="1" stop-color="#ffb199"/>
+      </linearGradient>
+    </defs>
+    <rect width="200" height="150" rx="18" fill="url(#sky-christ)"/>
+    <path d="M0 150 V118 Q50 84 100 112 Q150 86 200 116 V150 Z" fill="#2f6b4f"/>
+    <rect x="97" y="60" width="6" height="46" fill="#1f3a5f"/>
+    <rect x="60" y="58" width="80" height="6" rx="3" fill="#1f3a5f"/>
+    <circle cx="100" cy="48" r="8" fill="#1f3a5f"/>
+    <rect x="88" y="106" width="24" height="16" rx="2" fill="#17293f"/>
+  </svg>`,
+  terraces: `<svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="sky-machu" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#a9d8c7"/><stop offset="1" stop-color="#5fa084"/>
+      </linearGradient>
+    </defs>
+    <rect width="200" height="150" rx="18" fill="url(#sky-machu)"/>
+    <polygon points="118,26 160,90 76,90" fill="#8fc3ab"/>
+    <g fill="#2c5c46">
+      <rect x="10" y="128" width="180" height="16"/>
+      <rect x="26" y="112" width="148" height="16"/>
+      <rect x="42" y="96" width="116" height="16"/>
+      <rect x="58" y="80" width="84" height="16"/>
+    </g>
+    <rect x="86" y="64" width="14" height="16" fill="#e6ded0"/>
+    <rect x="104" y="64" width="14" height="16" fill="#e6ded0"/>
+  </svg>`,
+  "step-pyramid": `<svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="sky-chichen" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#bfe0e8"/><stop offset="1" stop-color="#7cb88f"/>
+      </linearGradient>
+    </defs>
+    <rect width="200" height="150" rx="18" fill="url(#sky-chichen)"/>
+    <path d="M0 150 V126 Q20 116 40 126 T80 126 T120 126 T160 126 T200 126 V150 Z" fill="#3f7a5c"/>
+    <g fill="#8a6a4a">
+      <rect x="40" y="118" width="120" height="14"/>
+      <rect x="52" y="102" width="96" height="14"/>
+      <rect x="64" y="86" width="72" height="14"/>
+      <rect x="76" y="70" width="48" height="14"/>
+      <rect x="88" y="54" width="24" height="14"/>
+    </g>
+    <rect x="96" y="54" width="8" height="78" fill="#6b4f36"/>
+  </svg>`,
+  colosseum: `<svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="sky-colosseum" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ffcf8a"/><stop offset="1" stop-color="#e8896b"/>
+      </linearGradient>
+    </defs>
+    <rect width="200" height="150" rx="18" fill="url(#sky-colosseum)"/>
+    <rect x="0" y="128" width="200" height="22" fill="#c96f4f"/>
+    <path d="M20 128 Q20 64 100 64 Q180 64 180 128 Z" fill="#7a4a35"/>
+    <path d="M40 128 Q40 82 100 82 Q160 82 160 128 Z" fill="#a15c40"/>
+    <g fill="#e8896b">
+      <rect x="48" y="96" width="10" height="18" rx="4"/>
+      <rect x="68" y="88" width="10" height="26" rx="4"/>
+      <rect x="88" y="84" width="10" height="30" rx="4"/>
+      <rect x="102" y="84" width="10" height="30" rx="4"/>
+      <rect x="122" y="88" width="10" height="26" rx="4"/>
+      <rect x="142" y="96" width="10" height="18" rx="4"/>
+    </g>
+  </svg>`,
+  taj: `<svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="sky-taj" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#f3c9d9"/><stop offset="1" stop-color="#fbe4b0"/>
+      </linearGradient>
+    </defs>
+    <rect width="200" height="150" rx="18" fill="url(#sky-taj)"/>
+    <rect x="0" y="120" width="200" height="30" fill="#7fa8c9" opacity="0.55"/>
+    <g fill="#f5f0e6" stroke="#cbb9a8" stroke-width="2">
+      <rect x="24" y="70" width="10" height="50"/>
+      <circle cx="29" cy="66" r="7"/>
+      <rect x="166" y="70" width="10" height="50"/>
+      <circle cx="171" cy="66" r="7"/>
+      <rect x="70" y="78" width="60" height="42"/>
+      <path d="M70 78 Q100 30 130 78 Z"/>
+      <circle cx="100" cy="34" r="4" fill="#cbb9a8" stroke="none"/>
+    </g>
+    <path d="M92 120 V96 Q92 86 100 86 Q108 86 108 96 V120 Z" fill="#d8c4b0"/>
+  </svg>`
+};
+
+function iconFor(id) {
+  return svgIcons[id] || svgIcons.giza;
+}
+
+function renderGrid() {
+  const grid = document.getElementById("grid");
+  grid.innerHTML = WONDERS.map((w) => `
+    <div class="card" data-id="${w.id}" id="card-${w.id}">
+      <div class="icon-wrap"><img src="/images/${w.image}" alt="${w.name}" loading="lazy"></div>
+      <h3>${w.name}</h3>
+      <p>${w.country}</p>
+    </div>
+  `).join("");
+  grid.querySelectorAll(".card").forEach((card) => {
+    card.addEventListener("click", () => openModal(card.dataset.id));
+  });
+}
+
+function openModal(id) {
+  const w = WONDERS.find((x) => x.id === id);
+  if (!w) return;
+  const modal = document.getElementById("modal");
+  modal.innerHTML = `
+    <div class="modal-icon"><img src="/images/${w.image}" alt="${w.name}" loading="lazy"></div>
+    <h2>${w.name}</h2>
+    <div class="native">${w.native} · ${w.era}</div>
+    <div class="meta-row">
+      <div class="meta-item"><span class="label">Land</span><span class="value">${w.country}</span></div>
+      <div class="meta-item"><span class="label">Plats</span><span class="value">${w.location}</span></div>
+      <div class="meta-item"><span class="label">Byggt</span><span class="value">${w.year}</span></div>
+    </div>
+    <p class="desc">${w.desc}</p>
+    <div class="fun-fact"><b>Visste du?</b><br>${w.fact}</div>
+    <div class="modal-actions">
+      <a href="https://www.google.com/maps?q=${w.coords}" target="_blank" rel="noopener">📍 Visa på karta</a>
+      <button class="close-btn" id="modal-close">Stäng</button>
+    </div>
+  `;
+  document.getElementById("modal-close").addEventListener("click", closeModal);
+  document.getElementById("modal-backdrop").classList.add("open");
+}
+
+function closeModal() {
+  document.getElementById("modal-backdrop").classList.remove("open");
+}
+
+document.getElementById("modal-backdrop").addEventListener("click", (e) => {
+  if (e.target.id === "modal-backdrop") closeModal();
+});
+
+document.getElementById("surprise-btn").addEventListener("click", () => {
+  const w = WONDERS[Math.floor(Math.random() * WONDERS.length)];
+  document.querySelectorAll(".card").forEach((c) => c.classList.remove("highlight"));
+  const card = document.getElementById(`card-${w.id}`);
+  if (card) {
+    card.classList.add("highlight");
+    card.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  setTimeout(() => openModal(w.id), 350);
+});
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function buildQuizQuestions() {
+  const countries = [...new Set(WONDERS.map((w) => w.country))];
+  return shuffle(WONDERS).map((w) => {
+    const wrongPool = shuffle(countries.filter((c) => c !== w.country)).slice(0, 3);
+    const options = shuffle([w.country, ...wrongPool]);
+    return { wonder: w, options, correct: w.country };
+  });
+}
+
+function startQuiz() {
+  currentQuiz = {
+    questions: buildQuizQuestions(),
+    index: 0,
+    score: 0,
+  };
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion() {
+  const container = document.getElementById("quiz-container");
+  const q = currentQuiz.questions[currentQuiz.index];
+  const total = currentQuiz.questions.length;
+  const pct = Math.round((currentQuiz.index / total) * 100);
+
+  container.innerHTML = `
+    <div class="quiz-card">
+      <div class="quiz-progress">
+        <span>Fråga ${currentQuiz.index + 1} av ${total}</span>
+        <span>Poäng: ${currentQuiz.score}</span>
+      </div>
+      <div class="progress-bar"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+      <div class="quiz-icon">${iconFor(q.wonder.icon)}</div>
+      <div class="quiz-question">I vilket land ligger ${q.wonder.name}?</div>
+      <div class="quiz-options" id="quiz-options">
+        ${q.options.map((opt, i) => `<button data-opt="${opt}" id="opt-${i}">${opt}</button>`).join("")}
+      </div>
+      <button class="quiz-next" id="quiz-next">Nästa fråga</button>
+    </div>
+  `;
+
+  const optionButtons = container.querySelectorAll(".quiz-options button");
+  optionButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const chosen = btn.dataset.opt;
+      optionButtons.forEach((b) => (b.disabled = true));
+      if (chosen === q.correct) {
+        btn.classList.add("correct");
+        currentQuiz.score++;
+      } else {
+        btn.classList.add("wrong");
+        optionButtons.forEach((b) => {
+          if (b.dataset.opt === q.correct) b.classList.add("correct");
+        });
+      }
+      const nextBtn = document.getElementById("quiz-next");
+      nextBtn.classList.add("show");
+      nextBtn.textContent = currentQuiz.index + 1 < total ? "Nästa fråga" : "Se resultat";
+      nextBtn.onclick = () => {
+        currentQuiz.index++;
+        if (currentQuiz.index < total) {
+          renderQuizQuestion();
+        } else {
+          renderQuizResult();
+        }
+      };
+    });
+  });
+}
+
+function renderQuizResult() {
+  const container = document.getElementById("quiz-container");
+  const total = currentQuiz.questions.length;
+  const score = currentQuiz.score;
+  let msg;
+  if (score === total) msg = "Perfekt! Du är ett riktigt reseproffs. 🌟";
+  else if (score >= total * 0.6) msg = "Riktigt bra jobbat! 👏";
+  else msg = "Dags att packa väskan och utforska mer. ✈️";
+
+  container.innerHTML = `
+    <div class="quiz-card quiz-result">
+      <div>Du fick</div>
+      <div class="score">${score} / ${total}</div>
+      <p>${msg}</p>
+      <button id="quiz-retry">Spela igen</button>
+    </div>
+  `;
+  document.getElementById("quiz-retry").addEventListener("click", startQuiz);
+}
+
+document.getElementById("tab-explore").addEventListener("click", () => switchTab("explore"));
+document.getElementById("tab-quiz").addEventListener("click", () => switchTab("quiz"));
+
+function switchTab(tab) {
+  document.getElementById("tab-explore").classList.toggle("active", tab === "explore");
+  document.getElementById("tab-quiz").classList.toggle("active", tab === "quiz");
+  document.getElementById("view-explore").classList.toggle("active", tab === "explore");
+  document.getElementById("view-quiz").classList.toggle("active", tab === "quiz");
+  if (tab === "quiz" && !currentQuiz) startQuiz();
+}
+
+renderGrid();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
