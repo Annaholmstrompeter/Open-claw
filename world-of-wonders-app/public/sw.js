@@ -1,10 +1,18 @@
-const CACHE = "underverk-v1";
+const CACHE = "underverk-v2";
 const ASSETS = [
   "/",
   "/index.html",
   "/manifest.json",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
+  "/images/giza.jpg",
+  "/images/great-wall.jpg",
+  "/images/petra.jpg",
+  "/images/christ.jpg",
+  "/images/machu.jpg",
+  "/images/chichen.jpg",
+  "/images/colosseum.jpg",
+  "/images/taj.jpg",
 ];
 
 self.addEventListener("install", (event) => {

@@ -129,6 +129,13 @@
     margin-bottom: 8px;
   }
   .card svg { width: 100%; height: 100%; color: var(--gold); }
+  .card .icon-wrap img, .modal-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+    display: block;
+  }
   .card h3 {
     margin: 0 0 2px;
     font-size: 0.92rem;
@@ -393,7 +400,8 @@ const WONDERS = [
     coords: "29.9792,31.1342",
     desc: "Giza-pyramiderna är det enda kvarvarande av antikens sju underverk. Störst av dem är Cheopspyramiden, som var världens högsta byggnadsverk i över 3 800 år.",
     fact: "Pyramiderna byggdes utan hjul eller järnverktyg – ändå är stenblocken monterade med en precision på någon enstaka millimeter.",
-    icon: "giza"
+    icon: "giza",
+    image: "giza.jpg"
   },
   {
     id: "great-wall",
@@ -406,7 +414,8 @@ const WONDERS = [
     coords: "40.4319,116.5704",
     desc: "En kedja av murar, torn och befästningar som byggdes under flera dynastier för att skydda Kina mot invasioner norrifrån. Det mesta av det vi ser idag byggdes under Mingdynastin.",
     fact: "Muren är inte en enda sammanhängande linje – den grenar och dubblerar sig på många ställen och är sammanlagt över 21 000 km lång.",
-    icon: "wall"
+    icon: "wall",
+    image: "great-wall.jpg"
   },
   {
     id: "petra",
@@ -419,7 +428,8 @@ const WONDERS = [
     coords: "30.3285,35.4444",
     desc: "En hel stad uthuggen i rosafärgad klippa av nabateerna, som gjorde Petra till en blomstrande handelsknutpunkt för karavaner mellan Arabien, Egypten och Medelhavet.",
     fact: "Petra var bortglömt för västvärlden i nästan 500 år tills en schweizisk upptäcktsresande hittade det igen 1812.",
-    icon: "petra"
+    icon: "petra",
+    image: "petra.jpg"
   },
   {
     id: "christ",
@@ -432,7 +442,8 @@ const WONDERS = [
     coords: "-22.9519,-43.2105",
     desc: "En 30 meter hög staty av Jesus Kristus med utsträckta armar, placerad på toppen av berget Corcovado med utsikt över hela Rio de Janeiro.",
     fact: "Statyn har blivit träffad av blixten flera gånger – ett sådant strejk 2014 skadade till och med en av fingrarna.",
-    icon: "statue"
+    icon: "statue",
+    image: "christ.jpg"
   },
   {
     id: "machu",
@@ -445,7 +456,8 @@ const WONDERS = [
     coords: "-13.1631,-72.5450",
     desc: "En inkastad högt uppe i Anderna, byggd som en kunglig egendom. Terrasserna, templen och stenmurarna klarade sig oskadda genom seklerna, gömda för spanska erövrare.",
     fact: "Stenblocken är så exakt tillskurna att de sitter ihop utan murbruk – och har överlevt flera stora jordbävningar.",
-    icon: "terraces"
+    icon: "terraces",
+    image: "machu.jpg"
   },
   {
     id: "chichen",
@@ -458,7 +470,8 @@ const WONDERS = [
     coords: "20.6843,-88.5678",
     desc: "En av mayafolkets viktigaste städer, känd för den stora stegpyramiden El Castillo som byggdes som en kalender i sten tillägnad guden Kukulkán.",
     fact: "Vid vår- och höstdagjämningen skapar solens skugga på pyramidens trappa en illusion av en orm som kryper nedför trappan.",
-    icon: "step-pyramid"
+    icon: "step-pyramid",
+    image: "chichen.jpg"
   },
   {
     id: "colosseum",
@@ -471,7 +484,8 @@ const WONDERS = [
     coords: "41.8902,12.4922",
     desc: "Antikens största amfiteater, där gladiatorstrider, djurjakter och skådespel underhöll upp till 50 000 åskådare samtidigt.",
     fact: "Colosseum hade ett avancerat system av schakt och hissar under arenagolvet för att föra upp djur och dekor från underjordiska tunnlar.",
-    icon: "colosseum"
+    icon: "colosseum",
+    image: "colosseum.jpg"
   },
   {
     id: "taj",
@@ -484,7 +498,8 @@ const WONDERS = [
     coords: "27.1751,78.0421",
     desc: "Ett vitt marmormausoleum byggt av kejsar Shah Jahan till minne av sin älskade hustru Mumtaz Mahal. Byggnaden anses vara ett av världens vackraste exempel på mogul-arkitektur.",
     fact: "Marmorn skiftar färg under dagen – rosaaktig på morgonen, bländande vit mitt på dagen och gyllene i månljus.",
-    icon: "taj"
+    icon: "taj",
+    image: "taj.jpg"
   }
 ];
 
@@ -634,7 +649,7 @@ function renderGrid() {
   const grid = document.getElementById("grid");
   grid.innerHTML = WONDERS.map((w) => `
     <div class="card" data-id="${w.id}" id="card-${w.id}">
-      <div class="icon-wrap">${iconFor(w.icon)}</div>
+      <div class="icon-wrap"><img src="/images/${w.image}" alt="${w.name}" loading="lazy"></div>
       <h3>${w.name}</h3>
       <p>${w.country}</p>
     </div>
@@ -649,7 +664,7 @@ function openModal(id) {
   if (!w) return;
   const modal = document.getElementById("modal");
   modal.innerHTML = `
-    <div class="modal-icon">${iconFor(w.icon)}</div>
+    <div class="modal-icon"><img src="/images/${w.image}" alt="${w.name}" loading="lazy"></div>
     <h2>${w.name}</h2>
     <div class="native">${w.native} · ${w.era}</div>
     <div class="meta-row">
