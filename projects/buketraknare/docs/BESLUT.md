@@ -1,0 +1,40 @@
+# Beslut
+
+## 2026-10-07: efter steg 0 och arkitekturgrunden
+
+Steg 0 (regressionstester) och arkitekturgrunden är godkända. Inget mergas till master. PR #9 mergas inte. PR #10 bevakas inte löpande.
+
+1. **Ingen mer generell grossistteknik nu.** Arkitekturen testas först mot en verklig grossist (pilotadaptern). Utvecklingen står still tills pilotgrossisten är vald.
+2. **Fallbackvägarna ligger kvar synliga** (skärmdumpar, ChatGPT Work, brevlåda, AI-chatt) tills den första riktiga grossistkopplingen fungerar. Därefter flyttas de till *Importera prislista* som reservväg. De raderas inte.
+3. **Lat matchning är rätt väg.** Ingen stor matchnings-setup.
+4. **Prisdatakälla: se nedan.**
+5. **Valuta och moms:** systemet vägrar hellre räkna än gör en osäker omräkning. Valuta- och momslogik byggs först när en verklig grossist kräver det.
+6. **Cloudflare:** avvakta. Inget ändras utan den riktiga felraden ur byggloggen (se `CLOUDFLARE-DEPLOYMENT.md`).
+7. **Nästa steg** tas när pilotgrossisten är identifierad: först research, sedan en verklig adapter, innan mer byggs. Underlag: `CHECKLISTA-PILOTGROSSIST.md`.
+
+### Vilken prisdatakälla som vinner
+
+**Beslut:** ett färskt, verifierat grossistpris är normalt standard. Det är inte absolut överordnat för alltid. Floristen ska senare kunna göra en **manuell override för en enskild produkt**.
+
+Fyra begrepp ska gå att skilja åt. Modellen kan redan det, så **ingenting ändras nu**:
+
+| Begrepp | Hur det finns i modellen i dag |
+|---------|--------------------------------|
+| **Aktuellt grossistpris** | senaste prisnoteringen (`quotes[]`) på en anslutning som inte är `conn_manual`, om den är användbar (`unusableReason` = null: kronor, uttryckligen utan moms) |
+| **Manuellt pris** | senaste prisnoteringen på `conn_manual` (det floristen skrivit in eller läst in) |
+| **Aktivt pris** | det `viewOf` väljer, och det räknemotorn använder |
+| **Manuell override** | finns inte än. Läggs till som ett nytt valfritt fält på produkten (till exempel `priceOverride`), vilket modellen redan tål |
+
+Kontrollerat (engångskörning, ingen kod ändrad): ett extra fält på en produkt bevaras vid inläsning av sparad data, och vyn och rollbacken fungerar med det. Eftersom `viewOf` är den enda platsen där det aktiva priset väljs, och rollbacken (`downgradeV2toV1`) bygger på `viewOf`, följer en override automatiskt med till det gamla formatet när den väl respekteras av `viewOf`.
+
+**Skillnad mellan beslutet och nuvarande beteende** (medvetet inte ändrat):
+
+- Nu vinner den första anslutna grossistens användbara pris oavsett ålder. Beslutet säger *färskt* verifierat pris. Vad som räknas som färskt, och vad som gäller när grossistpriset är gammalt men ett manuellt pris är nyare, avgörs när vi vet hur den verkliga grossistens priser uppdateras.
+- Nu ändrar en manuell inläsning inte det visade priset för en vara som har ett användbart grossistpris (den sparas och gäller om grossisten kopplas bort). Det är dokumenterat i ett test, och den manuella overriden är det som senare ger floristen kontroll över det.
+
+**Öppna frågor till senare** (ingen bråttom):
+
+1. Vad är "färskt"? En gräns i timmar eller dagar, och hur den beror på leveransdag och helger.
+2. Hur länge gäller en override: tills grossistpriset ändras, för alltid, eller med slutdatum?
+3. Hur visas det för floristen: *Grossistens pris* mot *Ditt eget pris*, utan teknikord.
+4. Ska en manuell inläsning av en hel prislista gälla produkter som saknar grossistkoppling?
