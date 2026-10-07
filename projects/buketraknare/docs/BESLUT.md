@@ -38,3 +38,11 @@ Kontrollerat (engångskörning, ingen kod ändrad): ett extra fält på en produ
 2. Hur länge gäller en override: tills grossistpriset ändras, för alltid, eller med slutdatum?
 3. Hur visas det för floristen: *Grossistens pris* mot *Ditt eget pris*, utan teknikord.
 4. Ska en manuell inläsning av en hel prislista gälla produkter som saknar grossistkoppling?
+
+## 2026-10-07 (senare): produktvisionen justerad, matchningsfunktionen pausad
+
+Grossistens verkliga artiklar ska vara sanningen, och floristens egna arbete bygger på favoriter, aktuella priser, erbjudanden, tillgänglighet, säsong och svenskodlat/närodlat/ekologiskt (bara när datan finns). Den tekniska grunden (stabila id:n, leverantörsprodukt, pris, matchning, `SupplierConnector`) bedöms vara rätt och ändras inte i onödan.
+
+- **Den planerade matchningsfunktionen byggs inte.** Den ersätts av katalog, klassificering, sökning och favoriter.
+- **Ingen kod och inga tester ändras** tills konsekvensanalysen är granskad: `KONSEKVENSANALYS-FLORISTVISION.md`.
+- Listan över sådant som inte ska byggas ännu står i analysens avsnitt Q.

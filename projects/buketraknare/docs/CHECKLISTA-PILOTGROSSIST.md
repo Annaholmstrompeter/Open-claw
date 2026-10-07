@@ -9,6 +9,8 @@ För att hitta det enklaste sättet att hämta dina egna priser behöver vi veta
 3. **Hur loggar du in?** Kundnummer eller e-post och lösenord? Eller BankID, en sms-kod eller en kod som mejlas? Måste du logga in igen ofta?
 4. **Finns något av det här?** Något som heter *prislista*, *Excel*, *PDF*, *ladda ned*, *app*, *integration* eller *API*, antingen på webbutiken eller i ett mejl du fått. Och en kontaktperson hos grossisten (säljare eller kundservice): namn, mejl och telefon.
 5. **Hur står priserna?** Per stjälk, bunt eller kartong? Med eller utan moms? Är de samma hela veckan eller ändras de dag för dag?
+6. **Kan du bläddra i hela sortimentet i en lista, eller måste du söka efter varje blomma?** Och står varje artikel med sort, längd och kvalitet (till exempel *Avalanche 60 cm*)?
+7. **Står det var blommorna är odlade** (land, odlare) **eller om de är certifierade eller ekologiska?** Visas **erbjudanden** när du loggat in, och står det hur länge de gäller?
 
 ## Hjälper, men är frivilligt
 
@@ -33,5 +35,8 @@ Den bästa vägen väljs i den här ordningen (se planen): officiellt API eller 
 | BankID, sms-kod eller ofta utloggning | Inte inloggad automatik. Prisfil eller import tills grossisten erbjuder något bättre |
 | Bara PDF, mejl eller telefon | Importera prislista (finns redan) och be grossisten om en maskinläsbar fil |
 | Moms eller euro enligt fråga 5 | Först då byggs den logiken, och inte förr |
+| Fråga 6: går inte att lista, bara söka | Onboarding blir *sök din första favorit* i stället för att hämta hela sortimentet |
+| Fråga 7: land, odlare, certifiering syns | Fälten fylls och hållbarhetsfilter byggs. Syns de inte byggs inga filter för den grossisten |
+| Fråga 7: erbjudanden syns med slutdatum | Erbjudandeflödet kan byggas. Utan slutdatum gäller de bara samma dag |
 
 Jag kan inte öppna grossistens sidor från min arbetsmiljö, så allt jag vet kommer från svaren här och från offentliga sidor jag kan nå. Länk till grossistens villkor är bra att få med om floristen råkar se den, men det krävs inte.
