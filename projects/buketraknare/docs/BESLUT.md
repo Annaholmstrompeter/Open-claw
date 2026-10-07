@@ -91,3 +91,20 @@ Annas besked, infört i `MASTER-PLAN.md` (version 2.1) och byggt där det gälle
 11. **Mejl till Blomstergrossisten:** utkast skrivet (`docs/MEJLUTKAST-BLOMSTERGROSSISTEN.md`), kort och icke-tekniskt. **Inget är skickat.** Anna granskar först.
 12. **Kostnadstak och mätning per butik behålls** som krav (MASTER-PLAN avsnitt 10). Piloten med 1–3 florister ska ha mycket låg eller nästan ingen fast kostnad.
 
+## 2026-10-07 (senare): egna tillägg, beräknat och presenterat pris, nästa kodsteg
+
+Annas besked, infört i `MASTER-PLAN.md` (version 2.2) och byggt i kod där det gäller koden.
+
+1. **Egna tillägg och material.** Allt som används i ett arrangemang kommer inte från grossistbeställningen: sidenband i butiken, vas, oasis, tråd, torkat material, egen trädgård, eget lager. En rad i ett arrangemang (`ArrangementItem`) kräver ingen `SupplierProduct`.
+2. **Källmodell:** `SUPPLIER`, `OWN_STOCK`, `HOME_GROWN`, `MANUAL`. `LEFTOVER` är en reserverad plats som inte är aktiverad. Modellen är inte övermodellerad.
+3. **`requiresPurchase`:** en rad avgör själv om den ska skapa ett inköpsbehov. Bara grossistrader hamnar i en grossistbeställning. Eget lager och egen trädgård beställs aldrig. Vad som *används* skiljs från vad som *måste beställas*.
+4. **Noll inköpskostnad betyder inte noll värde.** Extern inköpskostnad, kalkylkostnad och fast kundpris är olika fält. Motorn antar aldrig att kostnad 0 ger kundpris 0. Ett eget material med standardpåslag måste ha en kalkylkostnad större än noll, annars väljer floristen ett fast kundpris. 0 kr som kundpris är ett uttryckligt val.
+5. **Prissättningssätt per rad:** `STANDARD_MARKUP` och `FIXED_SALE_PRICE` (kundens pris direkt, med eller utan moms).
+6. **"Mina material" byggs senare.** Reserverade platser finns (`materialRef`, `materials`), ingen lagerhantering.
+7. **Moms gäller även egna tillägg.** Varje rad kan få en momskategori oavsett källa. Ingen sats gissas.
+8. **Beräknat och presenterat kundpris behålls båda** (667,75 kr och 670 kr). Det beräknade ersätts aldrig av det avrundade. Vilket belopp som är den överenskomna försäljningen (och därmed en ekonomisk händelse) avgörs av kundordern: standard är det presenterade priset, och ett förhandlat belopp registreras som en prisjustering (avsnitt 8.6).
+9. **Nästa kodsteg godkänt och byggt:** exakt förpackningslogik och fraktfördelning med differenstest mot de 145 tillstånden, därefter `Customer`, `Event`, `Arrangement`, `ArrangementItem` och ett lagringsgränssnitt. Ingen stor UI-ombyggnad. Appen laddar inte de nya modulerna än.
+10. **Grossistmejlet:** meningen "Vi gör ingenting automatiskt innan vi hört av oss" är borttagen och ersatt med en mjukare mening om att förstå möjligheter och riktlinjer. Mejlet är **inte skickat**.
+11. **MVP 1B (grossistagent-PoC) ligger kvar parallellt** och väntar på pilotflorist, åtkomst och grossistens villkor. Inga köp.
+12. **Regressionsskydd:** de 266 testerna är oförändrade och gröna.
+

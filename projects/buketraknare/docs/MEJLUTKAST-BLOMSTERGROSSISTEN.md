@@ -1,13 +1,13 @@
 # Mejlutkast till Blomstergrossisten (INTE SKICKAT)
 
-Det här är ett utkast som Anna ska granska innan något skickas. Inget är skickat och inget skickas utan hennes ja.
+Det här är den reviderade versionen av utkastet. Inget är skickat och inget skickas utan Annas ja.
 
 ## Anteckningar till Anna (tas bort före sändning)
 
 - **Vem ska skicka?** Det naturligaste är att **pilotfloristen** skickar det, eftersom det är hon som är kund och har kundnummer. Då är det hennes egen fråga om hennes eget konto. Skickar du det i ditt namn behöver floristen först ha sagt ja.
 - **Adress:** `order@blomstergrossisten.net` och telefon 018-65 65 00 kommer ur en sökträff och är **inte kontrollerade**. Kontrollera dem på grossistens egen sida eller fråga floristen vilken adress hon brukar använda. Ett mejl till orderadressen kanske inte når rätt person, så be gärna om en kontakt för "kundservice eller IT".
 - **Vad som medvetet saknas:** hela affärsidén, tekniken och ordet AI. Mejlet frågar bara det vi behöver veta.
-- **Meningen "Vi gör ingenting automatiskt innan vi hört av oss"** är ett löfte. Ta bort den om du inte vill binda dig, men då vet floristen och vi att vi inte har frågat klart.
+- **Revisionen (Annas önskemål):** meningen "Vi gör ingenting automatiskt innan vi hört av oss" är borttagen och ersatt med en mjukare mening om att förstå möjligheter och riktlinjer. Mejlet binder oss alltså inte till att vänta. Min rekommendation om att ändå fråga före PoC:n står kvar i planen (avsnitt 7.7 och 18.3), men det är ett beslut för dig och floristen, inte ett löfte i mejlet.
 - **Fyll i** det som står inom [hakparenteser].
 
 ## Utkast
@@ -25,7 +25,7 @@ Vi använder ett hjälpmedel för att räkna ut priser på buketter och arrangem
 3. **Vem hos er kan vi prata med om tekniska frågor?**
 4. **Längre fram** skulle vi också vilja att programmet kan lägga varor i vår varukorg för att spara tid, men **utan att något köp genomförs automatiskt**. Vi går alltid igenom och beställer själva. Är det möjligt, eller har ni regler för det?
 
-Vi vill göra det på ett sätt som passar er och inte belastar er webbutik. Vi gör ingenting automatiskt innan vi hört av oss.
+Vi vill gärna förstå vilka möjligheter och riktlinjer ni har för detta så att lösningen fungerar bra tillsammans med er webbutik.
 
 Tack på förhand, och hör gärna av er med några korta svar eller en kontakt att ringa.
 

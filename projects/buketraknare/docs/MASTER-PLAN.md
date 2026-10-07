@@ -1,11 +1,11 @@
 # MASTER-PLAN: Buketträknaren
 
-**Status:** plan, **version 2** (justerad efter Annas tillägg 2026-10-07). Ingen produktionskod och inga tester är ändrade. PR #9 är orörd. PR #10 mergas inte utan godkännande.
+**Status:** plan, **version 2.2** (justerad efter Annas tillägg 2026-10-07, förtydligandena och tillägget om egna material). Ingen produktionskod och inga tester är ändrade. PR #9 är orörd. PR #10 mergas inte utan godkännande.
 **Ersätter delvis:** `PLAN-grossistanslutning.md` (se avsnitt 2). `KONSEKVENSANALYS-FLORISTVISION.md`, `BESLUT.md`, `CHECKLISTA-PILOTGROSSIST.md` och `CLOUDFLARE-DEPLOYMENT.md` gäller fortfarande där de inte säger emot den här planen. Där de säger emot (moms, webbläsaragentens plats) gäller den här planen, och de två berörda raderna är rättade.
 
 Markeringen **(ej verifierat)** betyder att jag inte har kunnat kontrollera uppgiften mot själva källan. Det gäller särskilt allt om Blomstergrossistens webbplats (nätverket i min miljö blockerar den), aktuella molnpriser (hämtade ur sökträffar, kan ha ändrats) och juridik, moms och fakturakrav (Skatteverkets sidor är också blockerade härifrån, så jag har bara sökträffar, och jag är ingen jurist).
 
-### Ändringar i version 2 (kort)
+### Ändringar i version 2 till 2.2 (kort)
 
 | # | Ändring | Var |
 |---|---------|-----|
@@ -23,6 +23,8 @@ Markeringen **(ej verifierat)** betyder att jag inte har kunnat kontrollera uppg
 | 12 | Ekonomitester inlagda | 14 |
 | 13 | **Exemplet 534 kr är rättat.** Det var ett pedagogiskt exempel och ingen regel. Motorn anpassas inte efter det. Rätt räkning: 534,20 kr *före* moms, 670 kr kundpris med en testsats på 25 % | 6, 14.2 |
 | 14 | **Annas förtydliganden (version 2.1):** kundpriset inkl. moms som huvudtal, påslag på relevant inköpskostnad, arbete som egen komponent, **baklänges räkning** (målpris → råvarubudget), kundtyp, prisstatus ≈/✓ och prisbasens art, första kodsteget byggt | 6.4–6.9, 13 |
+| 15 | **Egna tillägg och material (version 2.2):** en rad i ett arrangemang (`ArrangementItem`) är `SUPPLIER`, `OWN_STOCK`, `HOME_GROWN` eller `MANUAL`, avgör själv om den ska beställas (`requiresPurchase`), prissätts med `STANDARD_MARKUP` eller `FIXED_SALE_PRICE`, och **noll inköpskostnad betyder aldrig noll värde** | 4.5, 6.11 |
+| 16 | **Beräknat, presenterat och överenskommet pris hålls isär.** Motorn behåller det exakta beräknade priset (667,75 kr) och det avrundade presenterade kundpriset (670 kr). Vilket belopp som blir den överenskomna försäljningen avgörs av kundordern | 6.12, 8.6 |
 
 ---
 
@@ -196,7 +198,7 @@ Uppgifter (var och en har JSON-schema, ett eget facit och en modellnivå):
 | Brief | Beslut | Skäl |
 |-------|--------|------|
 | Tenant / Shop | **`Shop`** (butik) i domänen, `shopId` som isoleringsnyckel överallt | Det floristen känner igen. "Tenant" är teknik |
-| Arrangement / FloralItem / Design | **`Arrangement`** (kod) och UI-etikett = typnamnet floristen valt ("Brudbukett"). Rader heter **`ArrangementLine`** | Är det ord florister själva använder. "Design" är för vagt |
+| Arrangement / FloralItem / Design | **`Arrangement`** (kod) och UI-etikett = typnamnet floristen valt ("Brudbukett"). Rader heter **`ArrangementItem`** (tidigare `ArrangementLine`) | Är det ord florister själva använder. "Design" är för vagt |
 | Event / Jobb / Order | **`Event`** (UI: "Jobb"). Ett Event är **ett inköpstillfälle** (en leveransdag) | Förpackningar delas bara inom ett inköpstillfälle |
 | Varukorg | **`CartPreparation`** | Den förbereds, den "beställs" aldrig av oss |
 | Estimate, Quote, ... Payment | Nio **separata** typer (avsnitt 8.2): `Estimate`, `QuoteSnapshot`, `CustomerOrder`, `PurchasePlan`, `CartPreparation`, `SupplierPurchase`, `SupplierDocument`, `CustomerInvoice`, `Payment` | Planerat och faktiskt får aldrig blandas ihop |
@@ -222,7 +224,7 @@ Alla rader har `shopId`, `id` (ULID), `createdAt`, `updatedAt`, `rev` och `delet
 | `Customer` | name, email, phone, notes, **customerKind** (`PRIVATE` / `BUSINESS`, standard `PRIVATE`) |
 | `Event` | customerId, name, type (`wedding`/`funeral`/`bouquet`/`other`), `usage` (`horizon`: today/week/later/event, `date`), eventDate, deliveryDate, status, notes, pricingOverrides?, frozenQuoteId? |
 | `Arrangement` | eventId, name, kind, **quantity**, sizePresetId?, markupOverride? (påslag i hundradels procent), laborOverride? (fast avgift eller tid), estimatedMinutes?, notes, imageRef? |
-| `ArrangementLine` | arrangementId, `articleRef` (`connectionId` + `supplierProductId`) eller `kind: 'custom'` (fri kostnad), **qtyPerArrangement**, unit, note |
+| `ArrangementItem` | arrangementId, **`source`** (`SUPPLIER` / `OWN_STOCK` / `HOME_GROWN` / `MANUAL`, plats reserverad för `LEFTOVER`), `kind`, name, `articleRef` (`connectionId` + `supplierProductId`, **bara för `SUPPLIER`**), `materialRef` (reserverad för "Mina material"), **quantity** per arrangemang, unit, **`requiresPurchase`**, **`pricing`** (`mode`: `STANDARD_MARKUP` / `FIXED_SALE_PRICE`, `unitCostBasis` kalkylkostnad, `unitExternalCost` vad det kostar att skaffa utifrån, `unitSalePrice` fast kundpris med `basis` inc/ex, `markup`), `taxCategory`, note. Se avsnitt 4.5 |
 | `EventFee` | eventId, kind (`delivery`/`setup`/`other`), label, amount (`Money`), `taxCategory` (inte en sats) |
 | `QuoteSnapshot` | eventId, version, createdAt, lines (pris per arrangemang med `priceBasis` och `PriceBreakdown`), totals, `ruleSetVersion`, validUntil, status (`draft`/`sent`/`accepted`). Oföränderlig när den är skickad |
 | `CustomerOrder` | eventId, quoteSnapshotId (den version kunden godkände), approvedAt, approvedBy (vem hos floristen registrerade kundens ja), terms. **Fryser kundpriset.** Ändring ger ny version och ny `QuoteSnapshot` |
@@ -319,7 +321,7 @@ Affärskedja:      Estimate → QuoteSnapshot (skickad) → CustomerOrder (kunde
 ### 4.4 Invarianter (varje punkt ska ha ett test)
 
 1. Ingen rad utan `shopId`. Ingen fråga utan butiksfilter.
-2. `ArrangementLine.articleRef` pekar på en artikel i samma butiks anslutning, eller på `custom`.
+2. `ArrangementItem.articleRef` finns bara för `SUPPLIER` och pekar på en artikel i samma butiks anslutning. Egna material (`OWN_STOCK`, `HOME_GROWN`, `MANUAL`) kräver ingen `SupplierProduct` och skapar aldrig en.
 3. Avalanche 50 cm och Avalanche 60 cm är olika `SupplierProduct` med olika pris.
 4. Priset i en kalkyl kommer alltid från `PriceQuote` / `Offer` / `PriceOverride` via en enda regel, och bär `priceBasis`.
 5. En `QuoteSnapshot` är oföränderlig när den är skickad.
@@ -334,6 +336,53 @@ Affärskedja:      Estimate → QuoteSnapshot (skickad) → CustomerOrder (kunde
 14. `FinancialEvent` och `AuditLog` är append-only. En rättelse är en ny rad som pekar på den gamla (`supersedes`).
 15. `invoiceNumber` är unikt per butik, löpande och utan återanvändning. Ett utkast har inget nummer **(krav ej verifierat)**.
 16. **Påslag och marginal är olika fält** och blandas aldrig. Lagrat värde är påslag. Marginal är bara en härledd siffra.
+17. **En rad avgör själv om den ska beställas** (`requiresPurchase`). Bara grossistrader (`SUPPLIER`) kan någonsin bli ett `PurchaseRequirement` i en grossistbeställning. Eget lager och egen trädgård beställs aldrig.
+18. **Noll inköpskostnad betyder inte noll värde.** Kundpriset kommer av kalkylkostnad plus påslag, eller av ett fast kundpris. Den externa inköpskostnaden ändrar aldrig priset. Ett eget material med standardpåslag måste ha en kalkylkostnad större än noll.
+19. **Moms per rad oberoende av källa.** Eget lager eller egen trädgård gör inte försäljningen momsfri. Varje rad kan få en `taxCategory`, och ingen sats gissas.
+20. **Beräknat och presenterat pris behålls båda.** Det beräknade (exakta) priset ändras aldrig av avrundningsregeln och ersätts aldrig av det presenterade.
+
+### 4.5 Egna tillägg och material (version 2.2)
+
+Allt som används i ett arrangemang kommer inte från den aktuella grossistbeställningen. Floristen använder också sidenband som redan finns i butiken, en vas eller kruka, oasis, tråd, pynt, torkat material, blommor och grönt från egen trädgård eller odling, material från eget lager och överblivet material från tidigare inköp. Det ska gå att lägga till mycket enkelt (i ett framtida gränssnitt ungefär `[+ EGET TILLÄGG]`), och kundpriset ska uppdateras direkt. Därför kräver en rad **ingen** `SupplierProduct`, och två saker hålls isär:
+
+```
+VAD SOM ANVÄNDS I ARRANGEMANGET   alla rader, de påverkar kundpriset
+VAD SOM MÅSTE BESTÄLLAS           bara rader med requiresPurchase (grossistartiklar), de blir PurchaseRequirement
+```
+
+**Källa (`source`).** Enkel modell, inte övermodellerad:
+
+| `source` | Betyder | `articleRef` | `requiresPurchase` |
+|----------|---------|--------------|--------------------|
+| `SUPPLIER` | Artikel hos en grossist | krävs | alltid sant |
+| `OWN_STOCK` | Finns redan i butiken (sidenband, vas, oasis, tråd) | nej | alltid falskt |
+| `HOME_GROWN` | Egen trädgård eller odling | nej | alltid falskt |
+| `MANUAL` | Något annat floristen skriver in | nej | falskt som standard, kan vara sant ("köps någon annanstans", hamnar aldrig i grossistens beställning) |
+| `LEFTOVER` | Överblivet material från tidigare inköp | | **Reserverad plats**, inte aktiverad. Lager byggs inte nu |
+
+**Prissättning (`pricing.mode`).**
+
+| Läge | Så räknas raden | Typiskt för |
+|------|-----------------|-------------|
+| `STANDARD_MARKUP` | kalkylkostnaden (`unitCostBasis`, eller grossistens pris för `SUPPLIER`) × antal får butikens vanliga påslag | grossistmaterial, och egna material som ska följa vanligt påslag |
+| `FIXED_SALE_PRICE` | floristen anger kundens pris direkt (`unitSalePrice`, med eller utan moms) × antal. Kräver ingen inköpskostnad | egna tillägg: "antik vas +250 kr" |
+
+**Noll inköpskostnad betyder inte noll värde.** En blomma från egen trädgård kan ha extern inköpskostnad 0 och ändå ett värde och ett försäljningspris. Därför är tre saker olika fält: `unitExternalCost` (vad det kostar att skaffa utifrån, 0 för egen trädgård, ändrar inte priset), `unitCostBasis` (kalkylkostnaden som påslaget räknas på) och `unitSalePrice` (ett fast kundpris). Motorn antar aldrig att kostnad 0 ger kundpris 0. Ett eget material med standardpåslag måste därför ha en kalkylkostnad större än noll, annars väljer floristen ett fast kundpris. **0 kr som kundpris är ett uttryckligt val** ("ingår"), aldrig ett resultat av en saknad kostnad.
+
+**Exempel (alla belopp är illustrationer, satsen 25 % är testdata):**
+
+| Rad | Inställning | Kundpris | Beställs? |
+|-----|-------------|----------|-----------|
+| Avalanche 60 cm × 12 | `SUPPLIER`, standardpåslag på grossistens pris | räknas | **ja** |
+| Sidenband (finns i butiken), kostnad 20 kr | `OWN_STOCK`, fast kundpris 75 kr inkl. moms | 75 kr | nej |
+| Dahlia × 5 från egen trädgård, extern kostnad 0 kr | `HOME_GROWN`, fast kundpris 25 kr per stjälk inkl. moms | 125 kr | nej |
+| Antik vas | `MANUAL`, fast kundpris 250 kr inkl. moms, ingen påhittad kostnad | 250 kr | nej |
+
+**Moms.** Att något kommer från eget lager eller egen trädgård gör inte kundförsäljningen momsfri. Varje rad kan få en `taxCategory` (till exempel `plants` eller `accessories`) oavsett källa. Utan egen kategori gäller butikens standard för varor. Ingen sats gissas: saknas regeln för kategorin får arrangemanget inget pris (`INCOMPLETE`).
+
+**Mina material (senare, byggs inte nu).** Floristen använder ofta samma egna saker (sidenband, oasis, vas, cellofan, tråd, egen eucalyptus). På sikt sparas ett eget tillägg och återanvänds. Modellen blockerar det inte: raden har ett reserverat fält `materialRef`, arbetsytan har en tom lista `materials`, och inget annat behöver ändras. Lagerhantering byggs inte.
+
+**Byggt (MVP 1A, steg 2):** `public/js/core/items.js` (källmodellen, `requiresPurchase`, prissättningslägena, valideringen) och motorns stöd för fast kundpris och momskategori per rad (`pricing.js`).
 
 ---
 
@@ -363,18 +412,20 @@ SupplierProduct  (exakt artikel: SKU, namn, längd, klass, pack, facts, derived,
    └──► Offer        (promotionId, pris, giltighet)  ·  separat från ordinarie pris
 ```
 
-### 5.2 Shop → Customer → Event → Arrangement → ArrangementLine
+### 5.2 Shop → Customer → Event → Arrangement → ArrangementItem
 
 ```
 Shop ── PricingSettings (påslag, arbetsavgift, moms, avrundning, avgifter)
   └─ Customer  (namn, e-post, telefon, anteckningar)
         └─ Event  (Emma & Johan, bröllop, 12 juni; usage.date; status)
               ├─ Arrangement  × quantity   (Brudbukett ×1, Tärnbukett ×3, Bordsdekoration ×8 …)
-              │     └─ ArrangementLine ──► articleRef (SupplierProduct)  eller  custom (fri kostnad)
+              │     └─ ArrangementItem ──► SUPPLIER:   articleRef (SupplierProduct), requiresPurchase = sant
               │                              └─► aktivt pris  (PriceOverride > erbjudande som gäller > färskt grossistpris > gammalt (märkt) > manuellt)
+              │                        OWN_STOCK / HOME_GROWN / MANUAL:  inget articleRef, requiresPurchase = falskt
+              │                              └─► kalkylkostnad × påslag, eller ett fast kundpris
               ├─ EventFee (leverans, uppsättning, övrigt)
               └─ prismotorn (ren funktion):  inköp blommor + inköp tillbehör
-                        → påslag → arbete → övriga avgifter → moms → avrundning → KUNDPRIS per arrangemang och för jobbet
+                        → påslag (eller fast kundpris) → arbete → övriga avgifter → moms → avrundning → KUNDPRIS per arrangemang och för jobbet
                         └─ QuoteSnapshot  (när jobbet blir "quoted": fast kopia av priserna)
 ```
 
@@ -384,8 +435,8 @@ Shop ── PricingSettings (påslag, arbetsavgift, moms, avrundning, avgifter)
 Events  (status approved/ordering, samma leveransdag och grossist)
    ▼
 PurchasePlan
-   ├─ PurchaseRequirement per artikel:
-   │     behov = Σ (qtyPerArrangement × quantity) över alla arrangemang i valda jobb
+   ├─ PurchaseRequirement per artikel (bara rader med requiresPurchase, alltså grossistartiklar. Egna tillägg kommer aldrig hit):
+   │     behov = Σ (antal per arrangemang × antal arrangemang) över alla arrangemang i valda jobb
    │     − lager (senare)  →  att köpa = ⌈behov ÷ förpackning⌉ (hänsyn till orderMultiple)
    │     överskott = köpt − behov
    ├─ LIVEPRISKONTROLL  (bara dessa artiklar)  →  ändrade priser, slutsålda
@@ -588,6 +639,40 @@ Företräde: överstyrning, sedan tid (om både minuter och timpris finns), seda
 ### 6.10 Pooling och marginal
 
 När flera jobb samordnas blir den verkliga inköpskostnaden lägre än kalkylerad. Offerten bygger på jobbets egna kostnad (konservativt). Skillnaden är floristens vinst, och synlig som "faktisk marginal" först när faktiska inköp finns.
+
+### 6.11 Prissättning per rad: standardpåslag eller fast kundpris
+
+Varje rad (`ArrangementItem`) prissätts på ett av två sätt, och motorn är byggd för båda (avsnitt 4.5):
+
+```
+STANDARD_MARKUP     kalkylkostnad × påslag, per momskategori        grossistmaterial och egna material som följer vanligt påslag
+FIXED_SALE_PRICE    ett belopp som är kundens pris direkt           egna tillägg ("antik vas +250 kr")
+```
+
+- Ett fast pris anges **med eller utan moms** (`inc` eller `ex`). Anges det inkl. moms är det exakt det beloppet inkl. moms, och beloppet exkl. moms härleds ur det utan avrundning. I ett framtida gränssnitt är det naturligt att privatkunders priser anges inkl. moms (beslut 14, avsnitt 18).
+- Ett fast pris kräver ingen kalkylkostnad. Finns en, används den bara för marginalen. Saknas den är marginalen markerad som ofullständig (`marginComplete = false`) i stället för att antas.
+- Priset beror **aldrig** på den externa inköpskostnaden (`unitExternalCost`). Noll inköpskostnad ger aldrig noll kundpris.
+- Prisstatus: ett fast kundpris är floristens eget beslut och påverkas inte av hur gammalt grossistpriset är. Det gör ett vanligt påslagspris.
+- Varje rad kan ha en egen momskategori. Standardpåslagsrader grupperas per kategori. Alla satser slås upp i regelversionen för datumet.
+- Baklänges (avsnitt 6.6) tar hänsyn till fasta tillägg: de minskar råvarubudgeten med sitt pris inkl. moms.
+
+### 6.12 Beräknat pris och presenterat kundpris (version 2.2)
+
+Internt skiljer vi mellan två belopp, och **båda behålls**:
+
+| | Beräknat pris (`calculated`) | Presenterat kundpris (`presented`) |
+|---|---|---|
+| Vad | det exakta ekonomiska resultatet av kalkylen | det avrundade pris floristen säger till kunden |
+| Exempel | 667,75 kr inkl. moms | 670 kr inkl. moms |
+| Typ | exakta bråk i ören (`Frac`), exkl. moms, moms och inkl. moms, även per sats | `Money` (hela ören), med exkl. moms och moms härledda ur det avrundade priset |
+| Ändras av avrundningsregeln? | **Nej, aldrig** | Ja, det är resultatet av regeln |
+| Skillnaden | `presented.rounding` = presenterat minus beräknat (2,25 kr i exemplet) | |
+
+- **Det exakta beräknade priset ersätts aldrig av det avrundade presentationspriset.** Båda ligger kvar i resultatet, och en senare faktura kan därför visa exakt hur priset uppstod.
+- `customerPrice`, `saleExVat`, `vat` och `vatByRate` är det presenterade priset (de gamla namnen finns kvar).
+- För ett jobb summeras beräknat och presenterat var för sig (`job.calculated`, `job.presented`). Jobbavgifter är exakta belopp och avrundas inte.
+- Avrundningsregeln (steg och riktning) sparas med resultatet (`presented.roundingRule`).
+- **Vilket av dem som blir den överenskomna försäljningen** (och därmed en ekonomisk affärshändelse) avgörs inte av motorn utan av kundordern, se avsnitt 8.6.
 
 ---
 
@@ -862,6 +947,22 @@ Faktiska händelser (FinancialEvent) ──► policymotor (kräver godkänd ver
 - **Första varianten är en exportfil** (PDF, JSON/CSV) och ett e-postutkast. En svensk standard för överföring av bokföringsdata (SIE-filformatet) är en kandidat men **inte undersökt**. Vilket ekonomisystem som ska kopplas först avgörs utifrån pilotfloristens (och hennes redovisningskonsults) val. Kriterier: öppet API med OAuth, stöd för utkast, kunder och fakturor, moms per rad, testmiljö.
 - **Ansvarsfördelning:** vi skapar *underlaget* (strukturerade händelser och momsunderlag). Ekonomisystemet gör den formella bokföringen och deklarationsunderlaget.
 
+### 8.6 Beräknat, presenterat och överenskommet belopp (version 2.2)
+
+Tre belopp är olika saker, och planen skriver ner vilket som blir en ekonomisk händelse:
+
+```
+BERÄKNAT      667,75 kr   exakta kalkylen (PricingEngine.calculated). Ändras aldrig av avrundning. Ingen affärshändelse.
+PRESENTERAT   670,00 kr   det avrundade kundpriset (PricingEngine.presented). Det floristen säger till kunden. Ingen affärshändelse än.
+ÖVERENSKOMMET 670,00 kr   det belopp kunden och floristen faktiskt kommit överens om. DET är försäljningen.
+```
+
+- `QuoteSnapshot` sparar **både** det beräknade och det presenterade priset, tillsammans med avrundningsregeln och regelversionen. En skickad offert ändras aldrig.
+- `CustomerOrder` (kundens ja) fryser det **överenskomna beloppet** (`agreedIncVat`). Standardvärdet är det presenterade priset. Förhandlar floristen ett annat pris (till exempel 650 kr) är det *det* som är överenskommet, och skillnaden mot det presenterade registreras som en prisjustering (`priceAdjustment`) i stället för att skrivas över.
+- **Fakturan och `FinancialEvent` bygger på det överenskomna beloppet**, med exkl. moms och moms härledda ur det (avsnitt 6.1). Avrundningsdifferensen (2,25 kr i exemplet) är en del av försäljningen och inte en egen affärshändelse.
+- Det beräknade priset behålls som underlag för att förklara hur priset uppstod, och för att räkna fram faktisk marginal. Det blir aldrig en bokförd siffra.
+- Att det överenskomna beloppet kan vara något annat än det presenterade är anledningen till att motorn inte själv avgör vad som är försäljningen.
+
 ---
 
 ## 9. Multi-tenant, säkerhet och integritet
@@ -1069,7 +1170,7 @@ Annas utgångspunkt: floristen ska **inte straffas för att hon provar en extra 
 
 ### 12.3 Nytt
 
-Konton och butikskontext · dataåtkomstlager med butiksfilter · `Customer`, `Event`, `Arrangement`, `ArrangementLine`, `EventFee`, `QuoteSnapshot`, `CustomerOrder` · `PurchasePlan`, `PurchaseRequirement`, `CartPreparation`, `SubstitutionProposal` · `InvoiceDraft`, `CustomerInvoice` och **`AccountingConnector`** · **`Money`, `Amounts`, `TaxCategory`, `TaxRuleSet`/`TaxRules`, exakt `PricingEngine`, `PriceBreakdown`** · **`SupplierPurchase`, `CostAllocation`, `SupplierDocument`, `Payment`, `FinancialEvent`** · policymotor · valv · webbläsarorkestrering (PoC först) · AI-gateway · mätning med tak och strömbrytare · observability och hälsa · schemaläggare och påminnelser · `userArticles`/favoriter · `offers` · `facts`/`derived` · klassificering och sökning.
+Konton och butikskontext · dataåtkomstlager med butiksfilter · `Customer`, `Event`, `Arrangement`, `ArrangementItem`, `EventFee`, `QuoteSnapshot`, `CustomerOrder` · `PurchasePlan`, `PurchaseRequirement`, `CartPreparation`, `SubstitutionProposal` · `InvoiceDraft`, `CustomerInvoice` och **`AccountingConnector`** · **`Money`, `Amounts`, `TaxCategory`, `TaxRuleSet`/`TaxRules`, exakt `PricingEngine`, `PriceBreakdown`** · **`SupplierPurchase`, `CostAllocation`, `SupplierDocument`, `Payment`, `FinancialEvent`** · policymotor · valv · webbläsarorkestrering (PoC först) · AI-gateway · mätning med tak och strömbrytare · observability och hälsa · schemaläggare och påminnelser · `userArticles`/favoriter · `offers` · `facts`/`derived` · klassificering och sökning.
 
 ---
 
@@ -1099,14 +1200,14 @@ MVP 6   Intelligens
 ### MVP 1A: Floristens kärna (lokalt, ingen server)
 
 **Mål:** en florist kan ta emot ett samtal, skapa kund och jobb, bygga arrangemang, få kundpriset direkt (med en korrekt uppdelning bakom) och spara och öppna jobbet.
-**Ingår:** `Shop` (en, lokal), `Customer`, `Event`, `Arrangement`, `ArrangementLine`, `EventFee`, favoriter, `SupplierProduct` (egen prislista `conn_manual` och import), prisinställningar (påslag, arbete, avgifter, avrundning), packlogik, tillbehör som artiklar och fria rader, spara/öppna jobb, export/säkerhetskopia, skärmar för hem, kund, jobb och arrangemang. **Ekonomigrunden:** `Money`, `Amounts`, `TaxCategory`, `TaxRules` (regeluppsättningen `legacy-user-setting`), den exakta `PricingEngine` *bredvid* `calc()`, `PriceBreakdown`, kundpris inkl. moms med uppdelning på begäran, moms per rad.
+**Ingår:** `Shop` (en, lokal), `Customer`, `Event`, `Arrangement`, `ArrangementItem`, `EventFee`, favoriter, `SupplierProduct` (egen prislista `conn_manual` och import), prisinställningar (påslag, arbete, avgifter, avrundning), packlogik, tillbehör som artiklar och fria rader, spara/öppna jobb, export/säkerhetskopia, skärmar för hem, kund, jobb och arrangemang. **Ekonomigrunden:** `Money`, `Amounts`, `TaxCategory`, `TaxRules` (regeluppsättningen `legacy-user-setting`), den exakta `PricingEngine` *bredvid* `calc()`, `PriceBreakdown`, kundpris inkl. moms med uppdelning på begäran, moms per rad.
 **Förutsättning (refaktor):** `calc()` flyttas ordagrant till en delad modul, tillståndet får ett lagringsgränssnitt, befintlig order migreras till ett jobb.
 **Ingår inte:** server, konton, grossistkoppling, inköp, faktura, **verifierad** momsregeluppsättning (kommer före MVP 4), euro och omräkning, erbjudanden, hållbarhet.
 **Tester:** de befintliga 191 oförändrade, plus de ekonomitester som hör till 1A i avsnitt 14, plus ett differenstest mellan den nya motorn och `calc()`.
 **Klart när:** en florist kan göra "Emma & Johan"-flödet med påhittade artiklar, den exakta uppdelningen summerar exakt, den nya motorn ger samma kundpris som `calc()` för de 145 tillstånden (varje avvikelse är utredd och förklarad), och inget gammalt beteende är ändrat.
 **Storlek:** L.
 
-**Status 2026-10-07: första tekniska steget är byggt (inga skärmändringar).** `public/js/core/money.js` (`Money`, exakta bråk, avrundning, procentsatser), `amounts.js` (`Amounts`, `costBasis`), `tax.js` (`TaxRuleSet`-struktur, `resolveRate`, `freezeRate`, `assertVerified`, regeluppsättningen `legacy-user-setting`) och `pricing.js` (exakt `PricingEngine`: framåt, baklänges, jobb, prisstatus, kundtyp). `index.html` laddar dem inte än, och `calc()` är orörd som referensmotor. Reglerna och vad som är testdata står i `docs/EKONOMIREGLER.md`. Kvar i 1A: flytta `calc()` till en delad modul, lagringsgränssnitt, `Customer`/`Event`/`Arrangement`, förpackningslogik och fraktfördelning i exakt aritmetik (med differenstest mot `calc()`), skärmar.
+**Status 2026-10-07: de två första tekniska stegen är byggda (inga skärmändringar).** Steg 1: `money.js` (`Money`, exakta bråk, avrundning, procentsatser), `amounts.js` (`Amounts`, `costBasis`), `tax.js` (`TaxRuleSet`-struktur, `resolveRate`, `freezeRate`, `assertVerified`, regeluppsättningen `legacy-user-setting`) och `pricing.js` (exakt `PricingEngine`: framåt, baklänges, jobb, prisstatus, kundtyp). **Steg 2:** `purchase.js` (hela förpackningar, delning mellan arrangemang, hemmalager och fraktfördelning i exakt aritmetik), `items.js` (`ArrangementItem` med källmodellen `SUPPLIER`/`OWN_STOCK`/`HOME_GROWN`/`MANUAL`, `requiresPurchase`, `STANDARD_MARKUP`/`FIXED_SALE_PRICE`), `workspace.js` (`Customer`, `Event`, `Arrangement`, `ArrangementItem`, `priceEvent`, `purchaseNeeds`) och `store.js` (lagringsgränssnitt med minnes- och localStorage-adapter, atomära ändringar, konfliktupptäckt). Motorn har fått fast kundpris, momskategori per rad och uppdelningen beräknat/presenterat pris. `index.html` laddar inget av detta än, och `calc()` är orörd som referensmotor. Reglerna och vad som är testdata står i `docs/EKONOMIREGLER.md`. **Kvar i 1A:** koppla arbetsytan till skärmarna (en liten adapter från `model.js` till katalogen i `priceEvent`), flytta befintlig order till ett jobb "Min order", `QuoteSnapshot` och `CustomerOrder`, skärmar för hem, kund, jobb och arrangemang med `[+ EGET TILLÄGG]`, spara/öppna jobb med lagringsgränssnittet.
 
 **Låser 1A oss inför molnwebbläsaragenten? Nej.** 1A rör grossistvärlden bara via `conn_manual` och `SupplierProduct`/`PriceQuote`, som redan har fälten som en riktig koppling behöver (`rawAttributes`, `facts`, valfritt `purchaseAmount`, `currency`, momsstatus, pack). Allt PoC:n hittar läggs till *additivt* (samma mönster som migreringen, som är bevisad), så att resultatet kan ändra en connector men inte arrangemang, kalkyl eller faktura. En artikel identifieras av ett ogenomskinligt `supplierProductId` plus attribut, aldrig av antagandet att en längd är ett eget artikelnummer.
 
@@ -1175,6 +1276,15 @@ Alla befintliga regressionstester (191) behålls oförändrade och körs i varje
 | Framtida event ignorerar kortvarigt erbjudande | 2 | enhet |
 | Manuell override vinner | 1A, 2 | enhet |
 | Saknad leverantörsprodukt | 2 | enhet |
+| **Egna tillägg** (sidenband, dahlia från egen trädgård, antik vas) ändrar kundpriset direkt men skapar inget inköpsbehov | 1A | enhet, integration |
+| Rad avgör själv om den ska beställas (`requiresPurchase`). Bara grossistrader hamnar i inköpsplanen | 1A | enhet |
+| Rad utan `SupplierProduct` fungerar (`OWN_STOCK`, `HOME_GROWN`, `MANUAL`) | 1A | enhet |
+| **Noll inköpskostnad ≠ noll värde**: fast kundpris och kalkylkostnad, noll kalkylkostnad godtas inte tyst | 1A | enhet |
+| Fast kundpris med och utan moms, och 0 kr som uttryckligt val | 1A | enhet |
+| Moms per rad oberoende av källa, och okänd kategori ger inget pris | 1A | enhet |
+| **Beräknat och presenterat pris behålls båda**, och det beräknade ändras inte av avrundningsregeln | 1A | enhet, egenskapstest |
+| Exakt förpackningslogik och fraktfördelning mot `calc()` på de 145 tillstånden | 1A | differenstest |
+| Lagringsgränssnitt: atomär ändring, trasig och full lagring, konflikt mellan flikar, egen nyckel | 1A | enhet |
 | **Isolering mellan butiker** (varje entitet, varje väg) | 2 | integration |
 | Connectorfel fallerar säkert (ingen skrivande handling, snapshot med ålder) | 2 | integration |
 | Aggregerat inköp över arrangemang och jobb | 3 | enhet |
@@ -1280,6 +1390,8 @@ Alla befintliga regressionstester (191) behålls oförändrade och körs i varje
 | **Bokföringsmaterial ska sparas, personuppgifter ska kunna raderas** | Anonymisera kunden men behåll fakturan. Avgörs juridiskt före MVP 4 **(ej verifierat)** | före MVP 4 |
 | **Redovisningskonsulten** behöver ofta se underlaget | Roll `accountant` med läsrätt till faktiska händelser och export, aldrig till inköpspris för annat | MVP 4 |
 | **Fakturaspråk och valuta** | SEK och svenska först. Annat byggs inte | senare |
+| **Mina material**: samma egna saker används ofta (sidenband, oasis, vas, cellofan, tråd, egen eucalyptus) | Spara ett eget tillägg och återanvänd det. `materialRef` och `materials` finns som reserverade platser (avsnitt 4.5). Ingen lagerhantering | senare i MVP 1A eller 2 |
+| **Överblivet material från tidigare inköp** blir egna material nästa gång | Källan `LEFTOVER` är reserverad men inte aktiverad. Lager byggs inte | MVP 6 |
 
 ---
 
@@ -1330,6 +1442,9 @@ Alla befintliga regressionstester (191) behålls oförändrade och körs i varje
 11. **Första ekonomiöverföringen:** exportfil och e-postutkast. Ekonomisystem väljs tillsammans med pilotfloristens redovisningskonsult.
 12. **Förbeställning av odlare** (grossisten erbjuder det) är en separat väg och byggs inte nu.
 13. ~~Räkneexemplet~~ **Avgjort av Anna:** 534 kr var ett pedagogiskt exempel, inte en regel. Exemplet är rättat i planen och motorn är inte anpassad efter det.
+14. **Fast kundpris för egna tillägg:** i ett framtida gränssnitt anges priset **inkl. moms** för privatkund och exkl. moms för företagskund. Modellen kräver att det anges uttryckligen (`inc` eller `ex`), så inget gissas. Rekommenderas.
+15. **Vilket belopp som är den överenskomna försäljningen:** standard är det presenterade (avrundade) priset, och floristen kan förhandla ett annat belopp som då registreras som en prisjustering (avsnitt 8.6). Rekommenderas.
+16. **Mina material** byggs efter att egna tillägg fungerar i skärmarna, och utan lagerhantering. Rekommenderas.
 
 ### 18.2 Innan MVP 1A (kan börja direkt vid godkännande)
 
