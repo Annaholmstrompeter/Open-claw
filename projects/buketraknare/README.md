@@ -57,7 +57,7 @@ Brevlådan och dagsräknaren skapas automatiskt av `wrangler.toml` (Durable Obje
 - Kostnad (uppskattning, inte uppmätt): runt 0,50 till 1 krona per avläsning med `claude-opus-5-5`, beroende på antal bilder. Dagsgränsen `READ_DAILY_LIMIT` (40 som standard, ändras i `wrangler.toml`) sätter ett tak. Bilderna sparas inte av appen, men Anthropics egna regler för API-data gäller.
 - Priserna går alltid via en förhandsgranskning. Appen byter inget förrän man bekräftar.
 
-Filer: `public/index.html` (appen), `src/worker.js` (brevlåda, avläsning och API), `wrangler.toml`, `package.json`.
+Filer: `public/index.html` (appen), `public/js/core/model.js` (datamodell, se nedan), `src/worker.js` (brevlåda, avläsning och API), `src/suppliers/` (gränssnitt för grossistadaptrar, se `src/suppliers/README.md`), `wrangler.toml`, `package.json`, `test/` (tester) och `docs/` (plan och Cloudflare-diagnos).
 
 ## Så räknas priset
 
@@ -98,3 +98,39 @@ Testat (headless Chromium, Cloudflares egen lokala runtime, en låtsas-Anthropic
 - Konton och delad data mellan användare. Varje telefon har sin egen kopia.
 - Läsning av `.xlsx` och PDF direkt, foton på blommor, favoriter och matchning på artikelnummer.
 - Momssatsen står på 25 % som exempel. Kontrollera med redovisningen vilken som gäller.
+
+## Tester
+
+```
+npm install
+npm test
+```
+
+Körs med Nodes egen testkörare och `jsdom`, utan webbläsare. Testerna startar den riktiga `index.html` med fast klocka och falsk lagring och går via det floristen ser (knappar och texter), inte via interna nycklar.
+
+- **Räknemotor:** hela förpackningar, delning mellan buketter, "pris saknas" aldrig 0 kr, ca och ålder, frakt, hemma, avrundning.
+- **Differenstest:** den gamla appen (före modellbytet) räknade ut facit för 145 tillstånd (`test/fixtures/calc-golden.json`). Den nuvarande måste ge exakt samma priser, paket, överskott och varningar. Facit ska bara genereras om när räknereglerna medvetet ändras.
+- **Prisuppdatering och import:** förhandsgranskning före byte, matchning av namn, jämförelse mot förra listan.
+- **Datamodell och migrering:** migrering v1 → v2, rollback, 1 000 slumpade tillstånd, trasig lagring, full lagring.
+- **Reservvägarna** (skärmdumpar via server och Claude i sidan, AI-chatt, ChatGPT Work med brevlåda) och **serverdelen**, mot en falsk Anthropic-server. Inget test når en riktig tjänst.
+- **Grossistkontrakt:** en gemensam testsvit som varje adapter måste klara, körd mot två falska grossister med olika dataformat.
+
+## Datamodell (v2) och migrering
+
+Namnet på en vara är inte längre nyckel. Fyra begrepp med stabila id:n (`public/js/core/model.js`):
+
+| Begrepp | Vad | Var |
+|---------|-----|-----|
+| **Produkt** | floristens eget ord, "Vit ros" | `products[]` |
+| **Leverantörsprodukt** | en vara hos en grossist | `supplierProducts[]` |
+| **Pris** | vad den kostar, när det verifierades (historik) | `quotes[]` |
+| **Matchning** | vilken leverantörsprodukt som är floristens, bekräftad en gång och sedan återanvänd | `matches[]` |
+
+Den egna prislistan (inskriven, inläst från CSV eller läst av AI) är en vanlig anslutning, `conn_manual`. En grossist och en manuell lista ser alltså likadana ut för räknemotorn och skärmarna. Räknemotorn får en vy i det gamla formatet (`viewOf`) med produkt-id som nyckel och är i övrigt oförändrad. Ett grossistpris används bara om det är i kronor och uttryckligen utan moms. Annars gäller den egna listan.
+
+**Migrering.** Vid första start efter uppgradering läses den gamla lagringen (`buketraknare.v1`), migreras och sparas som `buketraknare.v2`. Den gamla nyckeln ändras aldrig. Är v2 trasig faller appen tillbaka på v1. Går det inte att skriva (full lagring) fungerar appen ändå i minnet.
+
+**Rollback.** `downgradeV2toV1` skriver tillbaka v2 som v1 utan att tappa varor, priser, order, recept eller inställningar. Den finns som `window.buketraknare.rollbackV1()` för återställning. En äldre version av appen läser den orörda v1-nyckeln.
+
+Känd skillnad mot förr: att döpa om en vara till ett namn som redan finns slår inte längre ihop orderrader (det tappade den ena raden förut). Båda varorna finns kvar.
+

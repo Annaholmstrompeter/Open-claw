@@ -206,6 +206,16 @@
     };
   }
 
+  /** Varför ett pris från en grossist INTE kan användas som det är (null = det går bra). Räknemotorn räknar i kronor utan moms,
+   *  och ett pris i annan valuta eller med moms inräknad eller okänd får aldrig användas som om det vore det. */
+  function unusableReason(q) {
+    if (!q || !(q.packPrice > 0)) return 'no_price';
+    if (q.currency !== 'SEK') return 'currency';
+    if (q.priceIncludesVat === true) return 'vat_included';
+    if (q.priceIncludesVat !== false) return 'vat_unknown';
+    return null;
+  }
+
   // ---------- vy i det gamla formatet: det som räknemotorn och skärmarna läser ----------
   function lastQuotes(st) {
     const m = new Map();
@@ -231,8 +241,8 @@
         return { m, sp: spMap.get(key), q: lq.get(key) };
       };
       const all = cands.map(resolve);
-      // 1) första anslutna grossist med ett riktigt pris på en produkt som finns kvar
-      let pick = all.find(x => x.m.connectionId !== MANUAL && x.sp && !x.sp.discontinued && x.q && x.q.packPrice > 0);
+      // 1) första anslutna grossist med ett användbart pris (kronor, utan moms) på en produkt som finns kvar
+      let pick = all.find(x => x.m.connectionId !== MANUAL && x.sp && !x.sp.discontinued && unusableReason(x.q) === null);
       // 2) annars den egna listan, 3) annars det första som finns
       if (!pick) pick = all.find(x => x.m.connectionId === MANUAL) || all.find(x => x.sp && !x.sp.discontinued) || all[0];
       const sp = pick && pick.sp, q = pick && pick.q;
@@ -460,7 +470,7 @@
 
   return {
     MANUAL_CONNECTION_ID: MANUAL, MAX_QUOTES_PER_PRODUCT, STRATEGIES, AVAILABILITY, VERIFICATION, CONNECTION_STATUS,
-    ModelValidationError, normalizeSupplierProduct, normalizeQuote,
+    ModelValidationError, normalizeSupplierProduct, normalizeQuote, unusableReason,
     migrateV1toV2, downgradeV2toV1, loadV2, viewOf,
     addProduct, renameProduct, setCategory, setManualPrice, removeProduct, replaceFromImport,
     upsertConnection, setConnectionStatus, ingestSupplierData,

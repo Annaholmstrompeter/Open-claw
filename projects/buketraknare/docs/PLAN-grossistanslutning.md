@@ -3,6 +3,8 @@
 **Status:** plan, ingen implementation. Skriven ovanpå PR #9 (som inte är mergad och inte ska mergas än).
 **Princip:** Floristen ska uppleva *Anslut. Välj blommor. Se priset.* Resten är vårt problem.
 
+**Genomfört hittills (godkänd riktning):** steg 0 (regressionstester) och arkitekturgrunden (stabila produkt-id:n, migrering med rollback, gemensam produkt/leverantörsprodukt/pris/matchning-modell, `SupplierConnector`-kontrakt med testsvit). Se README, avsnitten *Tester* och *Datamodell*. Inte byggt: fjärrwebbläsare, automatisk grossistinloggning, AI-agent för grossistsidor, konton, lager, AI-bukettgenerator och den nya huvudskärmen. De väntar på att pilotgrossisten är vald och undersökt.
+
 Markeringen **(ej verifierat)** betyder att jag inte har kunnat kontrollera påståendet här. Nätverket i min miljö blockerar bland annat floriday.io, lambes.se och stjarnblom.se, och jag har inte sett någon grossists riktiga webbutik, API-dokumentation eller villkor. Allt som rör en enskild grossist måste därför bekräftas med riktig åtkomst innan vi bygger på det.
 
 ---

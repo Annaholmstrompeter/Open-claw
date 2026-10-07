@@ -9,6 +9,6 @@
     "jsdom": "^29.1.1"
   },
   "scripts": {
-    "test": "node --test --test-reporter=spec \"test/*.test.mjs\""
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test --test-reporter=spec \"test/*.test.mjs\""
   }
 }

@@ -466,3 +466,22 @@ test('exempeldata från appen migreras utan förlust', async () => {
   assert.equal(st.products.length, 13);
   assert.deepEqual(canonV1(M.downgradeV2toV1(st)), canonV1(ex));
 });
+
+test('pris i annan valuta, med moms eller med okänd moms används aldrig som kronor utan moms', () => {
+  const mk = (extra) => {
+    const st = withSupplier();
+    const id = byName(st, 'Röd ros').id;
+    M.confirmMatch(st, { productId: id, connectionId: 'conn_a', supplierProductId: 'A-200' });
+    M.ingestSupplierData(st, 'conn_a', { products: [], quotes: [{ supplierProductId: 'A-200', packPrice: 77, fetchedAt: '2026-10-09T06:00:00.000Z', strategy: 'api', priceIncludesVat: false, ...extra }] }, { today: '2026-10-09' });
+    return st;
+  };
+  assert.equal(byName(mk({}), 'Röd ros').pris, 77, 'kronor utan moms: används');
+  assert.equal(byName(mk({ currency: 'EUR' }), 'Röd ros').pris, 120, 'euro: används inte, den egna listan gäller');
+  assert.equal(byName(mk({ priceIncludesVat: true }), 'Röd ros').pris, 120, 'inkl. moms: används inte');
+  assert.equal(byName(mk({ priceIncludesVat: null }), 'Röd ros').pris, 120, 'okänd moms: används inte');
+  assert.equal(M.unusableReason(null), 'no_price');
+  assert.equal(M.unusableReason({ packPrice: 5, currency: 'EUR', priceIncludesVat: false }), 'currency');
+  assert.equal(M.unusableReason({ packPrice: 5, currency: 'SEK', priceIncludesVat: true }), 'vat_included');
+  assert.equal(M.unusableReason({ packPrice: 5, currency: 'SEK', priceIncludesVat: null }), 'vat_unknown');
+  assert.equal(M.unusableReason({ packPrice: 5, currency: 'SEK', priceIncludesVat: false }), null);
+});
