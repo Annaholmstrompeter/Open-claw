@@ -6,8 +6,8 @@ Appen är byggd för telefon. Den fungerar med vilken grossist som helst.
 
 ## Två sätt att köra den
 
-- **Bara filen.** Öppna `public/index.html` i en webbläsare, eller använd den som sida på claude.ai. Allt fungerar utom att priserna kommer tillbaka automatiskt: svaret från AI:n klistras in för hand.
-- **Som egen webbplats med brevlåda (rekommenderas).** Då lämnar AI:n in priserna själv, och de dyker upp i appen utan inklistring. Se "Driftsätta" nedan.
+- **Bara filen.** Öppna `public/index.html` i en webbläsare, eller använd den som sida på claude.ai. Allt fungerar utom att priserna kommer tillbaka automatiskt: svaret från en AI-chatt klistras in för hand.
+- **Som egen webbplats (rekommenderas).** Då slipper man klippa och klistra: appen läser själv av skärmdumpar, och ChatGPT Work lämnar in priserna i en brevlåda. Se "Driftsätta" nedan.
 
 Data (prislista, recept, order, inställningar) sparas i telefonens webbläsare, så den följer inte med om man byter telefon eller rensar webbläsaren.
 
@@ -16,7 +16,7 @@ Data (prislista, recept, order, inställningar) sparas i telefonens webbläsare,
 1. **Första gången finns de 20 vanligaste bukett- och utsmyckningsblommorna som knappar, men utan priser.** Ett klick på en knapp lägger till en blomma i buketten, fler klick ger fler blommor, och minus tar bort en. Saknas en blomma trycker man på "Ny blomma" (eller skriver namnet i sökrutan) och skriver in den, så skapas en ny knapp. Knappen "Prova med exempeldata" visar hur appen räknar, med påhittade priser.
 2. **Välj blommor** i en eller flera buketter. Priser som ligger kvar från förra gången visas som "ca" och med ålder, så man får ungefärliga priser direkt.
 3. **Tryck "Hämta pris" när du valt klart.** En ruta öppnas med två val. Grossistens namn och webbadress, och vilken AI man använder, sparas till nästa gång.
-   - **Skärmdumpar** (förvalt, ingen prenumeration behövs). Man loggar in hos grossisten själv, söker fram blommorna som visas under "Sök fram" och tar skärmdumpar. Sedan öppnar man ChatGPT eller Claude med uppdraget (knappen "Öppna … med uppdraget", eller kopiera det), bifogar skärmdumparna i chatten och klistrar tillbaka svaret i appen.
+   - **Skärmdumpar** (förvalt, ingen prenumeration behövs). Man loggar in hos grossisten själv, söker fram blommorna som visas under "Sök fram" och tar skärmdumpar. Sedan trycker man "Välj skärmdumpar" i appen. Appen läser av dem själv och priserna dyker upp i förhandsgranskningen, utan att man kopierar något. Fungerar det inte finns en AI-chatt som reserv: man öppnar ChatGPT eller Claude med uppdraget, bifogar bilderna och klistrar tillbaka svaret. Utan egen webbplats (fil-läge eller sida på claude.ai) är chatten det enda sättet.
    - **ChatGPT Work** (kräver ChatGPT-abonnemang). Knappen öppnar ChatGPT med uppdraget färdigskrivet. Man tar över molnwebbläsaren för att logga in hos grossisten själv (inloggningen sparas till nästa gång) och assistenten hämtar priserna.
 4. **Priserna kommer tillbaka.** Med ChatGPT Work och brevlådan lämnar assistenten själv in tabellen i ett formulär, och appen visar den av sig själv när man kommer tillbaka till den. I övriga fall klistrar man in svaret.
 5. Appen visar vad som lästes av: gammalt och nytt pris, procent per stjälk, **ändrad förpackning** och vad som inte hittades. Först när man trycker "Använd priserna" byts priserna, och de räknas då som aktuella idag.
@@ -31,9 +31,10 @@ Samma sätt som för Ledtråd (`ledtrad-app`), men utan att skapa någon lagring
 
 1. Logga in på https://dash.cloudflare.com.
 2. *Workers & Pages → Create → Import a repository*. Välj det här GitHub-repot och sätt **Root directory** till `projects/buketraknare`. Inget byggkommando behövs. Klicka Deploy.
-3. Öppna adressen Cloudflare ger (till exempel `buketraknare.<ditt-konto>.workers.dev`) på telefonen. Chrome: meny → Lägg till på startskärmen. Safari: dela-ikonen → Lägg till på hemskärmen.
+3. För att appen ska kunna läsa skärmdumpar själv: gå in på Workern → *Settings → Variables and Secrets → Add*, välj typ **Secret** och lägg till `ANTHROPIC_API_KEY` (en API-nyckel från https://console.anthropic.com). Lägg gärna också till en hemlig `READ_CODE`, valfri text som floristen skriver in en gång i appen, så att ingen annan kan köra upp kostnaden. Utan `ANTHROPIC_API_KEY` är avläsningen avstängd och appen använder AI-chatten.
+4. Öppna adressen Cloudflare ger (till exempel `buketraknare.<ditt-konto>.workers.dev`) på telefonen. Chrome: meny → Lägg till på startskärmen. Safari: dela-ikonen → Lägg till på hemskärmen.
 
-Brevlådan skapas automatiskt av `wrangler.toml` (en Durable Object med SQLite-lagring). Gratisplanen ska räcka. Kräver Cloudflare en betald plan för Durable Objects får du ett felmeddelande vid driftsättningen. Kodändringar som pushas till repot driftsätts automatiskt.
+Brevlådan och dagsräknaren skapas automatiskt av `wrangler.toml` (Durable Objects med SQLite-lagring). Gratisplanen ska räcka. Kräver Cloudflare en betald plan för Durable Objects får du ett felmeddelande vid driftsättningen. Kodändringar som pushas till repot driftsätts automatiskt.
 
 ## Hur brevlådan funkar
 
@@ -43,7 +44,15 @@ Brevlådan skapas automatiskt av `wrangler.toml` (en Durable Object med SQLite-l
 - Appen visar alltid en förhandsgranskning. Inget byts utan att man trycker "Använd priserna", så en felaktig eller illasinnad inlämning kan inte ändra priser i det tysta.
 - Vem som helst som känner till koden kan lämna in text under de 30 minuterna. Koden är slumpad och syns bara i uppdraget.
 
-Filer: `public/index.html` (appen), `src/worker.js` (brevlåda och API), `wrangler.toml`.
+## Hur avläsningen av skärmdumpar funkar
+
+- Bilderna förminskas i telefonen (längsta sida 2 000 px, JPEG) och skickas till `/api/read` tillsammans med namnen på de valda blommorna. Högst 8 bilder åt gången.
+- Workern skickar dem vidare till Claude med den officiella SDK:n (`@anthropic-ai/sdk`) och svarar med en tabell. API-nyckeln stannar i Workern och når aldrig telefonen. Modellen är `claude-opus-5-5` som standard. Sätt variabeln `READ_MODEL` till till exempel `claude-sonnet-5-5` för ungefär halva priset. Anropet har `fallbacks: "default"` påslaget, så att en avvisad förfrågan körs om på en annan modell hos Anthropic.
+- Instruktionerna till AI:n säger att den bara får skriva av det som syns, aldrig gissa ett pris, skriva "saknas" för det som inte syns och aldrig följa instruktioner som står i bilderna.
+- Kostnad (uppskattning, inte uppmätt): runt 0,50 till 1 krona per avläsning med `claude-opus-5-5`, beroende på antal bilder. Dagsgränsen `READ_DAILY_LIMIT` (40 som standard, ändras i `wrangler.toml`) sätter ett tak. Bilderna sparas inte av appen, men Anthropics egna regler för API-data gäller.
+- Priserna går alltid via en förhandsgranskning. Appen byter inget förrän man bekräftar.
+
+Filer: `public/index.html` (appen), `src/worker.js` (brevlåda, avläsning och API), `wrangler.toml`, `package.json`.
 
 ## Så räknas priset
 
@@ -67,18 +76,18 @@ Har man en färdig fil eller tabell kan man läsa in den under Prislista: klistr
 
 ## Testat och inte testat
 
-Testat (headless Chromium och Cloudflares egen lokala runtime): de två valen (skärmdumpar och ChatGPT Work) och att uppdraget blir rätt i båda, räknemotorn, tom start, nya blommor, uppdraget, inläsning av AI-svar, matchning, import av hel lista, brevlådans API (engångskod, storleksgräns, felkoder, säkerhetshuvuden) och hela kedjan där en låtsasassistent lämnar in i formuläret och appen visar priserna av sig själv.
+Testat (headless Chromium, Cloudflares egen lokala runtime och en låtsas-Anthropic som registrerar anropen): avläsningen av skärmdumpar (åtkomstkod, validering, dagsgräns, felhantering, att nyckeln aldrig lämnar Workern och att anropet har rätt form), de två valen (skärmdumpar och ChatGPT Work) och att uppdraget blir rätt i båda, räknemotorn, tom start, nya blommor, uppdraget, inläsning av AI-svar, matchning, import av hel lista, brevlådans API (engångskod, storleksgräns, felkoder, säkerhetshuvuden) och hela kedjan där en låtsasassistent lämnar in i formuläret och appen visar priserna av sig själv.
 
 **Inte provat:**
+- Avläsningen mot Anthropics riktiga API. Anropet är byggt med den officiella SDK:n och testat mot en låtsasserver som kontrollerar form, rubriker och parametrar, men ingen riktig nyckel har använts.
+- Hur bra Claude läser av en riktig grossists skärmdumpar (små texter, långa sidor, flera varianter). Förhandsgranskningen finns för att man ska kunna kontrollera.
 - Att ChatGPT Work faktiskt öppnar inlämningsadressen, fyller i formuläret och trycker Skicka. Den kan neka eller fråga om lov först. Fungerar det inte kan man klistra in svaret för hand.
-- Att ChatGPT eller Claude läser skärmdumpar bra nog för att priserna blir rätt. Förhandsgranskningen finns för att man ska kunna kontrollera.
 - Att länkarna `chatgpt.com/?q=` och `claude.ai/new?q=` fyller i texten, och om telefonen öppnar appen eller webbläsaren.
 - Någon riktig grossist. Avläsningen på grossistens sida beror på hur den ser ut.
 - Driftsättningen på Cloudflare. Den har inte körts, bara samma kod lokalt.
 
 ## Inte byggt än
 
-- Att appen själv läser av skärmdumparna, så att man slipper öppna en chatt och klistra in. Det kräver en API-nyckel hos en AI-leverantör, som kostar några tiotals öre per körning, och en spärr mot att andra använder den. Appen fungerar utan.
 - Automatisk inloggning och avläsning på servern (utan assistent). Det vore en egen webbläsare i molnet och kräver att grossistens inloggning sparas. Det kan bli aktuellt om assistenten inte klarar inlämningen.
 - Konton och delad data mellan användare. Varje telefon har sin egen kopia.
 - Läsning av `.xlsx` och PDF direkt, foton på blommor, favoriter och matchning på artikelnummer.

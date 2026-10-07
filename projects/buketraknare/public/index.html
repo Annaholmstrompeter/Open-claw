@@ -186,6 +186,8 @@ ol.steps .body > strong{font-size:15px;line-height:28px}
 .radios label{display:flex;gap:10px;align-items:center;min-height:44px;font-size:15px}
 .radios input{width:20px;height:20px;min-height:0;margin:0}
 #upd-prompt{font-size:13px;min-height:160px}
+.alt-body{display:grid;gap:8px;margin-top:8px}
+details.alt{border:1px solid var(--line);border-radius:10px;padding:4px 12px}
 
 /* fast totallist på mobil */
 #totalbar{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px calc(10px + env(safe-area-inset-bottom, 0px))}
@@ -354,7 +356,7 @@ function emptyState(){
     priceList:{meta:{namn:'Ingen prislista än',datum:'',kalla:'tom'},items:its},
     settings:clone(DEFAULT_SETTINGS),
     labels,
-    wholesaler:{namn:'',url:'',ai:'chatgpt',mode:'skarm'},
+    wholesaler:{namn:'',url:'',ai:'chatgpt',mode:'skarm',readCode:''},
     order:{buketter:[{id:'b1',size:'medel',qty:1,items:{}}],hemma:{},active:'b1',seq:1},
     recipes:[]
   };
@@ -366,7 +368,7 @@ function exampleState(){
     priceList:{meta:{namn:'Exempeldata',datum:today(),kalla:'exempel'},items:clone(SAMPLE_ITEMS)},
     settings:clone(DEFAULT_SETTINGS),
     labels,
-    wholesaler:{namn:'',url:'',ai:'chatgpt',mode:'skarm'},
+    wholesaler:{namn:'',url:'',ai:'chatgpt',mode:'skarm',readCode:''},
     order:{
       buketter:[
         {id:'b1',size:'liten',qty:1,items:items({'Rosa ros 50 cm':3,'Tulpan':4,'Eukalyptus':2})},
@@ -389,7 +391,7 @@ function load(){
         s.settings=Object.assign({},d.settings,s.settings||{});
         if(!Array.isArray(s.settings.sizes)||s.settings.sizes.length<1) s.settings.sizes=d.settings.sizes;
         s.labels=s.labels||{}; s.recipes=Array.isArray(s.recipes)?s.recipes:[];
-        s.wholesaler=Object.assign({namn:'',url:'',ai:'chatgpt',mode:'skarm'},s.wholesaler||{});
+        s.wholesaler=Object.assign({namn:'',url:'',ai:'chatgpt',mode:'skarm',readCode:''},s.wholesaler||{});
         s.order.hemma=s.order.hemma||{};
         if(!s.order.buketter.some(b=>b.id===s.order.active)) s.order.active=s.order.buketter[0].id;
         if(s.priceList.meta&&s.priceList.meta.kalla==='tom'&&!s.priceList.items.length){
@@ -404,7 +406,7 @@ function load(){
 let state=load();
 let pending=null;                       // förhandsgranskning av hel ny prislista
 let pendingUpd=null;                    // förhandsgranskning av uppdaterade priser
-const ui={tab:'bukett',cat:'',q:'',open:{},copyText:'',focusNew:false,newFlower:false,upd:false,updScope:'valda',msg:'',relay:null,code:'',poll:null,tick:null};
+const ui={tab:'bukett',cat:'',q:'',open:{},copyText:'',focusNew:false,newFlower:false,upd:false,updScope:'valda',msg:'',relay:null,read:false,needsCode:false,code:'',poll:null,tick:null};
 function save(){ try{ localStorage.setItem(STORE_KEY,JSON.stringify(state)); }catch(e){} }
 
 /* ---------- räknemotor ---------- */
@@ -877,13 +879,14 @@ function updPrompt(){
     ]:[]).join('\n');
 }
 async function checkRelay(){
-  if(location.protocol==='file:'){ ui.relay=false; return false; }
+  if(location.protocol==='file:'){ ui.relay=false; ui.read=false; return false; }
   try{
     const ctl=new AbortController(), to=setTimeout(()=>ctl.abort(),2000);
     const r=await fetch('api/ping',{cache:'no-store',signal:ctl.signal}); clearTimeout(to);
     const j=r.ok?await r.json():null;
     ui.relay=!!(j&&j.ok&&j.app==='buketraknare');
-  }catch(e){ ui.relay=false; }
+    ui.read=!!(ui.relay&&j.read); ui.needsCode=!!(ui.relay&&j.needsCode);
+  }catch(e){ ui.relay=false; ui.read=false; ui.needsCode=false; }
   return ui.relay;
 }
 function newCode(){
@@ -935,55 +938,114 @@ function refreshPrompt(){
     :ai==='ChatGPT'?'Välj Work om det inte redan är valt, så att assistenten kan surfa. Du loggar in själv när den ber om det, och inloggningen sparas hos ChatGPT till nästa gång.'
     :'Claude kan läsa grossistens sida i Claudes skrivbordsapp på dator, inte från telefonen. Du loggar in själv.';
 }
+function aiBody(optChat){
+  const W=state.wholesaler;
+  return '<label class="field">Min AI-assistent<select id="ws-ai"><option value="chatgpt"'+(W.ai!=='claude'?' selected':'')+'>'+optChat+'</option><option value="claude"'+(W.ai==='claude'?' selected':'')+'>Claude</option></select></label>'
+    +'<a id="upd-open" class="btn primary" href="#" target="_blank" rel="noopener" hidden></a>'
+    +'<p id="upd-ai-hint" class="small muted"></p>'
+    +'<div class="row"><button class="btn" data-act="copy-prompt">Kopiera uppdraget i stället</button><span class="small muted" id="upd-count"></span></div>'
+    +'<details><summary>Visa uppdraget</summary><label class="vh" for="upd-prompt">Uppdraget</label><textarea id="upd-prompt" readonly></textarea></details>'
+    +'<p class="small muted">Skriv aldrig koden till grossisten här i appen.</p>';
+}
+function pasteBody(waitHtml){
+  return waitHtml
+    +'<label class="vh" for="upd-in">Svaret från AI-assistenten</label>'
+    +'<textarea id="upd-in" rows="5" placeholder="Namn;Antal per förp;Pris per förp;Enhet&#10;Röd ros 60 cm;10;129;pack"></textarea>'
+    +'<div class="row"><button class="btn primary" data-act="parse-update">Läs in svaret</button></div>'
+    +'<p id="upd-msg" class="note bad" role="alert" hidden></p>';
+}
 function renderUpdatePanel(){
   const el=$('#update-panel');
   if(!ui.upd){ el.hidden=true; el.innerHTML=''; return; }
   const W=state.wholesaler, url=safeUrl(W.url), chosen=chosenKeys().length, all=state.priceList.items.length;
-  const agent=W.mode==='agent', relayOn=agent&&!!(ui.relay&&ui.code);
+  const agent=W.mode==='agent', relayOn=agent&&!!(ui.relay&&ui.code), reader=!agent&&ui.read;
   el.hidden=false;
-  const stepGrossist='<li><div class="body"><strong>Din grossist</strong>'
-      +'<label class="field">Namn<input id="ws-name" type="text" value="'+esc(W.namn)+'" placeholder="Till exempel grossisten du handlar av" autocomplete="off"></label>'
+  const li=(title,body)=>'<li><div class="body"><strong>'+title+'</strong>'+body+'</div></li>';
+  const stepGrossist=li('Din grossist',
+      '<label class="field">Namn<input id="ws-name" type="text" value="'+esc(W.namn)+'" placeholder="Till exempel grossisten du handlar av" autocomplete="off"></label>'
       +'<label class="field">Webbadress till webbutiken<input id="ws-url" type="url" inputmode="url" value="'+esc(W.url)+'" placeholder="https://" autocomplete="off"></label>'
-      +(url?'<a class="small" href="'+esc(url)+'" target="_blank" rel="noopener">Öppna grossistens sida</a>':'')
-    +'</div></li>';
-  const stepVaror='<li><div class="body"><strong>Vilka varor?</strong>'
-      +'<div class="radios" role="radiogroup" aria-label="Vilka varor">'
+      +(url?'<a class="small" href="'+esc(url)+'" target="_blank" rel="noopener">Öppna grossistens sida</a>':''));
+  const stepVaror=li('Vilka varor?',
+      '<div class="radios" role="radiogroup" aria-label="Vilka varor">'
       +'<label><input type="radio" name="updscope" value="valda"'+(ui.updScope==='valda'?' checked':'')+'>De valda blommorna ('+chosen+' st)</label>'
       +'<label><input type="radio" name="updscope" value="alla"'+(ui.updScope==='alla'?' checked':'')+'>Hela min lista ('+all+' st, tar längre tid)</label>'
       +'</div>'
-      +'<p id="upd-none" class="note warn" hidden>Du har inte valt några blommor än. Välj blommor i en bukett, eller välj Hela min lista.</p>'
-    +'</div></li>';
-  const stepAi=(title,optChat)=>'<li><div class="body"><strong>'+title+'</strong>'
-      +'<label class="field">Min AI-assistent<select id="ws-ai"><option value="chatgpt"'+(W.ai!=='claude'?' selected':'')+'>'+optChat+'</option><option value="claude"'+(W.ai==='claude'?' selected':'')+'>Claude</option></select></label>'
-      +'<a id="upd-open" class="btn primary" href="#" target="_blank" rel="noopener" hidden></a>'
-      +'<p id="upd-ai-hint" class="small muted"></p>'
-      +'<div class="row"><button class="btn" data-act="copy-prompt">Kopiera uppdraget i stället</button><span class="small muted" id="upd-count"></span></div>'
-      +'<details><summary>Visa uppdraget</summary><label class="vh" for="upd-prompt">Uppdraget</label><textarea id="upd-prompt" readonly></textarea></details>'
-      +'<p class="small muted">Skriv aldrig koden till grossisten här i appen.</p>'
-    +'</div></li>';
-  const stepPaste=(title,withWait)=>'<li><div class="body"><strong>'+title+'</strong>'
-      +(withWait&&relayOn?'<p id="upd-wait" class="note">Väntar på att assistenten lämnar in priserna. De dyker upp här av sig själva när du kommer tillbaka till appen. Du kan också klistra in svaret nedan.</p>':'<p id="upd-wait" class="note" hidden></p>')
-      +'<label class="vh" for="upd-in">Svaret från AI-assistenten</label>'
-      +'<textarea id="upd-in" rows="5" placeholder="Namn;Antal per förp;Pris per förp;Enhet&#10;Röd ros 60 cm;10;129;pack"></textarea>'
-      +'<div class="row"><button class="btn primary" data-act="parse-update">Läs in svaret</button></div>'
-      +'<p id="upd-msg" class="note bad" role="alert" hidden></p>'
-    +'</div></li>';
-  const stepShots='<li><div class="body"><strong>Logga in och ta skärmdumpar</strong>'
-      +'<p class="small muted">Logga in på grossistens sida. Sök fram varje blomma så att pris och antal per förpackning syns, och ta en skärmdump. Flera blommor på samma bild går bra.</p>'
-      +'<p class="small"><strong>Sök fram:</strong> <span id="upd-names"></span></p>'
-    +'</div></li>';
+      +'<p id="upd-none" class="note warn" hidden>Du har inte valt några blommor än. Välj blommor i en bukett, eller välj Hela min lista.</p>');
+  const stepShots=li('Logga in och ta skärmdumpar',
+      '<p class="small muted">Logga in på grossistens sida. Sök fram varje blomma så att pris och antal per förpackning syns, och ta en skärmdump. Zooma in så att texten är tydlig. Flera blommor på samma bild går bra.</p>'
+      +'<p class="small"><strong>Sök fram:</strong> <span id="upd-names"></span></p>');
+  const stepRead=li('Välj skärmdumparna',
+      (ui.needsCode?'<label class="field">Åtkomstkod<input id="read-code" type="password" autocomplete="off" value="'+esc(W.readCode||'')+'" placeholder="Fråga den som driftsatte appen"><span class="hint">Sparas bara på den här telefonen.</span></label>':'')
+      +'<label class="btn primary" for="shots">Välj skärmdumpar</label><input id="shots" type="file" accept="image/*" multiple class="vh">'
+      +'<p class="small muted">Högst 8 bilder. Appen läser av dem och priserna dyker upp nedan. Du behöver inte kopiera något.</p>'
+      +'<p id="shots-status" class="note" role="status" hidden></p>'
+      +'<details id="upd-alt" class="alt"><summary>Fungerar det inte? Läs av med en AI-chatt i stället</summary><div class="alt-body">'
+      +aiBody('ChatGPT')+'<strong>Klistra in svaret</strong>'+pasteBody('<p id="upd-wait" class="note" hidden></p>')+'</div></details>');
   const modes='<fieldset><legend class="vh">Hur vill du hämta priserna?</legend>'
-      +'<label class="radio"><input type="radio" name="updmode" value="skarm"'+(!agent?' checked':'')+'><span>Skärmdumpar</span><small>Du loggar in hos grossisten själv och tar skärmdumpar. Ingen prenumeration behövs.</small></label>'
+      +'<label class="radio"><input type="radio" name="updmode" value="skarm"'+(!agent?' checked':'')+'><span>Skärmdumpar</span><small>'+(ui.read?'Du loggar in hos grossisten själv och tar skärmdumpar. Appen läser av dem åt dig. Ingen prenumeration behövs.':'Du loggar in hos grossisten själv och tar skärmdumpar. Sedan läser en AI-chatt av dem. Ingen prenumeration behövs.')+'</small></label>'
       +'<label class="radio"><input type="radio" name="updmode" value="agent"'+(agent?' checked':'')+'><span>ChatGPT Work</span><small>Assistenten hämtar priserna åt dig medan du loggar in. Kräver ChatGPT-abonnemang.</small></label>'
     +'</fieldset>';
+  const waitP=relayOn?'<p id="upd-wait" class="note">Väntar på att assistenten lämnar in priserna. De dyker upp här av sig själva när du kommer tillbaka till appen. Du kan också klistra in svaret nedan.</p>':'<p id="upd-wait" class="note" hidden></p>';
   const steps=agent
-    ?stepGrossist+stepVaror+stepAi('Öppna din AI-assistent med uppdraget','ChatGPT (Work)')+stepPaste(relayOn?'Priserna dyker upp här':'Klistra in svaret',true)
-    :stepGrossist+stepVaror+stepShots+stepAi('Öppna din AI-assistent och bifoga skärmdumparna','ChatGPT')+stepPaste('Klistra in svaret',false);
+    ?stepGrossist+stepVaror+li('Öppna din AI-assistent med uppdraget',aiBody('ChatGPT (Work)'))+li(relayOn?'Priserna dyker upp här':'Klistra in svaret',pasteBody(waitP))
+    :reader
+      ?stepGrossist+stepVaror+stepShots+stepRead
+      :stepGrossist+stepVaror+stepShots+li('Öppna din AI-assistent och bifoga skärmdumparna',aiBody('ChatGPT'))+li('Klistra in svaret',pasteBody('<p id="upd-wait" class="note" hidden></p>'));
   el.innerHTML='<section class="card" aria-label="Hämta pris">'
     +'<div class="head-row"><h3>Hämta pris från grossisten</h3><button class="icon-btn" data-act="close-update" aria-label="Stäng">×</button></div>'
     +modes+'<ol class="steps">'+steps+'</ol>'
     +'<div id="upd-preview"></div></section>';
   refreshPrompt();
+}
+function b64(buf){
+  let out='';
+  const a=new Uint8Array(buf);
+  for(let i=0;i<a.length;i+=0x8000) out+=String.fromCharCode.apply(null,a.subarray(i,i+0x8000));
+  return btoa(out);
+}
+async function shrink(file,max){
+  let bmp;
+  try{ bmp=await createImageBitmap(file,{imageOrientation:'from-image'}); }catch(e){ bmp=await createImageBitmap(file); }
+  const sc=Math.min(1,max/Math.max(bmp.width,bmp.height));
+  const w=Math.max(1,Math.round(bmp.width*sc)), h=Math.max(1,Math.round(bmp.height*sc));
+  const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+  const cx=cv.getContext('2d'); cx.fillStyle='#fff'; cx.fillRect(0,0,w,h); cx.drawImage(bmp,0,0,w,h);
+  const blob=await new Promise(r=>cv.toBlob(r,'image/jpeg',0.85));
+  if(!blob) throw new Error('toBlob');
+  return {type:'image/jpeg',data:b64(await blob.arrayBuffer())};
+}
+function setShots(msg,cls){ const e=$('#shots-status'); if(!e) return; e.textContent=msg||''; e.hidden=!msg; e.className='note'+(cls?' '+cls:''); }
+function readError(status,code){
+  if(status===401) return 'Åtkomstkoden stämmer inte. Fråga den som driftsatte appen.';
+  if(status===429&&code==='limit') return 'Dagens gräns för avläsningar är nådd. Försök imorgon, eller läs av med en AI-chatt nedan.';
+  if(status===429) return 'AI-tjänsten är upptagen just nu. Försök igen om en stund.';
+  if(status===413) return 'Bilderna är för stora. Välj färre eller mindre bilder.';
+  if(status===503) return 'Avläsningen är inte påslagen på servern. Läs av med en AI-chatt nedan.';
+  return 'AI:n kunde inte läsa bilderna. Försök igen, eller läs av med en AI-chatt nedan.';
+}
+async function readShots(fileList){
+  const files=Array.from(fileList||[]); if(!files.length) return;
+  const alt=$('#upd-alt');
+  if(files.length>8){ setShots('Välj högst 8 bilder åt gången.','warn'); return; }
+  const keys=updKeys();
+  if(!keys.length){ setShots('Välj blommor först, eller välj Hela min lista.','warn'); return; }
+  setShots('Förbereder '+files.length+(files.length===1?' bild':' bilder')+' …');
+  let images;
+  try{ images=await Promise.all(files.map(f=>shrink(f,2000))); }
+  catch(e){ setShots('Kunde inte läsa en av bilderna. Försök med en annan.','warn'); return; }
+  setShots('AI:n läser av skärmdumparna. Det kan ta upp till en minut …');
+  const list=indexList(state.priceList.items), names=keys.map(k=>labelOf(k,list));
+  const headers={'content-type':'application/json'};
+  if(state.wholesaler.readCode) headers['x-read-code']=state.wholesaler.readCode;
+  let r;
+  try{ r=await fetch('api/read',{method:'POST',headers,body:JSON.stringify({names,images})}); }
+  catch(e){ setShots('Kunde inte nå servern. Kontrollera nätet och försök igen.','warn'); if(alt) alt.open=true; return; }
+  let j=null; try{ j=await r.json(); }catch(e){}
+  if(!r.ok||!j||!j.text){ setShots(readError(r.status,j&&j.error),'bad'); if(alt) alt.open=true; return; }
+  const t=readTable(j.text);
+  if(t.error){ setShots('AI:ns svar gick inte att tolka. Försök igen, eller läs av med en AI-chatt nedan.','bad'); if(alt) alt.open=true; return; }
+  runUpdate(j.text);
+  setShots('Klart. Kontrollera priserna nedan mot dina bilder.','ok');
 }
 function showUpdMsg(msg){ const m=$('#upd-msg'); if(m){ m.textContent=msg||''; m.hidden=!msg; } }
 function runUpdate(text){
@@ -1292,6 +1354,8 @@ document.addEventListener('change',e=>{
     ui.code=(state.wholesaler.mode==='agent'&&ui.relay)?newCode():'';
     renderUpdatePanel(); startPoll(); return;
   }
+  if(t.id==='shots'){ const f=t.files; readShots(f).finally(()=>{ try{ t.value=''; }catch(e){} }); return; }
+  if(t.id==='read-code'){ state.wholesaler.readCode=t.value.trim(); save(); return; }
   if(t.id==='ws-ai'){ state.wholesaler.ai=t.value==='claude'?'claude':'chatgpt'; save(); refreshPrompt(); return; }
   if(t.id==='ws-name'){ state.wholesaler.namn=t.value.trim(); save(); refreshPrompt(); return; }
   if(t.id==='ws-url'){ state.wholesaler.url=t.value.trim(); save(); refreshPrompt(); return; }
@@ -1336,7 +1400,7 @@ setTab('bukett');
 checkRelay();
 
 /* för test */
-window.buketraknare={relay:()=>ui.relay,calc:()=>calc(state),state:()=>state,readTable,detectPack,parseNum,matchKey,exampleState};
+window.buketraknare={relay:()=>ui.relay,read:()=>ui.read,calc:()=>calc(state),state:()=>state,readTable,detectPack,parseNum,matchKey,exampleState};
 })();
 </script>
 </body>

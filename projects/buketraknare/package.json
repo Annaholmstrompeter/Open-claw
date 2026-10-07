@@ -1,0 +1,8 @@
+{
+  "name": "buketraknare",
+  "private": true,
+  "description": "Buketträknaren: kalkylator för florister",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0"
+  }
+}
