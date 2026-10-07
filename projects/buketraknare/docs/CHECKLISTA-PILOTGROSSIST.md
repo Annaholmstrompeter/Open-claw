@@ -26,15 +26,15 @@ Lösenord, koder, tekniska filer eller att du ändrar några inställningar.
 
 ## För utvecklaren: vad svaren avgör
 
-Den bästa vägen väljs i den här ordningen (se planen): officiellt API eller feed, prisfil eller EDI, webbutikens egna strukturerade data (bara om villkoren tillåter), och först därefter inloggad webbläsare.
+Den bästa vägen väljs i den här ordningen (se `MASTER-PLAN.md`): officiellt API eller feed, prisfil eller EDI, webbutikens egna strukturerade data (bara om villkoren tillåter), och därefter inloggad webbläsare. **Webbläsaragenten är en kärnfunktion och undersöks parallellt** (MVP 1B, en liten proof-of-concept när legitim åtkomst finns och grossistens villkor är lästa). Vi är inte beroende av att grossisten ger API.
 
 | Svaret säger | Då börjar vi med |
 |--------------|------------------|
 | Fråga 4: prisfil, Excel, feed, API eller integration finns | Den vägen, och kontaktpersonen får frågan först |
 | Bara inloggad webbutik, enkel inloggning (inga koder, förblir inloggad) | Undersöka webbutikens egna data, med grossistens tillåtelse |
-| BankID, sms-kod eller ofta utloggning | Inte inloggad automatik. Prisfil eller import tills grossisten erbjuder något bättre |
+| BankID, sms-kod eller ofta utloggning | Inloggningen gör floristen själv varje gång. Vi undersöker i PoC:n hur ofta det behövs. Prisfil eller import som reserv |
 | Bara PDF, mejl eller telefon | Importera prislista (finns redan) och be grossisten om en maskinläsbar fil |
-| Moms eller euro enligt fråga 5 | Först då byggs den logiken, och inte förr |
+| Moms eller euro enligt fråga 5 | **Moms** finns redan i modellen (ändrat, se planen): vi noterar om priset är med eller utan moms och vilken sats. **Euro och omräkning** byggs först när en verklig grossist kräver det |
 | Fråga 6: går inte att lista, bara söka | Onboarding blir *sök din första favorit* i stället för att hämta hela sortimentet |
 | Fråga 7: land, odlare, certifiering syns | Fälten fylls och hållbarhetsfilter byggs. Syns de inte byggs inga filter för den grossisten |
 | Fråga 7: erbjudanden syns med slutdatum | Erbjudandeflödet kan byggas. Utan slutdatum gäller de bara samma dag |

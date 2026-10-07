@@ -8,7 +8,7 @@ Steg 0 (regressionstester) och arkitekturgrunden är godkända. Inget mergas til
 2. **Fallbackvägarna ligger kvar synliga** (skärmdumpar, ChatGPT Work, brevlåda, AI-chatt) tills den första riktiga grossistkopplingen fungerar. Därefter flyttas de till *Importera prislista* som reservväg. De raderas inte.
 3. **Lat matchning är rätt väg.** Ingen stor matchnings-setup.
 4. **Prisdatakälla: se nedan.**
-5. **Valuta och moms:** systemet vägrar hellre räkna än gör en osäker omräkning. Valuta- och momslogik byggs först när en verklig grossist kräver det.
+5. **Valuta och moms:** systemet vägrar hellre räkna än gör en osäker omräkning. Valuta- och momslogik byggs först när en verklig grossist kräver det. **(Ändrat för moms 2026-10-07, se längst ned. Euro och omräkning gäller fortfarande.)**
 6. **Cloudflare:** avvakta. Inget ändras utan den riktiga felraden ur byggloggen (se `CLOUDFLARE-DEPLOYMENT.md`).
 7. **Nästa steg** tas när pilotgrossisten är identifierad: först research, sedan en verklig adapter, innan mer byggs. Underlag: `CHECKLISTA-PILOTGROSSIST.md`.
 
@@ -55,3 +55,21 @@ Grossistens verkliga artiklar ska vara sanningen, och floristens egna arbete byg
 - **Inget byggs förrän planen är godkänd.** Nästa större implementation väntar på Annas svar på de öppna besluten i avsnitt 18.
 - **Inga ekonomiskt bindande automatiska handlingar.** Agenten får förbereda, aldrig slutföra köp, godta ersättningsvara med kostnadskonsekvens, skicka faktura eller ändra bindande order utan floristens uttryckliga godkännande.
 - **Uppgifter som är overifierade** (Blomstergrossistens villkor och inloggning, Cloudflares aktuella priser, cookie-överlämning i molnwebbläsare, krav på fakturor och GDPR) är markerade i bilaga B och ska kontrolleras innan de används.
+
+## 2026-10-07 (senare): Annas tillägg till masterplanen (version 2)
+
+Beslut av Anna, infört i `MASTER-PLAN.md` version 2. Ingen produktionskod ändrad.
+
+1. **Grossistagenten är en kärnfunktion.** En liten proof-of-concept (**MVP 1B**) körs parallellt med floristens kärna (**MVP 1A**) så snart legitim pilotåtkomst finns och grossistens villkor är lästa. Ingen stor generell fjärrwebbläsarplattform byggs före beviset.
+2. **Vi är inte beroende av att grossisten ger API.** Vi frågar om API, feed, prisfil, EDI och tillstånd, och använder det om det är bra. Grind A innehåller också en teknisk undersökning av hur webbutiken fungerar efter inloggning. Vi kringgår aldrig säkerhet eller åtkomstkontroller.
+3. **Skärmdumpar och CSV är reservvägar**, inte arkitekturens grund. Slutupplevelsen är ANSLUT GROSSIST → LOGGA IN → KLART.
+4. **Moms ändrar tidigare beslut 5.** Moms-redig pengamodell byggs nu (inköp ex/inkl. moms, försäljning ex/inkl. moms, moms per rad, versionerade regler). **Euro och omräkning väntar fortfarande** tills en verklig grossist kräver det.
+5. **Pengar är exakta tal**, aldrig flyttal. AI räknar aldrig moms. Påslag och marginal är olika saker och har egna tester. `calc()` ligger kvar som referensmotor.
+6. **Kundpriset är det floristen arbetar med.** Den exakta uppdelningen ligger bakom.
+7. **Planerat är inte faktiskt:** estimate, quote, godkänd kundorder, planerat inköp, grossistens varukorg, faktiskt inköp, leverantörsfaktura/kvitto, kundfaktura och betalning är nio separata steg. Bara faktiska händelser blir bokföringsunderlag.
+8. **Ingen egen bokföring.** En `AccountingConnector` planeras på samma princip som `SupplierConnector`. Ingen leverantör är vald.
+9. **Revisionsspår och versionerade regler.** Ekonomiska värden skrivs aldrig över. Skatte- och fakturaregler är data med version, och en gammal faktura ändras aldrig av att en regel ändras.
+10. **Ny ordning:** MVP 1A + 1B parallellt → 2 (riktig grossistkoppling) → 3 (inköp) → 4 (faktura) → 5 (grossistvarukorg) → 6 (intelligens).
+11. **Prissättning:** MICRO ca 99–199, STUDIO ca 299–449, PRO ca 699–899+ kr per månad som arbetshypotes. Kalkylering obegränsad. Rättvisaste dimensionen enligt analysen: aktiva kundjobb per månad, grossistanslutningar och användare. Tekniska mått visas aldrig för floristen. Tak och larm skyddar mot en trasig connector.
+
+**Öppen fråga till Anna:** briefens räkneexempel (186 kr, 120 %, 125 kr = "534 kr inkl. moms") stämmer med dagens motor bara som 534,20 kr *före* moms.
