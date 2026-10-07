@@ -74,7 +74,7 @@ test('NOLL INKÖPSKOSTNAD BETYDER INTE NOLL VÄRDE: tre skilda fält, och noll k
 });
 
 test('prissättningssätt: standardpåslag eller fast kundpris, med eller utan moms', () => {
-  assert.deepEqual([...I.PRICING_MODES], ['STANDARD_MARKUP', 'FIXED_SALE_PRICE']);
+  assert.deepEqual([...I.PRICING_MODES], ['STANDARD_MARKUP', 'FIXED_SALE_PRICE', 'INCLUDED']);
   assert.deepEqual(codes(() => I.normalizeItem(own('OWN_STOCK', { pricing: { mode: 'GRATIS' } }), cur)), ['bad_pricing_mode']);
   assert.deepEqual(codes(() => I.normalizeItem(own('OWN_STOCK', { pricing: { mode: 'FIXED_SALE_PRICE' } }), cur)), ['sale_price_missing']);
   assert.deepEqual(codes(() => I.normalizeItem(own('OWN_STOCK', { pricing: fixedPrice('75', 'kanske') }), cur)), ['bad_sale_basis']);

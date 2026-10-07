@@ -94,6 +94,8 @@
         draft.shop.updatedAt = ctx.now();
         const problems = W.validateWorkspace(draft);
         if (problems.length) return { ok: false, reason: 'invalid', problems };
+        const frozen = typeof W.checkImmutability === 'function' ? W.checkImmutability(current, draft) : [];     // en skickad offert och en kundorder ändras aldrig
+        if (frozen.length) return { ok: false, reason: 'immutable', problems: frozen };
         const w = await adapter.write(draft, { expectedRev: storedRev });
         if (!w.ok && w.reason === 'conflict') return { ok: false, reason: 'conflict', currentRev: w.currentRev, state: clone(current) };
         // full lagring: arbetet finns kvar i minnet och användaren får veta att det inte sparades

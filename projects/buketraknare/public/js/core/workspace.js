@@ -8,6 +8,13 @@
  * priceEvent knyter ihop det hela: rader → inköpsplan (bara det som ska beställas) → pris per arrangemang → jobbets summa.
  * Egna tillägg påverkar kundpriset men skapar aldrig ett inköpsbehov. Beräknat och presenterat kundpris följer med båda.
  *
+ * Offert och kundorder (avsnitt 8.6 i planen) skiljer tre priser åt, och alla tre sparas:
+ *   BERÄKNAT      det exakta ekonomiska resultatet (667,75 kr)       QuoteSnapshot.lines[].calculated
+ *   PRESENTERAT   det avrundade pris floristen erbjuder (670 kr)     QuoteSnapshot.lines[].presented
+ *   ÖVERENSKOMMET det kunden faktiskt köper för (650 kr)             CustomerOrder.lines[].agreed
+ * Det överenskomna är som standard det presenterade, men kan vara lägre eller högre. Skillnaden förstör aldrig den ursprungliga kalkylen.
+ * En skickad offert och en kundorder ändras aldrig. En ändring ger en ny version (checkImmutability, som store.js tillämpar).
+ *
  * Ingen momssats finns här. Satsen slås upp i regeluppsättningarna (tax.js). Utan egna regler används floristens egen
  * momsinställning (legacy-user-setting), som aldrig är verifierad och inte får användas för en faktura.
  */
@@ -101,7 +108,7 @@
   // ---------- skapa ----------
   function createWorkspace(ctx, opts) {
     const o = opts || {}, now = ctx.now();
-    const st = { v: VERSION, rev: 1, shop: { id: SHOP_ID, name: o.name || 'Min butik', pricing: defaultPricing(o.pricing), createdAt: now, updatedAt: now, rev: 1 }, customers: [], events: [], arrangements: [], items: [], materials: [] };
+    const st = { v: VERSION, rev: 1, shop: { id: SHOP_ID, name: o.name || 'Min butik', pricing: defaultPricing(o.pricing), createdAt: now, updatedAt: now, rev: 1 }, customers: [], events: [], arrangements: [], items: [], materials: [], quotes: [], orders: [] };
     readPricing(st.shop.pricing);
     return st;
   }
@@ -167,14 +174,21 @@
       if (u.date !== null && u.date !== undefined && !isDate(u.date)) fail('bad_date', 'datum måste vara ÅÅÅÅ-MM-DD', 'usage');
       out.usage = { horizon: u.horizon, date: u.date || null };
     }
+    if (s.origin !== undefined) out.origin = readOrigin(s.origin, 'legacy_order');
     for (const k of ['eventDate', 'deliveryDate']) if (s[k] !== undefined) { if (s[k] !== null && !isDate(s[k])) fail('bad_date', k + ' måste vara ÅÅÅÅ-MM-DD', k); out[k] = s[k]; }
     if (s.notes !== undefined) out.notes = text(s.notes);
     if (s.fees !== undefined) out.fees = readFees(s.fees, st.shop.pricing.currency);
     if (s.onHand !== undefined) out.onHand = readOnHand(s.onHand);
     return out;
   }
+  /** Var ett jobb eller arrangemang kommer ifrån (till exempel den gamla appens order). Bara en uppgift, ändrar aldrig något. */
+  function readOrigin(o, kind) {
+    if (o === null) return null;
+    if (!o || o.kind !== kind) fail('bad_origin', 'okänt ursprung: ' + JSON.stringify(o), 'origin');
+    return clone(o);
+  }
   function createEvent(st, ctx, spec) {
-    const base = { customerId: null, name: '', type: 'other', usage: { horizon: 'week', date: null }, eventDate: null, deliveryDate: null, status: 'planning', notes: '', fees: [], onHand: {} };
+    const base = { origin: null, customerId: null, name: '', type: 'other', usage: { horizon: 'week', date: null }, eventDate: null, deliveryDate: null, status: 'planning', notes: '', fees: [], onHand: {} };
     const fields = readEventFields(st, spec || {}, base);
     text(fields.name, 'namn', true);
     const e = stamp(ctx, 'evt', fields);
@@ -209,11 +223,12 @@
     if (s.markupOverrideBp !== undefined) { if (s.markupOverrideBp !== null) { try { Rate.check(s.markupOverrideBp, 'påslaget'); } catch (e) { fail('bad_markup', 'påslaget måste vara ett heltal i hundradels procent', 'markupOverrideBp'); } } out.markupOverrideBp = s.markupOverrideBp; }
     if (s.laborOverride !== undefined) out.laborOverride = readLabor(s.laborOverride, st.shop.pricing.currency);
     if (s.notes !== undefined) out.notes = text(s.notes);
+    if (s.origin !== undefined) out.origin = readOrigin(s.origin, 'legacy_bouquet');
     return out;
   }
   function addArrangement(st, ctx, eventId, spec) {
     need(st.events, eventId, 'jobb');
-    const base = { eventId, name: '', kind: 'bouquet', quantity: 1, estimatedMinutes: null, markupOverrideBp: null, laborOverride: null, notes: '' };
+    const base = { origin: null, eventId, name: '', kind: 'bouquet', quantity: 1, estimatedMinutes: null, markupOverrideBp: null, laborOverride: null, notes: '' };
     const fields = readArrangementFields(st, spec || {}, base);
     text(fields.name, 'namn', true);
     const a = stamp(ctx, 'arr', fields);
@@ -227,9 +242,14 @@
   }
 
   // ---------- rader ----------
+  /** Kundtypen för ett arrangemang (via jobbet och kunden). Utan kund gäller privatkund. */
+  function customerKindOf(st, arrangementId) {
+    const a = byId(st.arrangements, arrangementId), ev = a && byId(st.events, a.eventId), c = ev && ev.customerId ? byId(st.customers, ev.customerId) : null;
+    return c ? c.customerKind : 'PRIVATE';
+  }
   function addItem(st, ctx, arrangementId, spec) {
     need(st.arrangements, arrangementId, 'arrangemang');
-    const normalized = I.normalizeItem({ ...(spec || {}), id: ctx.newId('itm') }, { currency: st.shop.pricing.currency });
+    const normalized = I.normalizeItem({ ...(spec || {}), id: ctx.newId('itm') }, { currency: st.shop.pricing.currency, defaultBasis: I.defaultPriceBasis(customerKindOf(st, arrangementId)) });
     const now = ctx.now();
     const it = { ...normalized, arrangementId, shopId: SHOP_ID, createdAt: now, updatedAt: now, rev: 1, deletedAt: null };
     st.items.push(it);
@@ -238,7 +258,7 @@
   function updateItem(st, ctx, id, patch) {
     const it = need(st.items, id, 'rad'), p = patch || {};
     const merged = { ...it, ...p, pricing: { ...it.pricing, ...(p.pricing || {}) } };
-    const normalized = I.normalizeItem(merged, { currency: st.shop.pricing.currency });
+    const normalized = I.normalizeItem(merged, { currency: st.shop.pricing.currency, defaultBasis: I.defaultPriceBasis(customerKindOf(st, it.arrangementId)) });
     Object.assign(it, normalized);
     return touch(ctx, it);
   }
@@ -343,6 +363,226 @@
     return { status: job.status === 'OK' ? 'OK' : 'INCOMPLETE', purchaseComplete: plan.missing.length === 0 && plan.noPrice.length === 0, eventId, taxDate, customerKind, plan, needs: purchaseNeeds(st, eventId), arrangements: results, job };
   }
 
+  // ---------- offert (QuoteSnapshot) och kundorder (CustomerOrder) ----------
+  const QUOTE_STATUS = Object.freeze(['draft', 'sent', 'accepted', 'superseded']);
+  const ORDER_STATUS = Object.freeze(['active', 'superseded', 'cancelled']);
+  const QUOTE_NEXT = Object.freeze({ draft: ['sent', 'accepted', 'superseded'], sent: ['accepted', 'superseded'], accepted: ['superseded'], superseded: [] });
+  const ORDER_NEXT = Object.freeze({ active: ['superseded', 'cancelled'], superseded: [], cancelled: [] });
+  const jsonOf = x => JSON.parse(JSON.stringify(x));
+  const times = (m, n) => Money.of(m.amount * BigInt(n), m.currency);
+  const sumMoney = (list, cur) => list.reduce((s, x) => s.add(x), Money.zero(cur));
+  const sumFrac = list => Frac.sum(list);
+  const quotesOf = (st, eventId) => (st.quotes || []).filter(q => q.eventId === eventId && q.deletedAt === null);
+  const ordersOf = (st, eventId) => (st.orders || []).filter(o => o.eventId === eventId && o.deletedAt === null);
+  const activeOrderOf = (st, eventId) => ordersOf(st, eventId).find(o => o.status === 'active') || null;
+
+  /** Moms per sats, sammanslagen över flera listor av { rateBp, exVat, vat, incVat } (Money). */
+  function mergeRates(lists, cur) {
+    const map = new Map();
+    for (const g of lists.flat()) {
+      const x = map.get(g.rateBp) || { rateBp: g.rateBp, exVat: Money.zero(cur), vat: Money.zero(cur), incVat: Money.zero(cur) };
+      x.exVat = x.exVat.add(g.exVat); x.vat = x.vat.add(g.vat); x.incVat = x.incVat.add(g.incVat); map.set(g.rateBp, x);
+    }
+    return [...map.values()].sort((a, b) => a.rateBp - b.rateBp);
+  }
+  const moneyRates = list => list.map(g => ({ rateBp: g.rateBp, exVat: Money.fromJSON(g.exVat), vat: Money.fromJSON(g.vat), incVat: Money.fromJSON(g.incVat) }));
+  const ratesJson = list => list.map(g => ({ rateBp: g.rateBp, exVat: g.exVat.toJSON(), vat: g.vat.toJSON(), incVat: g.incVat.toJSON() }));
+
+  /**
+   * Fryser jobbets pris som en offert. Både det BERÄKNADE (exakta) och det PRESENTERADE (avrundade) priset sparas, med avrundningsregel,
+   * regelversion och prisstatus. Kräver ett fullständigt pris: en offert med ett pris som saknas skapas aldrig. Tidigare offerter för jobbet
+   * som inte är godkända ersätts (superseded). opts som för priceEvent.
+   */
+  function createQuote(st, ctx, eventId, opts) {
+    need(st.events, eventId, 'jobb');
+    const res = priceEvent(st, eventId, opts);
+    if (res.status !== 'OK') {
+      const why = res.arrangements.filter(a => a.result.status === 'INCOMPLETE').map(a => a.name + ': ' + a.result.reasons.map(r => r.code + (r.id ? ' ' + r.id : '') + (r.category ? ' ' + r.category : '')).join(', '));
+      fail('incomplete_price', 'offerten kan inte skapas medan priset är ofullständigt' + (why.length ? ' (' + why.join('; ') + ')' : ''), 'quote');
+    }
+    const pr = readPricing(st.shop.pricing), cur = pr.cur;
+    const priced = res.arrangements.filter(a => a.result.status === 'OK');
+    if (!priced.length && !res.job.fees.length) fail('empty_job', 'jobbet har inget att offerera', 'quote');
+    const lines = priced.map(a => ({
+      arrangementId: a.arrangementId, name: a.name, quantity: a.quantity, priceStatus: a.result.priceStatus,
+      calculated: jsonOf(a.result.calculated), presented: jsonOf(a.result.presented), goodsRateBp: a.result.breakdown.components[0].rateBp,
+      ruleSetRefs: a.result.breakdown.rule.refs, allVerified: a.result.breakdown.rule.allVerified,
+      profitabilityInputs: jsonOf(a.result.breakdown.profitabilityInputs)
+    }));
+    const version = (quotesOf(st, eventId).reduce((m, q) => Math.max(m, q.version), 0)) + 1;
+    for (const q of quotesOf(st, eventId)) if (q.status === 'draft' || q.status === 'sent') { q.status = 'superseded'; q.supersededAt = ctx.now(); touch(ctx, q); }
+    const q = stamp(ctx, 'qte', {
+      eventId, version, status: 'draft', sentAt: null, acceptedAt: null, supersededAt: null,
+      currency: cur, taxDate: res.taxDate, customerKind: res.customerKind, rounding: { step: pr.step.toJSON(), mode: pr.mode },
+      priceStatus: res.job.priceStatus, ruleSetRefs: res.job.rule.refs, allVerified: res.job.rule.allVerified,
+      lines, fees: jsonOf(res.job.fees),
+      totals: { calculated: jsonOf(res.job.calculated), presented: jsonOf(res.job.presented), vatByRate: jsonOf(res.job.vatByRate) }
+    });
+    st.quotes = st.quotes || [];
+    st.quotes.push(q);
+    return q;
+  }
+
+  function sendQuote(st, ctx, quoteId) {
+    const q = need(st.quotes || [], quoteId, 'offert');
+    if (q.status !== 'draft') fail('bad_transition', 'bara ett utkast kan skickas (offerten är ' + q.status + ')', 'quote');
+    q.status = 'sent'; q.sentAt = ctx.now();
+    return touch(ctx, q);
+  }
+
+  /**
+   * Kunden säger ja. Skapar en kundorder av offerten och fryser det ÖVERENSKOMNA priset per arrangemang.
+   * opts: { approvedBy (vem hos floristen som registrerade kundens ja), agreed: { [arrangementId]: belopp per styck inkl. moms (Money som JSON) }, note }
+   * Saknas ett överenskommet pris för ett arrangemang gäller det presenterade. Ett lägre eller högre överenskommet pris ändrar aldrig offerten:
+   * skillnaden mot det presenterade och mot det beräknade sparas på raden.
+   */
+  function acceptQuote(st, ctx, quoteId, opts) {
+    const o = opts || {};
+    const q = need(st.quotes || [], quoteId, 'offert');
+    if (q.status !== 'draft' && q.status !== 'sent') fail('bad_transition', 'bara en offert som inte är ersatt kan godkännas (offerten är ' + q.status + ')', 'quote');
+    const approvedBy = text(o.approvedBy, 'vem som godkände', true);
+    const agreedIn = o.agreed || {};
+    for (const k of Object.keys(agreedIn)) if (!q.lines.some(l => l.arrangementId === k)) fail('bad_agreed', 'överenskommet pris för ett arrangemang som inte finns i offerten: ' + k, 'agreed');
+    const cur = q.currency;
+    const lines = q.lines.map(l => {
+      let unit;
+      if (agreedIn[l.arrangementId] === undefined) unit = Money.fromJSON(l.presented.incVat);
+      else { try { unit = Money.fromJSON(agreedIn[l.arrangementId]); } catch (e) { fail('bad_agreed', 'det överenskomna priset måste vara ett belopp', 'agreed'); } }
+      if (unit.currency !== cur || unit.isNegative()) fail('bad_agreed', 'det överenskomna priset måste vara icke-negativt i ' + cur, 'agreed');
+      const split = P.allocateAgreed({ agreedIncVat: unit, presentedByRate: moneyRates(l.presented.byRate), fallbackRateBp: l.goodsRateBp });
+      const presentedInc = Money.fromJSON(l.presented.incVat);
+      return {
+        arrangementId: l.arrangementId, name: l.name, quantity: l.quantity,
+        calculated: clone(l.calculated), presented: { incVat: l.presented.incVat, exVat: l.presented.exVat, vat: l.presented.vat },
+        agreed: { unitIncVat: split.incVat.toJSON(), unitExVat: split.exVat.toJSON(), unitVat: split.vat.toJSON(), byRate: ratesJson(split.byRate) },
+        adjustment: { unitIncVat: split.incVat.sub(presentedInc).toJSON(), unitVsCalculated: split.incVat.toFrac().sub(Frac.fromJSON(l.calculated.incVat)).toJSON() }
+      };
+    });
+    const feeAmounts = q.fees.map(f => ({ ex: Money.fromJSON(f.amounts.exVat), vat: Money.fromJSON(f.amounts.vat), inc: Money.fromJSON(f.amounts.incVat), rateBp: f.amounts.vatRate }));
+    const feeRates = feeAmounts.map(f => ({ rateBp: f.rateBp, exVat: f.ex, vat: f.vat, incVat: f.inc }));
+    const lineRates = lines.map(l => moneyRates(l.agreed.byRate).map(g => ({ rateBp: g.rateBp, exVat: times(g.exVat, l.quantity), vat: times(g.vat, l.quantity), incVat: times(g.incVat, l.quantity) })));
+    const byRate = mergeRates([...lineRates, feeRates], cur);
+    const agreedInc = sumMoney(byRate.map(g => g.incVat), cur);
+    const presentedInc = Money.fromJSON(q.totals.presented.incVat);
+    const prior = ordersOf(st, q.eventId);
+    for (const x of prior) if (x.status === 'active') { x.status = 'superseded'; x.supersededAt = ctx.now(); touch(ctx, x); }
+    for (const x of quotesOf(st, q.eventId)) if (x.id !== q.id && x.status === 'accepted') { x.status = 'superseded'; x.supersededAt = ctx.now(); touch(ctx, x); }
+    const order = stamp(ctx, 'ord', {
+      eventId: q.eventId, quoteId: q.id, quoteVersion: q.version, version: prior.reduce((m, x) => Math.max(m, x.version), 0) + 1, status: 'active',
+      approvedAt: ctx.now(), approvedBy, note: text(o.note), supersededAt: null,
+      currency: cur, taxDate: q.taxDate, customerKind: q.customerKind, ruleSetRefs: q.ruleSetRefs, allVerified: q.allVerified,
+      lines, fees: clone(q.fees),
+      totals: {
+        calculatedIncVat: q.totals.calculated.incVat, presentedIncVat: q.totals.presented.incVat,
+        agreedIncVat: agreedInc.toJSON(), agreedExVat: sumMoney(byRate.map(g => g.exVat), cur).toJSON(), agreedVat: sumMoney(byRate.map(g => g.vat), cur).toJSON(),
+        adjustmentIncVat: agreedInc.sub(presentedInc).toJSON(), vatByRate: ratesJson(byRate)
+      }
+    });
+    st.orders = st.orders || [];
+    st.orders.push(order);
+    q.status = 'accepted'; q.acceptedAt = ctx.now(); touch(ctx, q);
+    return order;
+  }
+
+  function cancelOrder(st, ctx, orderId) {
+    const o = need(st.orders || [], orderId, 'kundorder');
+    if (o.status !== 'active') fail('bad_transition', 'bara en aktiv kundorder kan avbrytas (ordern är ' + o.status + ')', 'order');
+    o.status = 'cancelled'; o.supersededAt = ctx.now();
+    return touch(ctx, o);
+  }
+
+  /** Läser de tre prisnivåerna för en orderrad: beräknat, presenterat och överenskommet (per styck, inkl. moms). */
+  function priceLevels(line) {
+    return {
+      calculatedIncVat: Frac.fromJSON(line.calculated.incVat),
+      presentedIncVat: Money.fromJSON(line.presented.incVat),
+      agreedIncVat: Money.fromJSON(line.agreed.unitIncVat),
+      adjustmentIncVat: Money.fromJSON(line.adjustment.unitIncVat),
+      agreedVsCalculated: Frac.fromJSON(line.adjustment.unitVsCalculated)
+    };
+  }
+
+  /** Kontroll av en offert (lista med problem, tom = bra). */
+  function validateQuote(q, cur) {
+    const p = [], at = m => prob('bad_quote', 'offert ' + q.id + ': ' + m, q.id);
+    try {
+      if (!QUOTE_STATUS.includes(q.status)) p.push(at('okänd status ' + q.status));
+      if (!Number.isSafeInteger(q.version) || q.version < 1) p.push(at('ogiltig version'));
+      if (q.currency !== cur) p.push(at('fel valuta'));
+      if (!Array.isArray(q.lines) || !Array.isArray(q.fees)) return [...p, at('rader och avgifter måste vara listor')];
+      const incs = [], calcs = [];
+      for (const l of q.lines) {
+        const pi = Money.fromJSON(l.presented.incVat), pe = Money.fromJSON(l.presented.exVat), pv = Money.fromJSON(l.presented.vat);
+        if (!pe.add(pv).eq(pi)) p.push(at('presenterat exkl. moms + moms är inte inkl. moms (' + l.arrangementId + ')'));
+        if (!sumMoney(moneyRates(l.presented.byRate).map(g => g.incVat), cur).eq(pi)) p.push(at('momsraderna summerar inte till det presenterade priset (' + l.arrangementId + ')'));
+        const ce = Frac.fromJSON(l.calculated.exVat), cv = Frac.fromJSON(l.calculated.vat), ci = Frac.fromJSON(l.calculated.incVat);
+        if (!ce.add(cv).eq(ci)) p.push(at('beräknat exkl. moms + moms är inte inkl. moms (' + l.arrangementId + ')'));
+        if (!Frac.fromJSON(l.presented.rounding).eq(pi.toFrac().sub(ci))) p.push(at('avrundningen är inte presenterat minus beräknat (' + l.arrangementId + ')'));
+        if (!Number.isSafeInteger(l.quantity) || l.quantity < 1) p.push(at('ogiltigt antal'));
+        incs.push(times(pi, l.quantity)); calcs.push(ci.mul(Frac.of(BigInt(l.quantity))));
+      }
+      for (const f of q.fees) { const fi = Money.fromJSON(f.amounts.incVat); incs.push(fi); calcs.push(fi.toFrac()); }
+      if (!sumMoney(incs, cur).eq(Money.fromJSON(q.totals.presented.incVat))) p.push(at('summan av raderna är inte det presenterade totalet'));
+      if (!sumFrac(calcs).eq(Frac.fromJSON(q.totals.calculated.incVat))) p.push(at('summan av raderna är inte det beräknade totalet'));
+    } catch (e) { p.push(at('kan inte läsas: ' + (e && e.message))); }
+    return p;
+  }
+
+  /** Kontroll av en kundorder (lista med problem, tom = bra). */
+  function validateOrder(o, cur) {
+    const p = [], at = m => prob('bad_order', 'kundorder ' + o.id + ': ' + m, o.id);
+    try {
+      if (!ORDER_STATUS.includes(o.status)) p.push(at('okänd status ' + o.status));
+      if (!Number.isSafeInteger(o.version) || o.version < 1) p.push(at('ogiltig version'));
+      if (o.currency !== cur) p.push(at('fel valuta'));
+      if (typeof o.approvedBy !== 'string' || !o.approvedBy.trim()) p.push(at('vem som godkände saknas'));
+      if (!Array.isArray(o.lines) || !Array.isArray(o.fees)) return [...p, at('rader och avgifter måste vara listor')];
+      const agreedIncs = [], rateLists = [], presIncs = [], calcs = [];
+      for (const l of o.lines) {
+        const lv = priceLevels(l);
+        const ai = lv.agreedIncVat, ae = Money.fromJSON(l.agreed.unitExVat), av = Money.fromJSON(l.agreed.unitVat);
+        if (!ae.add(av).eq(ai)) p.push(at('överenskommet exkl. moms + moms är inte inkl. moms (' + l.arrangementId + ')'));
+        if (!sumMoney(moneyRates(l.agreed.byRate).map(g => g.incVat), cur).eq(ai)) p.push(at('momsraderna summerar inte till det överenskomna priset (' + l.arrangementId + ')'));
+        if (!ai.sub(lv.presentedIncVat).eq(lv.adjustmentIncVat)) p.push(at('prisjusteringen är inte överenskommet minus presenterat (' + l.arrangementId + ')'));
+        if (!ai.toFrac().sub(lv.calculatedIncVat).eq(lv.agreedVsCalculated)) p.push(at('skillnaden mot det beräknade stämmer inte (' + l.arrangementId + ')'));
+        agreedIncs.push(times(ai, l.quantity)); presIncs.push(times(lv.presentedIncVat, l.quantity)); calcs.push(lv.calculatedIncVat.mul(Frac.of(BigInt(l.quantity))));
+        rateLists.push(moneyRates(l.agreed.byRate).map(g => ({ rateBp: g.rateBp, exVat: times(g.exVat, l.quantity), vat: times(g.vat, l.quantity), incVat: times(g.incVat, l.quantity) })));
+      }
+      for (const f of o.fees) { const fi = Money.fromJSON(f.amounts.incVat); agreedIncs.push(fi); presIncs.push(fi); calcs.push(fi.toFrac()); rateLists.push([{ rateBp: f.amounts.vatRate, exVat: Money.fromJSON(f.amounts.exVat), vat: Money.fromJSON(f.amounts.vat), incVat: fi }]); }
+      const t = o.totals, agreed = sumMoney(agreedIncs, cur);
+      if (!agreed.eq(Money.fromJSON(t.agreedIncVat))) p.push(at('summan av raderna är inte det överenskomna totalet'));
+      if (!sumMoney(presIncs, cur).eq(Money.fromJSON(t.presentedIncVat))) p.push(at('summan av raderna är inte det presenterade totalet'));
+      if (!sumFrac(calcs).eq(Frac.fromJSON(t.calculatedIncVat))) p.push(at('summan av raderna är inte det beräknade totalet'));
+      if (!Money.fromJSON(t.agreedExVat).add(Money.fromJSON(t.agreedVat)).eq(agreed)) p.push(at('totalt exkl. moms + moms är inte inkl. moms'));
+      if (!agreed.sub(Money.fromJSON(t.presentedIncVat)).eq(Money.fromJSON(t.adjustmentIncVat))) p.push(at('total prisjustering stämmer inte'));
+      if (!sumMoney(mergeRates(rateLists, cur).map(g => g.incVat), cur).eq(agreed)) p.push(at('momsraderna summerar inte till det överenskomna totalet'));
+    } catch (e) { p.push(at('kan inte läsas: ' + (e && e.message))); }
+    return p;
+  }
+
+  /**
+   * Jämför arbetsytan före och efter en ändring och ger problem om en offert eller kundorder har ändrats på ett sätt som inte är tillåtet.
+   * Innehållet i en offert eller order är oföränderligt. Bara status får gå framåt (QUOTE_NEXT, ORDER_NEXT), och inget får raderas.
+   * store.js anropar den vid varje sparning.
+   */
+  function checkImmutability(before, after) {
+    const p = [];
+    const one = (kind, list0, list1, next, volatile) => {
+      const now = new Map((list1 || []).map(x => [x.id, x]));
+      for (const a of list0 || []) {
+        const b = now.get(a.id);
+        if (!b) { p.push(prob('immutable', kind + ' ' + a.id + ' har tagits bort', a.id)); continue; }
+        const strip = x => { const c = clone(x); for (const k of volatile) delete c[k]; return JSON.stringify(c); };
+        if (strip(a) !== strip(b)) p.push(prob('immutable', kind + ' ' + a.id + ' har ändrats (en skickad eller godkänd ' + kind + ' ändras aldrig, gör en ny version)', a.id));
+        if (a.status !== b.status && !(next[a.status] || []).includes(b.status)) p.push(prob('immutable', kind + ' ' + a.id + ': status får inte gå från ' + a.status + ' till ' + b.status, a.id));
+        for (const k of ['sentAt', 'acceptedAt', 'supersededAt']) if (a[k] !== undefined && a[k] !== null && a[k] !== b[k]) p.push(prob('immutable', kind + ' ' + a.id + ': ' + k + ' får inte ändras', a.id));
+      }
+    };
+    one('offert', before.quotes, after.quotes, QUOTE_NEXT, ['status', 'sentAt', 'acceptedAt', 'supersededAt', 'updatedAt', 'rev']);
+    one('kundorder', before.orders, after.orders, ORDER_NEXT, ['status', 'supersededAt', 'updatedAt', 'rev']);
+    return p;
+  }
+
   // ---------- kontroll av hela arbetsytan ----------
   /** Lista med problem (tom = bra). Används när något läses från lagring och före varje sparning. */
   function validateWorkspace(st) {
@@ -374,6 +614,25 @@
       if (!byId(st.events, a.eventId)) p.push(prob('dangling', 'arrangemang ' + a.id + ' pekar på ett jobb som inte finns', a.id));
       if (!Number.isSafeInteger(a.quantity) || a.quantity < 1) p.push(prob('bad_quantity', 'arrangemang ' + a.id + ' har ogiltigt antal', a.id));
     }
+    for (const k of ['quotes', 'orders']) if (st[k] !== undefined && !Array.isArray(st[k])) p.push(prob('bad_state', k + ' måste vara en lista'));
+    const versions = new Set();
+    for (const q of Array.isArray(st.quotes) ? st.quotes : []) {
+      if (!q || typeof q.id !== 'string' || seen.has(q.id)) { p.push(prob('duplicate_id', 'offert saknar id eller använder ett id två gånger')); continue; }
+      seen.add(q.id);
+      if (!byId(st.events, q.eventId)) p.push(prob('dangling', 'offert ' + q.id + ' pekar på ett jobb som inte finns', q.id));
+      if (versions.has('q' + q.eventId + ':' + q.version)) p.push(prob('duplicate_version', 'offert ' + q.id + ': versionen finns redan för jobbet', q.id));
+      versions.add('q' + q.eventId + ':' + q.version);
+      p.push(...validateQuote(q, cur));
+    }
+    for (const o of Array.isArray(st.orders) ? st.orders : []) {
+      if (!o || typeof o.id !== 'string' || seen.has(o.id)) { p.push(prob('duplicate_id', 'kundorder saknar id eller använder ett id två gånger')); continue; }
+      seen.add(o.id);
+      const qq = byId(st.quotes || [], o.quoteId);
+      if (!qq || qq.eventId !== o.eventId) p.push(prob('dangling', 'kundorder ' + o.id + ' pekar på en offert som inte finns för samma jobb', o.id));
+      if (versions.has('o' + o.eventId + ':' + o.version)) p.push(prob('duplicate_version', 'kundorder ' + o.id + ': versionen finns redan för jobbet', o.id));
+      versions.add('o' + o.eventId + ':' + o.version);
+      p.push(...validateOrder(o, cur));
+    }
     for (const it of st.items) {
       if (!byId(st.arrangements, it.arrangementId)) p.push(prob('dangling', 'rad ' + it.id + ' pekar på ett arrangemang som inte finns', it.id));
       for (const x of I.validateItem(it, { currency: cur })) p.push(prob(x.code, 'rad ' + it.id + ': ' + x.message, it.id));
@@ -386,6 +645,7 @@
     defaultContext, defaultPricing, readPricing, createWorkspace,
     addCustomer, updateCustomer, createEvent, updateEvent, setOnHand,
     addArrangement, updateArrangement, addItem, updateItem, removeItem, removeArrangement, removeEvent,
-    customers, eventsOf, arrangementsOf, itemsOf, purchaseNeeds, priceEvent, validateWorkspace
+    customers, eventsOf, arrangementsOf, itemsOf, purchaseNeeds, priceEvent, validateWorkspace,
+    QUOTE_STATUS, ORDER_STATUS, QUOTE_NEXT, ORDER_NEXT, quotesOf, ordersOf, activeOrderOf, createQuote, sendQuote, acceptQuote, cancelOrder, priceLevels, validateQuote, validateOrder, checkImmutability, customerKindOf
   };
 });

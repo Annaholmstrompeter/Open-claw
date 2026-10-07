@@ -17,6 +17,13 @@
  * Prissättning (pricing.mode):
  *   STANDARD_MARKUP   kalkylkostnaden (unitCostBasis, eller grossistens pris för SUPPLIER) får butikens vanliga påslag.
  *   FIXED_SALE_PRICE  floristen anger kundens pris direkt (unitSalePrice, med eller utan moms). Kräver ingen inköpskostnad.
+ *   INCLUDED          uttryckligt val: "ingår utan extra kostnad". Ett giltigt kundpris på 0 kr ("kvistar från egen trädgård").
+ *
+ * PRICE_MISSING är något annat än EXPLICITLY_INCLUDED. Ett pris som saknas (ingen kalkylkostnad för ett standardpåslag, inget belopp för ett
+ * fast pris, inget grossistpris) ger en ofullständig kalkyl. Bara INCLUDED är ett uttryckligt "0 kr".
+ *
+ * Fast pris anges med en uttrycklig prisbas: basis 'inc' (INC_VAT, inkl. moms) eller 'ex' (EX_VAT, exkl. moms). INC_VAT och EX_VAT godtas vid
+ * inmatning. Anges ingen bas används den som kundtypen normalt har (privatkund inkl. moms, företagskund exkl. moms), men det som sparas har alltid en bas.
  *
  * NOLL INKÖPSKOSTNAD BETYDER INTE NOLL VÄRDE. En blomma från egen trädgård har kanske ingen extern inköpskostnad (unitExternalCost
  * är 0), men ett värde. Därför är tre saker olika fält: unitExternalCost (vad det kostar att skaffa utifrån, ändrar inte priset),
@@ -39,7 +46,12 @@
 
   const SOURCES = Object.freeze(['SUPPLIER', 'OWN_STOCK', 'HOME_GROWN', 'MANUAL']);
   const RESERVED_SOURCES = Object.freeze(['LEFTOVER']);
-  const PRICING_MODES = Object.freeze(['STANDARD_MARKUP', 'FIXED_SALE_PRICE']);
+  const PRICING_MODES = Object.freeze(['STANDARD_MARKUP', 'FIXED_SALE_PRICE', 'INCLUDED']);
+  const PRICE_BASIS = Object.freeze({ INC_VAT: 'inc', EX_VAT: 'ex' });
+  const PRICE_STATE = Object.freeze({ MISSING: 'PRICE_MISSING', INCLUDED: 'EXPLICITLY_INCLUDED', MARKUP: 'MARKUP', FIXED: 'FIXED_PRICE' });
+  const normalizeBasis = b => (b === 'inc' || b === 'INC_VAT' ? 'inc' : b === 'ex' || b === 'EX_VAT' ? 'ex' : undefined);
+  /** Prisbasen som kundtypen normalt har: privatkund inkl. moms, företagskund exkl. moms. */
+  const defaultPriceBasis = customerKind => (customerKind === 'BUSINESS' ? 'ex' : 'inc');
   const KINDS = Object.freeze(['flowers', 'accessories', 'packaging', 'freight', 'other']);
   const DEFAULT_KIND = Object.freeze({ SUPPLIER: 'flowers', HOME_GROWN: 'flowers', OWN_STOCK: 'accessories', MANUAL: 'accessories' });
 
@@ -86,6 +98,7 @@
     if (!PRICING_MODES.includes(pr.mode)) p.push(prob('bad_pricing_mode', 'prissättningen måste vara en av ' + PRICING_MODES.join(', '), 'pricing.mode'));
     const cost = readMoney(pr.unitCostBasis, 'pricing.unitCostBasis', p, { currency: cur });
     readMoney(pr.unitExternalCost, 'pricing.unitExternalCost', p, { currency: cur });
+    if (pr.mode === 'INCLUDED' && pr.unitSalePrice !== null && pr.unitSalePrice !== undefined) p.push(prob('included_has_price', 'ett pris som ingår har inget kundpris (välj ett fast pris om kunden ska betala)', 'pricing.unitSalePrice'));
     if (pr.unitSalePrice !== null && pr.unitSalePrice !== undefined) {
       if (pr.unitSalePrice.basis !== 'inc' && pr.unitSalePrice.basis !== 'ex') p.push(prob('bad_sale_basis', 'kundpriset måste anges med eller utan moms (inc eller ex)', 'pricing.unitSalePrice.basis'));
       readMoney(pr.unitSalePrice.amount, 'pricing.unitSalePrice.amount', p, { currency: cur });
@@ -110,6 +123,17 @@
     return p;
   }
 
+  /** Ett fast pris med en uttrycklig prisbas (inc/ex). priceBasis och INC_VAT/EX_VAT godtas. Saknas basen används opts.defaultBasis. */
+  function normalizeSalePrice(sp, opts) {
+    if (sp === undefined || sp === null) return null;
+    const out = clone(sp);
+    const given = sp.basis !== undefined ? sp.basis : sp.priceBasis;
+    delete out.priceBasis;
+    const n = normalizeBasis(given);
+    out.basis = n !== undefined ? n : (given === undefined && opts && opts.defaultBasis ? normalizeBasis(opts.defaultBasis) : given);
+    return out;
+  }
+
   /**
    * Gör en rad av indata: lägger på standardvärden och kontrollerar. Kastar ItemValidationError med alla problem.
    * Standardvärden: requiresPurchase är sant för SUPPLIER och falskt för övriga, typen följer källan, prissättningen är STANDARD_MARKUP.
@@ -132,7 +156,7 @@
         mode: pr.mode === undefined ? 'STANDARD_MARKUP' : pr.mode,
         unitCostBasis: pr.unitCostBasis === undefined ? null : clone(pr.unitCostBasis),
         unitExternalCost: pr.unitExternalCost === undefined ? (source === 'SUPPLIER' ? null : Money.zero((opts && opts.currency) || 'SEK').toJSON()) : clone(pr.unitExternalCost),
-        unitSalePrice: pr.unitSalePrice === undefined ? null : clone(pr.unitSalePrice),
+        unitSalePrice: normalizeSalePrice(pr.unitSalePrice, opts),
         markup: pr.markup !== false
       },
       taxCategory: r.taxCategory === undefined ? null : r.taxCategory,
@@ -154,18 +178,29 @@
 
   const quantityOf = item => parseDecimal(item.quantity);
 
+  /** Vilken sorts pris raden har: PRICE_MISSING (kalkylen blir ofullständig), EXPLICITLY_INCLUDED (ett giltigt 0 kr), MARKUP eller FIXED_PRICE. */
+  function priceState(item, planned) {
+    const pr = item.pricing;
+    if (pr.mode === 'INCLUDED') return PRICE_STATE.INCLUDED;
+    if (pr.mode === 'FIXED_SALE_PRICE') return pr.unitSalePrice ? PRICE_STATE.FIXED : PRICE_STATE.MISSING;
+    if (item.source === 'SUPPLIER') return planned && planned.status === 'ok' ? PRICE_STATE.MARKUP : PRICE_STATE.MISSING;
+    return pr.unitCostBasis ? PRICE_STATE.MARKUP : PRICE_STATE.MISSING;
+  }
+
   /**
    * Raden som motorn (PricingEngine) förstår. För en grossistartikel kommer kostnaden ur inköpsplanen (planned: { status, cost, source }).
    * För egna material kommer den ur raden själv. Priset beror aldrig på unitExternalCost.
    */
   function itemToCostLine(item, planned) {
     const qty = quantityOf(item), pr = item.pricing;
-    const line = { id: item.id, kind: item.kind, pricing: pr.mode, markup: pr.markup !== false, taxCategory: item.taxCategory || undefined };
+    const line = { id: item.id, kind: item.kind, pricing: pr.mode, markup: pr.markup !== false, taxCategory: item.taxCategory || undefined, origin: item.source };
     if (item.source === 'SUPPLIER') {
       line.cost = planned && planned.status === 'ok' ? planned.cost : null;
+      line.externalCost = line.cost;                                                   // grossistens pris är den externa kostnaden
       line.source = planned && planned.source ? planned.source : null;
     } else {
-      line.cost = pr.unitCostBasis ? Money.fromJSON(pr.unitCostBasis).toFrac().mul(qty) : null;
+      line.cost = pr.unitCostBasis ? Money.fromJSON(pr.unitCostBasis).toFrac().mul(qty) : null;                       // kalkylkostnad (calculationCost)
+      line.externalCost = pr.unitExternalCost ? Money.fromJSON(pr.unitExternalCost).toFrac().mul(qty) : null;          // vad det kostar att skaffa utifrån idag (purchaseCostToday)
       line.source = { kind: 'MANUAL', ref: 'own:' + item.source };
     }
     if (pr.mode === 'FIXED_SALE_PRICE' && pr.unitSalePrice) {
@@ -174,5 +209,5 @@
     return line;
   }
 
-  return { SOURCES, RESERVED_SOURCES, PRICING_MODES, KINDS, ItemValidationError, articleKey, validateItem, normalizeItem, purchaseNeed, quantityOf, itemToCostLine };
+  return { SOURCES, RESERVED_SOURCES, PRICING_MODES, PRICE_BASIS, PRICE_STATE, KINDS, ItemValidationError, articleKey, validateItem, normalizeItem, purchaseNeed, quantityOf, priceState, itemToCostLine, defaultPriceBasis, normalizeBasis };
 });

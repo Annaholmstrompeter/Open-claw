@@ -86,7 +86,7 @@ test('okänt förblir okänt: ett fast pris utan belopp ger inget pris, fel inda
   assert.equal(code(() => P.priceArrangement(input({ costLines: [fixed('x', 75, 'inc')] }))), 'not_money');
   assert.equal(code(() => P.priceArrangement(input({ costLines: [fixed('x', K('-1'), 'inc')] }))), 'negative_amount');
   assert.equal(code(() => P.priceArrangement(input({ costLines: [{ ...fixed('x', K('1'), 'inc'), pricing: 'GRATIS' }] }))), 'bad_pricing_mode');
-  assert.deepEqual([...P.PRICING_MODES], ['STANDARD_MARKUP', 'FIXED_SALE_PRICE']);
+  assert.deepEqual([...P.PRICING_MODES], ['STANDARD_MARKUP', 'FIXED_SALE_PRICE', 'INCLUDED']);
 });
 
 test('prisstatus: ett fast kundpris påverkas inte av hur gammalt inköpspriset är, ett vanligt pris gör det', () => {

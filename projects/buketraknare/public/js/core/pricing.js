@@ -40,7 +40,12 @@
   const STATUS_MARK = Object.freeze({ ESTIMATED: '≈', CONFIRMED: '✓' });
   const CUSTOMER_KINDS = Object.freeze(['PRIVATE', 'BUSINESS']);
   /** Hur en rad prissätts: butikens vanliga påslag på kalkylkostnaden, eller ett fast pris till kunden (egna tillägg). */
-  const PRICING_MODES = Object.freeze(['STANDARD_MARKUP', 'FIXED_SALE_PRICE']);
+  const PRICING_MODES = Object.freeze(['STANDARD_MARKUP', 'FIXED_SALE_PRICE', 'INCLUDED']);
+  /** Ett fast pris anges med eller utan moms. Internt lagras 'inc' och 'ex'. INC_VAT och EX_VAT godtas som synonymer vid inmatning. */
+  const PRICE_BASIS = Object.freeze({ INC_VAT: 'inc', EX_VAT: 'ex' });
+  /** Skillnaden mellan ett pris som SAKNAS (ofullständig kalkyl) och ett som uttryckligen INGÅR (ett giltigt kundpris på 0 kr). */
+  const PRICE_STATE = Object.freeze({ MISSING: 'PRICE_MISSING', INCLUDED: 'EXPLICITLY_INCLUDED', MARKUP: 'MARKUP', FIXED: 'FIXED_PRICE' });
+  function normalizeBasis(b) { return b === 'inc' || b === 'INC_VAT' ? 'inc' : b === 'ex' || b === 'EX_VAT' ? 'ex' : undefined; }
   const COST_KINDS = Object.freeze(['flowers', 'accessories', 'packaging', 'freight', 'other']);
   /** LIVE (livekontrollerat) och MANUAL (floristens eget beslut) gör priset bekräftat. Allt annat är en uppskattning. */
   const CONFIRMING = Object.freeze(['LIVE', 'MANUAL']);
@@ -103,9 +108,10 @@
   function classifyPriceStatus(costLines) {
     const reasons = []; let weakest = null, incomplete = false, estimated = false;
     for (const l of costLines || []) {
-      if (l.pricing === 'FIXED_SALE_PRICE' || l.mode === 'FIXED_SALE_PRICE') {
-        // Kundpriset är floristens eget beslut och beror inte på inköpspriset, så inköpets färskhet påverkar inte statusen.
-        if (!l.sale && !l.salePrice) { incomplete = true; reasons.push(problem('sale_price_missing', { id: l.id })); }
+      const mode = l.mode || l.pricing;
+      if (mode === 'FIXED_SALE_PRICE' || mode === 'INCLUDED') {
+        // Kundpriset är floristens eget beslut (ett fast pris eller "ingår") och beror inte på inköpspriset, så inköpets färskhet påverkar inte statusen.
+        if (mode === 'FIXED_SALE_PRICE' && !l.sale && !l.salePrice) { incomplete = true; reasons.push(problem('sale_price_missing', { id: l.id })); }
         continue;
       }
       if (l.cost === null || l.cost === undefined) { incomplete = true; reasons.push(problem('cost_missing', { id: l.id })); continue; }
@@ -135,8 +141,11 @@
   /**
    * Läser raderna. En rad prissätts på ett av två sätt (pricing):
    *   STANDARD_MARKUP (standard)  kalkylkostnaden (cost) får butikens påslag. Saknad kostnad = rad utan pris.
-   *   FIXED_SALE_PRICE            floristen anger kundens pris direkt: salePrice { amount, basis: 'inc' | 'ex' }. Kalkylkostnaden är valfri
-   *                               (för marginalen). Noll inköpskostnad betyder aldrig noll värde: priset kommer av salePrice, aldrig av cost.
+   *   FIXED_SALE_PRICE            floristen anger kundens pris direkt: salePrice { amount, basis: 'inc' | 'ex' } (INC_VAT och EX_VAT godtas). Kalkylkostnaden är
+   *                               valfri (för marginalen). Noll inköpskostnad betyder aldrig noll värde: priset kommer av salePrice, aldrig av cost.
+   *   INCLUDED                    uttryckligt val: "ingår utan extra kostnad". Ett giltigt kundpris på 0 kr. Kalkylkostnaden är valfri (för marginalen).
+   * Ett pris som SAKNAS (ingen kostnad för ett standardpris, inget belopp för ett fast pris) är något annat än INCLUDED: det ger en ofullständig kalkyl.
+   * externalCost (valfri) är vad det kostar att skaffa utifrån idag, origin (valfri) var materialet kommer ifrån. De påverkar aldrig priset och finns för analys.
    * Varje rad kan ha en egen taxCategory, annars gäller arrangemangets standard för varor. Ger exakta belopp i ören.
    */
   function readCostLines(lines, cur) {
@@ -148,16 +157,18 @@
       if (l.kind !== undefined && !COST_KINDS.includes(l.kind)) throw new EconomyError('bad_cost_kind', 'okänd typ av inköpsrad: ' + l.kind);
       const known = l.cost !== null && l.cost !== undefined;
       const cost = known ? nonNeg(amt(l.cost, cur, 'inköpskostnaden ' + id), 'inköpskostnaden ' + id) : null;
+      const externalCost = l.externalCost === null || l.externalCost === undefined ? null : nonNeg(amt(l.externalCost, cur, 'den externa kostnaden ' + id), 'den externa kostnaden ' + id);
       let sale = null;
       if (mode === 'FIXED_SALE_PRICE') {
         const sp = l.salePrice;
         if (!sp || sp.amount === null || sp.amount === undefined) missing.push({ id, code: 'sale_price_missing' });
         else {
-          if (sp.basis !== 'inc' && sp.basis !== 'ex') throw new EconomyError('bad_sale_basis', 'salePrice.basis måste vara inc eller ex (med eller utan moms)');
-          sale = { amount: nonNeg(amt(sp.amount, cur, 'försäljningspriset ' + id), 'försäljningspriset ' + id), basis: sp.basis };
+          const basis = normalizeBasis(sp.basis !== undefined ? sp.basis : sp.priceBasis);
+          if (basis === undefined) throw new EconomyError('bad_sale_basis', 'salePrice.basis måste vara inc eller ex (INC_VAT eller EX_VAT, med eller utan moms)');
+          sale = { amount: nonNeg(amt(sp.amount, cur, 'försäljningspriset ' + id), 'försäljningspriset ' + id), basis };
         }
-      } else if (!known) missing.push({ id, code: 'cost_missing' });
-      out.push({ id, kind: l.kind || 'other', cost, markup: l.markup !== false, source: l.source || null, mode, sale, taxCategory: l.taxCategory || null });
+      } else if (mode === 'STANDARD_MARKUP' && !known) missing.push({ id, code: 'cost_missing' });
+      out.push({ id, kind: l.kind || 'other', cost, externalCost, origin: l.origin === undefined ? null : l.origin, markup: l.markup !== false, source: l.source || null, mode, sale, taxCategory: l.taxCategory || null });
     });
     return { lines: out, missing };
   }
@@ -189,6 +200,32 @@
   }
 
   const refsOf = list => [...new Set(list.map(r => r.ruleSetRef))];
+
+  /**
+   * Underlag för att senare kunna visa lönsamhet per jobb (till exempel: kundpris, material/kalkylkostnad, arbete, övrigt).
+   * Det är bara DATA. Inget täckningsbidrag, ingen vinst och ingen marginalprocent definieras här, eftersom de måste definieras
+   * korrekt först (vad som räknas som kostnad, om arbetet är en kostnad eller en intäkt, om egenodlat värderas, om moms ingår).
+   * Alla belopp är exkl. moms om inget annat står. Frac i ören är exakta. Okända kostnader redovisas som okända, aldrig som noll.
+   */
+  function profitabilityInputs(x) {
+    const byKind = Object.fromEntries(COST_KINDS.map(k => [k, ZERO]));
+    const byOrigin = {};
+    const missingCalc = [], missingExt = [];
+    let ext = ZERO;
+    for (const l of x.lines) {
+      if (l.cost === null) missingCalc.push(l.id);
+      else { byKind[l.kind] = byKind[l.kind].add(l.cost); const o = l.origin === null ? 'UNKNOWN' : l.origin; byOrigin[o] = (byOrigin[o] || ZERO).add(l.cost); }
+      if (l.externalCost === null) missingExt.push(l.id); else ext = ext.add(l.externalCost);
+    }
+    return {
+      status: 'DATA_ONLY',
+      note: 'Underlag. Inget täckningsbidrag, ingen vinst och ingen marginalprocent är definierad än.',
+      customerPrice: { presentedIncVat: x.customerPrice, presentedExVat: x.saleExVat, presentedVat: x.vat, calculatedExVat: x.exExact, calculatedIncVat: x.incExact },
+      charged: { goodsExVat: x.goodsEx, fixedPriceExVat: Frac.sum(x.fixedComponents.map(c => c.ex)), laborExVat: x.labor.amount, feesExVat: Frac.sum(x.fees.map(f => f.ex)), includedLines: x.lines.filter(l => l.mode === 'INCLUDED').length },
+      calculationCost: { byKind, byOrigin, total: x.costTotal, complete: missingCalc.length === 0, missingLineIds: missingCalc },
+      externalCost: { total: ext, complete: missingExt.length === 0, missingLineIds: missingExt }
+    };
+  }
 
   // ---------- COST → CUSTOMER PRICE ----------
   /**
@@ -223,9 +260,9 @@
 
     const catOf = l => l.taxCategory || goodsCat;
     const reasons = missing.map(m => problem(m.code, { id: m.id }));
-    const { resolved, unknown } = resolveAll(input, [goodsCat, laborCat, ...lines.map(catOf), ...fees.map(f => f.category)]);
+    const { resolved, unknown } = resolveAll(input, [goodsCat, laborCat, ...lines.filter(l => l.mode !== 'INCLUDED').map(catOf), ...fees.map(f => f.category)]);
     reasons.push(...unknown);
-    if (reasons.length) return { status: 'INCOMPLETE', priceStatus: PRICE_STATUS.INCOMPLETE, currency: c.cur, customerKind: c.kind, reasons, customerPrice: null };
+    if (reasons.length) return { status: 'INCOMPLETE', priceStatus: PRICE_STATUS.INCOMPLETE, currency: c.cur, customerKind: c.kind, reasons, priceMissing: missing.map(m => m.id), customerPrice: null };
 
     const hasContent = lines.length > 0 || !labor.amount.isZero() || fees.some(f => !f.ex.isZero());
     // inköp med påslag (per momskategori), fasta kundpriser, arbete, avgifter
@@ -287,7 +324,8 @@
       calculated: { exVat: exExact, vat: incExact.sub(exExact), incVat: incExact, byRate: groups.map(g => ({ rateBp: g.rateBp, exVat: g.ex, vat: g.inc.sub(g.ex), incVat: g.inc })) },
       presented: { incVat: customerPrice, exVat: saleExVat, vat, byRate, rounding: P.sub(incExact), roundingRule: { step: c.step, mode: c.mode } },
       breakdown: {
-        costLines: lines.map(l => ({ id: l.id, kind: l.kind, pricing: l.mode, cost: l.cost, markup: l.markup, salePrice: l.sale, taxCategory: catOf(l), source: l.source })),
+        costLines: lines.map(l => ({ id: l.id, kind: l.kind, pricing: l.mode, priceState: l.mode === 'INCLUDED' ? PRICE_STATE.INCLUDED : l.mode === 'FIXED_SALE_PRICE' ? PRICE_STATE.FIXED : PRICE_STATE.MARKUP,
+          cost: l.cost, externalCost: l.externalCost, origin: l.origin, markup: l.markup, salePrice: l.sale, taxCategory: catOf(l), source: l.source })),
         priceSources: { weakest: statusInfo.weakest, counts: PRICE_SOURCE_KINDS.reduce((o, k) => { o[k] = lines.filter(l => l.source && l.source.kind === k).length; return o; }, {}), reasons: statusInfo.reasons },
         materials: { markupBase, noMarkup, total: costTotal },
         markup: { bp: c.markupBp, amount: markupAmount },
@@ -297,7 +335,8 @@
         fixedPrice: { exVat: Frac.sum(fixedComponents.map(x => x.ex)), lines: fixedComponents.map(x => x.key.slice(6)) },
         components: components.map(x => ({ key: x.key, category: x.category, rateBp: x.rateBp, exVat: x.ex })),
         rule: { refs: refsOf(resolvedList), allVerified: resolvedList.every(r => r.verification === 'verified'), verification: Object.fromEntries(resolvedList.map(r => [r.category, { ruleSetRef: r.ruleSetRef, verification: r.verification, sourceKind: r.sourceKind }])) },
-        taxDate: input.taxDate
+        taxDate: input.taxDate,
+        profitabilityInputs: profitabilityInputs({ lines, labor, fees, goodsEx, fixedComponents, customerPrice, saleExVat, vat, exExact, incExact, costTotal })
       },
       exact: { incVatBeforeRounding: incExact, saleExVatBeforeRounding: exExact, vatBeforeRounding: incExact.sub(exExact), saleExVatExact, costTotal }
     };
@@ -324,7 +363,7 @@
     const fees = (input.fees || []).map((f, i) => ({ id: f.id === undefined ? 'avgift' + (i + 1) : f.id, category: f.taxCategory || 'other', ex: nonNeg(amt(f.amount, c.cur, 'avgiften'), 'avgiften') }));
     const catOf = l => l.taxCategory || goodsCat;
     const reasons = missing.map(m => problem(m.code, { id: m.id }));
-    const { resolved, unknown } = resolveAll(input, [goodsCat, laborCat, ...lines.map(catOf), ...fees.map(f => f.category)]);
+    const { resolved, unknown } = resolveAll(input, [goodsCat, laborCat, ...lines.filter(l => l.mode !== 'INCLUDED').map(catOf), ...fees.map(f => f.category)]);
     reasons.push(...unknown);
     if (reasons.length) return { status: 'INCOMPLETE', reasons, currency: c.cur };
 
@@ -332,6 +371,7 @@
     const effectiveTarget = roundToStep(input.target.toFrac(), c.step, ROUNDING.FLOOR);   // största stegvisa pris som är högst målet
     let fixedMarked = ZERO, fixedPlain = ZERO, otherInc = ZERO;                           // bestämt inom standardkategorin, och bestämt utanför den
     for (const l of lines) {
+      if (l.mode === 'INCLUDED') continue;                                               // "ingår" bidrar med 0 kr
       const r = onePlus(resolved[catOf(l)].rateBp);
       if (l.mode === 'FIXED_SALE_PRICE') { otherInc = otherInc.add(l.sale.basis === 'inc' ? l.sale.amount : l.sale.amount.mul(r)); continue; }
       if (catOf(l) === goodsCat) { if (l.markup) fixedMarked = fixedMarked.add(l.cost); else fixedPlain = fixedPlain.add(l.cost); }
@@ -347,6 +387,43 @@
     const breakdown = { effectiveTarget, laborIncVat: laborInc, feesIncVat: feesInc, otherIncVat: otherInc, goodsExVatAllowed: goodsExAllowed, fixedMarked, fixedPlain, markup: { bp: c.markupBp, appliesToBudget: budgetMarkup } };
     if (material.isNegative()) return { status: 'NEGATIVE', currency: c.cur, effectiveTarget: Money.fromFrac(effectiveTarget, ROUNDING.FLOOR, c.cur), shortfall: material.neg(), materialBudget: material, materialBudgetMoney: null, breakdown };
     return { status: 'OK', currency: c.cur, effectiveTarget: Money.fromFrac(effectiveTarget, ROUNDING.FLOOR, c.cur), materialBudget: material, materialBudgetMoney: Money.fromFrac(material, ROUNDING.FLOOR, c.cur), shortfall: null, breakdown };
+  }
+
+  // ---------- överenskommet pris ----------
+  /**
+   * Delar ett ÖVERENSKOMMET pris (inkl. moms) på momssatser, så att exkl. moms och moms summerar exakt till det överenskomna beloppet.
+   * Det överenskomna priset kan vara lägre eller högre än det presenterade (beräknat 667,75 kr, presenterat 670 kr, sålt för 650 kr).
+   * Fördelningen följer det presenterade prisets fördelning per sats (presentedByRate). Är det presenterade priset 0 används fallbackRateBp
+   * (satsen för varor), annars inget överenskommet belopp över 0. Den ursprungliga kalkylen ändras aldrig av detta.
+   * Ger { incVat, exVat, vat, byRate[{ rateBp, exVat, vat, incVat }] } (Money).
+   */
+  function allocateAgreed(spec) {
+    const agreed = spec.agreedIncVat;
+    if (!(agreed instanceof Money)) throw new EconomyError('not_money', 'agreedIncVat måste vara Money');
+    if (agreed.isNegative()) throw new EconomyError('negative_amount', 'ett överenskommet pris får inte vara negativt');
+    const cur = agreed.currency;
+    const groups = (spec.presentedByRate || []).filter(g => g.incVat.amount > 0n);
+    let shares, rates;
+    if (groups.length) {
+      const total = Frac.sum(groups.map(g => g.incVat.toFrac()));
+      shares = groups.map(g => agreed.toFrac().mul(g.incVat.toFrac()).div(total));
+      rates = groups.map(g => g.rateBp);
+    } else if (agreed.isZero()) {
+      return { incVat: agreed, exVat: Money.zero(cur), vat: Money.zero(cur), byRate: [] };
+    } else {
+      if (spec.fallbackRateBp === undefined || spec.fallbackRateBp === null) throw new EconomyError('no_rate_for_agreed', 'det presenterade priset är 0 och ingen momssats finns för det överenskomna beloppet');
+      shares = [agreed.toFrac()]; rates = [Rate.check(spec.fallbackRateBp, 'momssatsen')];
+    }
+    const inc = allocateWhole(shares, agreed.amount);
+    const merged = new Map();
+    rates.forEach((r, i) => {
+      const a = A.fromInc(Money.of(inc[i], cur), r);
+      const g = merged.get(r) || { rateBp: r, exVat: Money.zero(cur), vat: Money.zero(cur), incVat: Money.zero(cur) };
+      g.exVat = g.exVat.add(a.exVat); g.vat = g.vat.add(a.vat); g.incVat = g.incVat.add(a.incVat); merged.set(r, g);
+    });
+    const byRate = [...merged.values()].sort((a, b) => a.rateBp - b.rateBp);
+    const sum = k => byRate.reduce((s, g) => s.add(g[k]), Money.zero(cur));
+    return { incVat: sum('incVat'), exVat: sum('exVat'), vat: sum('vat'), byRate };
   }
 
   // ---------- ett jobb: flera arrangemang och jobbavgifter ----------
@@ -408,9 +485,9 @@
   }
 
   return {
-    PRICE_SOURCE_KINDS, PRICE_STATUS, STATUS_MARK, CUSTOMER_KINDS, COST_KINDS, PRICING_MODES,
+    PRICE_SOURCE_KINDS, PRICE_STATUS, STATUS_MARK, CUSTOMER_KINDS, COST_KINDS, PRICING_MODES, PRICE_BASIS, PRICE_STATE, normalizeBasis,
     marginFromMarkup, markupFromMargin, suggestMarkupBpFromMarginBp,
     resolveLabor, laborExact, classifyPriceStatus,
-    priceArrangement, budgetForTarget, priceJob
+    priceArrangement, budgetForTarget, priceJob, allocateAgreed
   };
 });
