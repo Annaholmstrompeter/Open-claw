@@ -21,7 +21,8 @@ Markeringen **(ej verifierat)** betyder att jag inte har kunnat kontrollera uppg
 | 10 | Kostnadstak och larm så att en trasig connector inte kan skapa en stor räkning. Prisanalysen visar rättvisaste skalningsdimension | 10, 11 |
 | 11 | **Ny MVP-ordning:** 1A, 1B, 2, 3 (inköp), 4 (faktura), 5 (varukorg), 6 (intelligens) | 13 |
 | 12 | Ekonomitester inlagda | 14 |
-| 13 | **Briefens räkneexempel stämmer inte med sig självt** (534 kr är *före* moms med dagens räknemotor). Behöver Annas besked | 6.4, 18 |
+| 13 | **Exemplet 534 kr är rättat.** Det var ett pedagogiskt exempel och ingen regel. Motorn anpassas inte efter det. Rätt räkning: 534,20 kr *före* moms, 670 kr kundpris med en testsats på 25 % | 6, 14.2 |
+| 14 | **Annas förtydliganden (version 2.1):** kundpriset inkl. moms som huvudtal, påslag på relevant inköpskostnad, arbete som egen komponent, **baklänges räkning** (målpris → råvarubudget), kundtyp, prisstatus ≈/✓ och prisbasens art, första kodsteget byggt | 6.4–6.9, 13 |
 
 ---
 
@@ -218,9 +219,9 @@ Alla rader har `shopId`, `id` (ULID), `createdAt`, `updatedAt`, `rev` och `delet
 
 | Entitet | Viktiga fält |
 |---------|--------------|
-| `Customer` | name, email, phone, notes |
+| `Customer` | name, email, phone, notes, **customerKind** (`PRIVATE` / `BUSINESS`, standard `PRIVATE`) |
 | `Event` | customerId, name, type (`wedding`/`funeral`/`bouquet`/`other`), `usage` (`horizon`: today/week/later/event, `date`), eventDate, deliveryDate, status, notes, pricingOverrides?, frozenQuoteId? |
-| `Arrangement` | eventId, name, kind, **quantity**, sizePresetId?, markupOverridePercent?, laborOverride? (flat avgift eller minuter), notes, imageRef? |
+| `Arrangement` | eventId, name, kind, **quantity**, sizePresetId?, markupOverride? (påslag i hundradels procent), laborOverride? (fast avgift eller tid), estimatedMinutes?, notes, imageRef? |
 | `ArrangementLine` | arrangementId, `articleRef` (`connectionId` + `supplierProductId`) eller `kind: 'custom'` (fri kostnad), **qtyPerArrangement**, unit, note |
 | `EventFee` | eventId, kind (`delivery`/`setup`/`other`), label, amount (`Money`), `taxCategory` (inte en sats) |
 | `QuoteSnapshot` | eventId, version, createdAt, lines (pris per arrangemang med `priceBasis` och `PriceBreakdown`), totals, `ruleSetVersion`, validUntil, status (`draft`/`sent`/`accepted`). Oföränderlig när den är skickad |
@@ -447,7 +448,7 @@ inköp blommor       Σ artiklar (hela förpackningar, delade inom jobbet)      
 = pris före moms    → moms per radtyp → avrundning → KUNDPRIS                      ← finns (moms, avrundning)
 ```
 
-**Räkneexemplet i briefen och i Annas tillägg (186 kr inköp, 120 % påslag, 125 kr arbete = "534 kr inkl. moms") stämmer inte med sig självt.** Med dagens räknemotor (påslag på inköp, arbete utan påslag) blir det `186 × 2,2 = 409,20`, plus `125` = **534,20 kr före moms**. Med 25 % moms (illustration, satsen ska verifieras, avsnitt 8.4) blir det 667,75 kr inkl. moms, före avrundning. 534 kr inkl. moms kan bara uppstå om både 186 och 125 redan är *inklusive* moms, vilket inte är rätt bas för en momsregistrerad florist (ingående moms dras av). **Jag tolkar 534 som före moms** tills Anna säger något annat (avsnitt 18). Testet skrivs i båda formerna så att tolkningen syns.
+**Räkneexemplet.** Siffran 534 kr i briefen och i tillägget var ett *pedagogiskt exempel* och ingen ekonomisk regel. Motorn anpassas inte efter den. Med påslag på inköp och arbete utan påslag är räkningen `186 × 2,2 = 409,20`, plus `125` = **534,20 kr före moms**, och med en *testsats* på 25 % blir det 667,75 kr inkl. moms före avrundning, **670 kr kundpris** när man avrundar uppåt till jämna 5 kr. Satserna i exemplen är testdata, inte verifierade regler (avsnitt 8.4). Exemplet är rättat här och i testerna.
 
 **Bevarat och bevisat:** hela förpackningar, delning mellan arrangemang, "pris saknas aldrig 0 kr", ca/ålder, frakt, "har hemma". De 145 tillstånden i differenstestet ska ge identiska priser när motorn flyttas.
 
@@ -492,8 +493,8 @@ inköp blommor       Σ artiklar (hela förpackningar, delade inom jobbet)      
 ### 6.3 Kostnadsstegen (försäljningsunderlag)
 
 ```
-inköpskostnad (ex moms, faktiskt eller senaste kända)          ← från PriceQuote.purchaseAmount.exVat
-+ påslag (på inköpskostnaden, inklusive tillbehör och frakt)    ← som i dag
+inköpskostnad exkl. AVDRAGSGILL moms (faktisk eller senaste kända) ← från PriceQuote.purchaseAmount, via Amounts.costBasis
++ påslag = markup på relevant inköpskostnad (100 kr + 120 % = 220 kr)  ← som i dag. Marginalen är härledd, aldrig samma sak som påslaget
 + arbete (fast avgift eller minuter × timpris, ej med påslag)   ← som i dag, fast avgift läggs till
 + avgifter (leverans, uppsättning, övrigt, ej med påslag)       ← per radtyp, egen TaxCategory
 = försäljningsunderlag exkl. moms (per rad och kategori)
@@ -519,9 +520,9 @@ inköpskostnad (ex moms, faktiskt eller senaste kända)          ← från Price
                                           └────────────────────────────────────────────┘
 ```
 
-(Siffrorna är en *illustration* av hur uppdelningen visas, med 25 % som antagen sats. Briefens "534 kr" är det tal som står i raden *Före moms*. Se avsnitt 18 för frågan om vilket tal Anna menar. Raden "På fakturan" följer regeln i 6.1: det avrundade kundpriset är sanningen, och exkl. moms och moms härleds ur det så att de summerar exakt. Differensen mot 534,20 är avrundningen.)
+(Siffrorna är en *illustration* av hur uppdelningen visas, med 25 % som testsats. Raden "På fakturan" följer regeln i 6.1: det avrundade kundpriset är sanningen, och exkl. moms och moms härleds ur det så att de summerar exakt. Differensen mot 534,20 är avrundningen.)
 
-- **Överst alltid kundpriset inkl. moms** (privatkund). För företagskund kan fakturan visa exkl. moms först. Det är en visningsfråga, inte en ny beräkning.
+- **Överst alltid KUNDPRIS inkl. moms** (privatkund): den summa kunden faktiskt ska betala. Säger floristen "bordsdekorationen blir cirka 650 kr" är 650 kr kundens slutpris inkl. moms. Med ett tecken för prisstatus (avsnitt 6.7): `≈ 650 kr` när priset bygger på senast synkade grossistpriser, `✓ 662 kr` när valda artiklar livekontrollerats. För företagskund kan exkl. moms, moms och totalt visas tydligare (avsnitt 6.8). Det är en visningsfråga, inte en ny beräkning.
 - Allt bakom visas bara på begäran och är samma tal som går vidare till offert, kundorder och faktura. **Ingen omräkning på vägen.**
 - Alla delar bär `PriceBreakdown.inputs`, så att "var kom priset från?" går att besvara.
 
@@ -535,7 +536,58 @@ Ett jobb kan innehålla blommor, arrangemang, arbete, leverans, uppsättning, ti
 - **Okänd kategori ger inget pris**, inte en gissad sats
 - vad som gäller för förskott, rabatter, omvänd skattskyldighet och momsfria kunder är **inte bestämt** och byggs inte, men modellen har plats för `taxTreatment` per kund och rad (`standard` är enda värdet som implementeras)
 
-**Pooling och marginal.** När flera jobb samordnas blir den verkliga inköpskostnaden lägre än kalkylerad. Offerten bygger på jobbets egna kostnad (konservativt). Skillnaden är floristens vinst, och synlig som "faktisk marginal" först när faktiska inköp finns.
+### 6.6 Baklänges: målpris → råvarubudget
+
+Ibland börjar floristen inte med kostnaden. Kunden säger "ungefär 800 kr", och 800 kr inkl. moms är då **målpriset**. PricingEngine har därför två riktningar med samma ekvationer, så motorn är inte byggd så att bara kostnad → pris går:
+
+```
+COST → CUSTOMER PRICE            priceArrangement       inköp + påslag + arbete + avgifter + moms → avrundat KUNDPRIS
+TARGET CUSTOMER PRICE → BUDGET   budgetForTarget        målpris − moms − arbete − avgifter − påslag → råvarubudget kvar
+```
+
+Exempel (testsats 25 %, påslag 120 %, arbete 125 kr, steg 5 kr): `(800 − 125 × 1,25) ÷ 1,25 = 515 kr` före moms för varor inklusive påslag, och `515 ÷ 2,2 = 234,09 kr` råvarubudget. Bevis åt andra hållet (testat): en råvara på 234,09 kr ger kundpris 800 kr, och 234,10 kr ger 805 kr.
+
+- Redan bestämda inköp (till exempel en vas) minskar budgeten. Råvarubudgeten kan räknas med eller utan påslag.
+- Målpriset avrundas *nedåt* till ett pris som går att nå (802 kr med steg 5 kr betyder 800 kr).
+- Är arbete och avgifter redan större än målet ger motorn `NEGATIVE` och hur mycket som saknas. Okänd moms eller okänt inköpspris ger `INCOMPLETE`, aldrig en gissad budget.
+- Bara avrundning uppåt stöds bakåt (det är floristens vanliga regel).
+- Skärmen för detta byggs inte nu. Motorn och testerna finns.
+
+### 6.7 Prisstatus och prisbas: ≈ och ✓
+
+Skilj mellan **uppskattat kundpris** och **bekräftat kundpris**. Prisstatus räknas ur vilken typ av underliggande pris som användes per inköpsrad. `PriceBreakdown` bär det så att man senare kan förklara varför kalkylen blev som den blev.
+
+| Prisbas (`source.kind`) | Betyder | Prisstatus |
+|-------------------------|---------|------------|
+| `LIVE` | Livekontrollerat hos grossisten nu | bekräftad |
+| `MANUAL` | Floristens eget pris eller override (hennes beslut) | bekräftad |
+| `RECENT` | Senast synkat, ännu inte livekontrollerat | uppskattad |
+| `STALE` | Gammalt pris, markerat som gammalt | uppskattad |
+| `HISTORICAL_ESTIMATE` | Kalkylpris ur historik, till exempel för ett framtida event (aldrig dagens kampanj) | uppskattad |
+
+- **Bekräftat (✓) kräver att varje inköpsrad är LIVE eller MANUAL.** Allt annat, inklusive en okänd eller saknad prisbas, gör priset uppskattat (≈). Saknas ett pris helt är status `INCOMPLETE` och inget pris visas.
+- Bestämmelsen att MANUAL räknas som bekräftat är en produktregel som står på ett enda ställe i koden och kan ändras. **Gränsen mellan RECENT och STALE** (hur gammalt är "gammalt") bestäms först när vi vet hur den verkliga grossistens priser uppdateras. Motorn läser bara vilken typ raden har.
+- Jobb: bekräftat bara om alla rader är bekräftade, annars uppskattat.
+
+### 6.8 Kundtyp: privat och företag
+
+`customerKind` är `PRIVATE` eller `BUSINESS`. Den ändrar **bara presentationen** (`headline`): privatkund får kundpriset inkl. moms som huvudtal, företagskund kan senare få exkl. moms, moms och totalt. Beräkningen och beloppen är identiska (testat). Inga två UI-flöden byggs nu. `Customer` får fältet `customerKind` så att modellen inte blockerar det. Omvänd skattskyldighet och momsfria kunder är inte byggda (`taxTreatment` finns bara som plats).
+
+### 6.9 Arbete som egen komponent
+
+Arbete är en separat komponent och får inget påslag. Modellen:
+
+| Fält | Betydelse | MVP |
+|------|-----------|-----|
+| `defaultLaborFee` | Standardavgift per arrangemang | **Ja** |
+| `laborOverride` | Överstyrning per arrangemang (fast avgift eller tid) | **Ja** |
+| `hourlyLaborRate` + `estimatedMinutes` | Tidsbaserat: minuter × timpris ÷ 60, exakt (30 min × 300 kr = 150 kr) | Finns i motorn och är testat, tas i bruk senare |
+
+Företräde: överstyrning, sedan tid (om både minuter och timpris finns), sedan standardavgift, sedan inget arbete. Minuter utan timpris räcker inte. Arbetet har egen `taxCategory` (`labor`), så moms per rad fungerar även om satsen skiljer sig från varorna.
+
+### 6.10 Pooling och marginal
+
+När flera jobb samordnas blir den verkliga inköpskostnaden lägre än kalkylerad. Offerten bygger på jobbets egna kostnad (konservativt). Skillnaden är floristens vinst, och synlig som "faktisk marginal" först när faktiska inköp finns.
 
 ---
 
@@ -783,6 +835,7 @@ Ekonomisk information måste gå att följa. Inget historiskt ekonomiskt värde 
 - **Frysning.** När en offert skickas, en kundorder godkänns eller en faktura godkänns kopieras *satsen och regelversionen* in på raden. En senare regeländring kan därför aldrig ändra ett gammalt dokument. Test: ändra regeln, räkna om, jämför, och kontrollera att de lagrade värdena är oförändrade.
 - **Två slags regeluppsättningar i början.** `legacy-user-setting` (floristens egen momsinställning, som i dag, med hintet "Kontrollera med din redovisning") används av kalkylen i MVP 1A så att inget beteende ändras. Den är *inte verifierad* och **kan inte användas för en faktura.** Invariant: en faktura kan inte godkännas med en regelversion som saknar `verifiedAt`. En verifierad uppsättning tas fram av en människa mot Skatteverkets och lagens egna texter innan MVP 4.
 - **Det som verifieras då** (arbetslista): momssats per slag av vara och tjänst, vilken tidpunkt som styr satsen, avrundningsnivå (per rad eller per sats), fakturans obligatoriska uppgifter, löpnummerkrav, förenklad faktura, kreditfaktura, förskott, arkivering och språk/valuta på fakturan. Skatteverkets sidor når jag inte härifrån (blockerade). Sökträffar pekar mot `skatteverket.se` för momssatser, "Momslagens regler om fakturering" och bokföring, och antyder 25 % för blommor **(ej verifierat)**.
+- **Byggt (struktur):** `TaxRuleSet` (validering, frysning, versionsval, `assertVerified`) finns i `tax.js`. **Koden innehåller inga officiella svenska satser.** De satser som används i tester är markerade `fixture` (testdata), och `legacy-user-setting` speglar floristens egen inställning och kan aldrig vara verifierad. Se `docs/EKONOMIREGLER.md`.
 - **AI verifierar inte regler.** AI kan på sin höjd föreslå vilken kategori en fri rad hör till. Floristen bekräftar.
 
 ### 8.5 AccountingConnector
@@ -1053,6 +1106,8 @@ MVP 6   Intelligens
 **Klart när:** en florist kan göra "Emma & Johan"-flödet med påhittade artiklar, den exakta uppdelningen summerar exakt, den nya motorn ger samma kundpris som `calc()` för de 145 tillstånden (varje avvikelse är utredd och förklarad), och inget gammalt beteende är ändrat.
 **Storlek:** L.
 
+**Status 2026-10-07: första tekniska steget är byggt (inga skärmändringar).** `public/js/core/money.js` (`Money`, exakta bråk, avrundning, procentsatser), `amounts.js` (`Amounts`, `costBasis`), `tax.js` (`TaxRuleSet`-struktur, `resolveRate`, `freezeRate`, `assertVerified`, regeluppsättningen `legacy-user-setting`) och `pricing.js` (exakt `PricingEngine`: framåt, baklänges, jobb, prisstatus, kundtyp). `index.html` laddar dem inte än, och `calc()` är orörd som referensmotor. Reglerna och vad som är testdata står i `docs/EKONOMIREGLER.md`. Kvar i 1A: flytta `calc()` till en delad modul, lagringsgränssnitt, `Customer`/`Event`/`Arrangement`, förpackningslogik och fraktfördelning i exakt aritmetik (med differenstest mot `calc()`), skärmar.
+
 **Låser 1A oss inför molnwebbläsaragenten? Nej.** 1A rör grossistvärlden bara via `conn_manual` och `SupplierProduct`/`PriceQuote`, som redan har fälten som en riktig koppling behöver (`rawAttributes`, `facts`, valfritt `purchaseAmount`, `currency`, momsstatus, pack). Allt PoC:n hittar läggs till *additivt* (samma mönster som migreringen, som är bevisad), så att resultatet kan ändra en connector men inte arrangemang, kalkyl eller faktura. En artikel identifieras av ett ogenomskinligt `supplierProductId` plus attribut, aldrig av antagandet att en längd är ett eget artikelnummer.
 
 ### MVP 1B: Grossistagent-PoC (parallellt)
@@ -1109,7 +1164,7 @@ Alla befintliga regressionstester (191) behålls oförändrade och körs i varje
 |------|-----|------|
 | Påslag, arbetsavgift, tillbehör, avgifter | 1A | enhet |
 | Packkvantitet (83 behövs, 20-pack → 5 × 20 = 100, 17 över) | 1A | enhet |
-| Kundpris (briefens 186 + 120 % + 125, i båda tolkningarna: 534,20 före moms och 534 inkl. moms) | 1A | enhet |
+| Kundpris (exemplet 186 + 120 % + 125 = 534,20 före moms och 670 kr inkl. moms med testsats 25 % och steg 5 kr) | 1A | enhet |
 | Kund → jobb, flera arrangemang | 1A | enhet, integration |
 | Sparat och öppnat jobb ger samma kalkyl | 1A | integration |
 | Avalanche 50 och 60 hålls åtskilda | 2 | enhet, kontrakt |
@@ -1242,7 +1297,6 @@ Alla befintliga regressionstester (191) behålls oförändrade och körs i varje
 | **Planerat och faktiskt blandas ihop** (en sedd kostnad blir "bokförd") | Hög | Nio separata steg, bara faktiska händelser skapar `FinancialEvent`, test per gräns |
 | **Låsning mot ett ekonomisystem** | Medel | `AccountingConnector` med två falska system i kontraktssviten, exportfil först |
 | **Bokföringskrav och radering av personuppgifter krockar** | Medel | Juridisk bedömning före MVP 4, anonymisera kund men behåll faktura |
-| **Briefens räkneexempel tolkas fel** (534 kr före eller efter moms) | Låg men pinsam | Fråga Anna (avsnitt 18), testa båda tolkningarna |
 | **AI på den heta vägen** | Hög (kostnad) | AI av som standard, tak per butik, mätning |
 | **Personuppgifter** (kundregister) | Hög | GDPR-rutiner, biträdesavtal, EU-lagring, inga kunduppgifter till AI i onödan |
 | **Isoleringsfel mellan butiker** | Mycket hög om det händer | Ett dataåtkomstlager, isoleringstester på varje entitet och väg |
@@ -1275,12 +1329,12 @@ Alla befintliga regressionstester (191) behålls oförändrade och körs i varje
 10. **Fakturanummer:** tilldelas vid skickande ur butikens löpande serie, om inte ekonomisystemet äger numreringen. Rekommenderas, kravet är ej verifierat.
 11. **Första ekonomiöverföringen:** exportfil och e-postutkast. Ekonomisystem väljs tillsammans med pilotfloristens redovisningskonsult.
 12. **Förbeställning av odlare** (grossisten erbjuder det) är en separat väg och byggs inte nu.
-13. **Räkneexemplet:** menade du att *534 kr är före moms* (mitt antagande, det som dagens motor ger: 186 × 2,2 + 125 = 534,20) eller att *534 kr är kundpriset inkl. moms*? Det andra kräver att inköp och arbete redan är inklusive moms eller att påslaget är lägre än 120 %, och jag behöver veta vilket du menar innan jag skriver testet (avsnitt 6).
+13. ~~Räkneexemplet~~ **Avgjort av Anna:** 534 kr var ett pedagogiskt exempel, inte en regel. Exemplet är rättat i planen och motorn är inte anpassad efter det.
 
 ### 18.2 Innan MVP 1A (kan börja direkt vid godkännande)
 
 1. **Ditt godkännande** av planen och ordningen, eller ändringar.
-2. **Besked på räkneexemplet** (punkt 13 ovan).
+2. ~~Besked på räkneexemplet~~ Avgjort (punkt 13 ovan).
 3. **Ja till att `calc()` ligger kvar som referensmotor** och att den nya exakta motorn byggs *bredvid* den och bevisas mot den på de 145 tillstånden.
 
 Inget annat behövs från dig för 1A.

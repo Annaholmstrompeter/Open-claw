@@ -73,3 +73,21 @@ Beslut av Anna, infört i `MASTER-PLAN.md` version 2. Ingen produktionskod ändr
 11. **Prissättning:** MICRO ca 99–199, STUDIO ca 299–449, PRO ca 699–899+ kr per månad som arbetshypotes. Kalkylering obegränsad. Rättvisaste dimensionen enligt analysen: aktiva kundjobb per månad, grossistanslutningar och användare. Tekniska mått visas aldrig för floristen. Tak och larm skyddar mot en trasig connector.
 
 **Öppen fråga till Anna:** briefens räkneexempel (186 kr, 120 %, 125 kr = "534 kr inkl. moms") stämmer med dagens motor bara som 534,20 kr *före* moms.
+
+## 2026-10-07 (senare): förtydliganden från Anna och första kodsteget (MVP 1A)
+
+Annas besked, infört i `MASTER-PLAN.md` (version 2.1) och byggt där det gäller koden.
+
+1. **534 kr var ett pedagogiskt exempel och ingen regel.** Motorn anpassas inte efter det. Exemplet är rättat i planen och testerna: 186 kr + 120 % påslag + 125 kr arbete = 534,20 kr före moms, och med en testsats på 25 % ger det 670 kr kundpris (avrundat uppåt till 5 kr).
+2. **Kundpriset inkl. moms är huvudtalet** och det som kunden faktiskt betalar. Kalkylen bakom: inköpskostnad exkl. avdragsgill moms + påslag + arbete + avgifter = försäljningspris exkl. moms, därefter utgående moms.
+3. **Påslag är markup på relevant inköpskostnad** (100 kr + 120 % = 220 kr). Marginal är en härledd uppgift. De blandas aldrig ihop.
+4. **Arbete är en separat komponent:** standardavgift per arrangemang med överstyrning i MVP, tidsbaserat (minuter × timpris) finns i modellen och motorn.
+5. **Baklänges räkning stöds:** målpris inkl. moms → tillgänglig råvarubudget. Byggt och testat i motorn, ingen skärm än.
+6. **B2C och B2B:** `customerKind` ändrar bara presentationen. Inga två UI-flöden nu.
+7. **Prisstatus** (≈ uppskattat, ✓ bekräftat) och **prisbasens art** (`LIVE`, `RECENT`, `STALE`, `HISTORICAL_ESTIMATE`, `MANUAL`) följer med varje kalkyl.
+8. **Första kodsteget godkänt och byggt:** `Money`, `Amounts`, `TaxRuleSet`-struktur, exakt `PricingEngine`, tester. Inga skärmändringar. **Inga overifierade svenska momssatser i produktionskoden.** Testsatser är markerade som testdata. `legacy-user-setting` speglar floristens egen inställning och kan inte användas för faktura.
+9. **`calc()` är referens- och regressionsmotor.** Den nya motorn jämförs mot den där samma affärsregel jämförs. Avvikelser är dokumenterade i `docs/EKONOMIREGLER.md` och tvingar inte den nya motorn att upprepa ett fel.
+10. **MVP 1B (grossistagent-PoC) ligger kvar parallellt** och glöms inte bort. Den väntar på pilotåtkomst, grossistens villkor och Annas ja till mejlet.
+11. **Mejl till Blomstergrossisten:** utkast skrivet (`docs/MEJLUTKAST-BLOMSTERGROSSISTEN.md`), kort och icke-tekniskt. **Inget är skickat.** Anna granskar först.
+12. **Kostnadstak och mätning per butik behålls** som krav (MASTER-PLAN avsnitt 10). Piloten med 1–3 florister ska ha mycket låg eller nästan ingen fast kostnad.
+
