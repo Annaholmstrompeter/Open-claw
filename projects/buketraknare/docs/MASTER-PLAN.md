@@ -1,6 +1,6 @@
 # MASTER-PLAN: Buketträknaren
 
-**Status:** plan, **version 2.2** (justerad efter Annas tillägg 2026-10-07, förtydligandena och tillägget om egna material). Ingen produktionskod och inga tester är ändrade. PR #9 är orörd. PR #10 mergas inte utan godkännande.
+**Status:** plan, **version 2.3** (justerad efter Annas preciseringar 2026-10-07: uttryckligt "ingår / 0 kr", tre prisnivåer, prisgrund inkl./exkl. moms, bryggan till den nuvarande appen och den minimala jobbskärmen). Ekonomikoden, bryggan, offert/kundorder och en minimal Jobb-flik är byggda och testade (se avsnitt 13). Den gamla räknemotorn `calc()` är orörd. PR #9 är orörd. PR #10 mergas inte utan godkännande.
 **Ersätter delvis:** `PLAN-grossistanslutning.md` (se avsnitt 2). `KONSEKVENSANALYS-FLORISTVISION.md`, `BESLUT.md`, `CHECKLISTA-PILOTGROSSIST.md` och `CLOUDFLARE-DEPLOYMENT.md` gäller fortfarande där de inte säger emot den här planen. Där de säger emot (moms, webbläsaragentens plats) gäller den här planen, och de två berörda raderna är rättade.
 
 Markeringen **(ej verifierat)** betyder att jag inte har kunnat kontrollera uppgiften mot själva källan. Det gäller särskilt allt om Blomstergrossistens webbplats (nätverket i min miljö blockerar den), aktuella molnpriser (hämtade ur sökträffar, kan ha ändrats) och juridik, moms och fakturakrav (Skatteverkets sidor är också blockerade härifrån, så jag har bara sökträffar, och jag är ingen jurist).
@@ -25,6 +25,10 @@ Markeringen **(ej verifierat)** betyder att jag inte har kunnat kontrollera uppg
 | 14 | **Annas förtydliganden (version 2.1):** kundpriset inkl. moms som huvudtal, påslag på relevant inköpskostnad, arbete som egen komponent, **baklänges räkning** (målpris → råvarubudget), kundtyp, prisstatus ≈/✓ och prisbasens art, första kodsteget byggt | 6.4–6.9, 13 |
 | 15 | **Egna tillägg och material (version 2.2):** en rad i ett arrangemang (`ArrangementItem`) är `SUPPLIER`, `OWN_STOCK`, `HOME_GROWN` eller `MANUAL`, avgör själv om den ska beställas (`requiresPurchase`), prissätts med `STANDARD_MARKUP` eller `FIXED_SALE_PRICE`, och **noll inköpskostnad betyder aldrig noll värde** | 4.5, 6.11 |
 | 16 | **Beräknat, presenterat och överenskommet pris hålls isär.** Motorn behåller det exakta beräknade priset (667,75 kr) och det avrundade presenterade kundpriset (670 kr). Vilket belopp som blir den överenskomna försäljningen avgörs av kundordern | 6.12, 8.6 |
+| 17 | **Uttryckligt "ingår / 0 kr" (version 2.3).** Ett pris som saknas (`PRICE_MISSING`) ger en ofullständig kalkyl. Ett eget tillägg kan väljas som `INCLUDED` ("ingår utan extra kostnad"), ett giltigt kundpris på 0 kr (`EXPLICITLY_INCLUDED`). Kalkylkostnaden finns kvar även när inköpskostnaden idag är 0 (egen trädgård) | 4.5, 6.11 |
+| 18 | **Prisgrund för fasta priser:** `inc` eller `ex`, uttryckligt på varje rad. Förval inkl. moms för privatkund, exkl. moms för företag. Modellen är inte låst till inkl. moms | 6.11 |
+| 19 | **Offert (`QuoteSnapshot`) och kundorder (`CustomerOrder`) byggda.** Tre prisnivåer sparas exakt (667,75 / 670 / sålt för 650 kr), båda är oföränderliga, och lagringen avvisar ändringar. Underlag för lönsamhet förbereds som data, utan att vinst definieras | 6.12, 8.6 |
+| 20 | **Bryggan till den nuvarande appen och en minimal Jobb-flik.** Prislistan blir katalog, den gamla ordern flyttas en gång till jobbet "Min order", vägen tillbaka finns, och fliken Jobb låter floristen göra hela flödet (kund → jobb → arrangemang → blommor och eget material → arbete → kundpris → öppna igen) | 13 |
 
 ---
 
@@ -656,6 +660,18 @@ FIXED_SALE_PRICE    ett belopp som är kundens pris direkt           egna tillä
 - Varje rad kan ha en egen momskategori. Standardpåslagsrader grupperas per kategori. Alla satser slås upp i regelversionen för datumet.
 - Baklänges (avsnitt 6.6) tar hänsyn till fasta tillägg: de minskar råvarubudgeten med sitt pris inkl. moms.
 
+**Tillägg i version 2.3 (Annas preciseringar):**
+
+```
+STANDARD_MARKUP     kalkylkostnad × påslag. Kräver en kalkylkostnad större än noll.
+FIXED_SALE_PRICE    ett belopp med uttrycklig prisgrund (inc eller ex).
+INCLUDED            "ingår utan extra kostnad": ett giltigt kundpris på 0 kr, valt av floristen.
+```
+
+- **`PRICE_MISSING` är något annat än `EXPLICITLY_INCLUDED`.** Saknas en kalkylkostnad eller ett belopp är kalkylen ofullständig och inget pris visas. 0 kr är bara ett pris när floristen valt "Ingår". Noll *inköpskostnad* betyder aldrig noll *värde*: `HOME_GROWN` och `OWN_STOCK` behåller en kalkylkostnad (till exempel 25 kr för en dahlia) trots att inköpskostnaden idag är 0.
+- **Prisgrund.** Ett fast pris lagras med `inc` eller `ex` (`INC_VAT` och `EX_VAT` godtas som synonymer). Förval: inkl. moms för privatkund, exkl. moms för företag. Valet sparas alltid uttryckligt på raden så att ett senare byte av kundtyp inte ändrar ett redan givet pris.
+- **Underlag för lönsamhet** (`profitabilityInputs`, status `DATA_ONLY`): kundpris, material/kalkylkostnad, extern kostnad, arbete och övrigt. Bara data. Vinst och täckningsbidrag är inte definierade, och inget fält har ett sådant namn.
+
 ### 6.12 Beräknat pris och presenterat kundpris (version 2.2)
 
 Internt skiljer vi mellan två belopp, och **båda behålls**:
@@ -963,6 +979,12 @@ PRESENTERAT   670,00 kr   det avrundade kundpriset (PricingEngine.presented). De
 - Det beräknade priset behålls som underlag för att förklara hur priset uppstod, och för att räkna fram faktisk marginal. Det blir aldrig en bokförd siffra.
 - Att det överenskomna beloppet kan vara något annat än det presenterade är anledningen till att motorn inte själv avgör vad som är försäljningen.
 
+**Byggt i version 2.3** (`workspace.js`: `createQuote`, `sendQuote`, `acceptQuote`, `cancelOrder`, `priceLevels`, `checkImmutability`):
+- `createQuote` kräver ett fullständigt pris och fryser beräknat (exakt bråk) och presenterat (avrundat) pris per arrangemang, avrundningsregeln, regelversionen och om regeln är verifierad. En ny offertversion ersätter obekräftade tidigare.
+- `acceptQuote` kräver vem som godkände. Det överenskomna priset gäller per styck och arrangemang, kan vara lägre eller högre än det presenterade, och delas på moms i samma proportion som det presenterade priset. Skillnaden mot presenterat och mot beräknat sparas med tecken.
+- Offert och order är oföränderliga: bara status går framåt (`QUOTE_NEXT`, `ORDER_NEXT`), inget raderas, och `store.js` avvisar allt annat med `immutable`.
+- Det överenskomna priset är *per arrangemang*. Ett förhandlat totalpris för hela jobbet är inte byggt.
+
 ---
 
 ## 9. Multi-tenant, säkerhet och integritet
@@ -1208,6 +1230,12 @@ MVP 6   Intelligens
 **Storlek:** L.
 
 **Status 2026-10-07: de två första tekniska stegen är byggda (inga skärmändringar).** Steg 1: `money.js` (`Money`, exakta bråk, avrundning, procentsatser), `amounts.js` (`Amounts`, `costBasis`), `tax.js` (`TaxRuleSet`-struktur, `resolveRate`, `freezeRate`, `assertVerified`, regeluppsättningen `legacy-user-setting`) och `pricing.js` (exakt `PricingEngine`: framåt, baklänges, jobb, prisstatus, kundtyp). **Steg 2:** `purchase.js` (hela förpackningar, delning mellan arrangemang, hemmalager och fraktfördelning i exakt aritmetik), `items.js` (`ArrangementItem` med källmodellen `SUPPLIER`/`OWN_STOCK`/`HOME_GROWN`/`MANUAL`, `requiresPurchase`, `STANDARD_MARKUP`/`FIXED_SALE_PRICE`), `workspace.js` (`Customer`, `Event`, `Arrangement`, `ArrangementItem`, `priceEvent`, `purchaseNeeds`) och `store.js` (lagringsgränssnitt med minnes- och localStorage-adapter, atomära ändringar, konfliktupptäckt). Motorn har fått fast kundpris, momskategori per rad och uppdelningen beräknat/presenterat pris. `index.html` laddar inget av detta än, och `calc()` är orörd som referensmotor. Reglerna och vad som är testdata står i `docs/EKONOMIREGLER.md`. **Kvar i 1A:** koppla arbetsytan till skärmarna (en liten adapter från `model.js` till katalogen i `priceEvent`), flytta befintlig order till ett jobb "Min order", `QuoteSnapshot` och `CustomerOrder`, skärmar för hem, kund, jobb och arrangemang med `[+ EGET TILLÄGG]`, spara/öppna jobb med lagringsgränssnittet.
+
+**Status 2026-10-07 (steg 3, version 2.3): bryggan, offert/kundorder och en minimal jobbskärm är byggda.**
+- `bridge.js`: den nuvarande prislistan blir katalog (pris som saknas är `null`, ett pris som skrevs idag är `MANUAL` = ✓, annat `STALE` = ≈), de gamla inställningarna speglas åt ett håll, och den nuvarande ordern flyttas **en enda gång** till jobbet "Min order" (idempotent, allt eller inget, den gamla vyn rörs aldrig). Vägen tillbaka (`legacyOrderFromWorkspace`) ger tillbaka ordern i den gamla formen och redovisar det som inte kan uttryckas där. Differenstest mot `calc()` i 144 av 145 tillstånd och rundtur i alla 144.
+- `workspace.js`/`store.js`: `QuoteSnapshot` och `CustomerOrder` (avsnitt 8.6), `updatePricing`.
+- `jobs-ui.js` + en flik **Jobb** i `index.html`: skapa kund och jobb, skapa arrangemang, lägga till blomma ur prislistan, lägga till eget tillägg (standardpåslag, fast pris med/utan moms eller "ingår"), ange arbete, se kundpriset (≈/✓, exkl. moms + moms för företag), och öppna igen. Sparar automatiskt ("Sparat ✓"). Ingen skärm för offert eller kundorder än, inga favoriter, ingen knapp som skriver till den gamla ordern. Går något fel i fliken påverkas inte de andra flikarna.
+- **Kvar i 1A:** knappar för offert och "kunden sa ja", favoriter (♡), export/säkerhetskopia av jobben, ett förhandlat totalpris, fler jobbsättningar (leveransavgifter m.m. i skärmen), och en verifierad momsregeluppsättning före MVP 4.
 
 **Låser 1A oss inför molnwebbläsaragenten? Nej.** 1A rör grossistvärlden bara via `conn_manual` och `SupplierProduct`/`PriceQuote`, som redan har fälten som en riktig koppling behöver (`rawAttributes`, `facts`, valfritt `purchaseAmount`, `currency`, momsstatus, pack). Allt PoC:n hittar läggs till *additivt* (samma mönster som migreringen, som är bevisad), så att resultatet kan ändra en connector men inte arrangemang, kalkyl eller faktura. En artikel identifieras av ett ogenomskinligt `supplierProductId` plus attribut, aldrig av antagandet att en längd är ett eget artikelnummer.
 

@@ -206,6 +206,18 @@ legend{font-weight:700;font-size:15px;padding:0;margin-bottom:6px}
 .radio span{font-weight:600}
 .radio small{grid-column:2;color:var(--ink-2);font-size:13px}
 ul.plain{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px}
+/* Jobb-fliken (minimal jobbskärm) */
+#view-jobb .j-grid{display:grid;gap:16px;max-width:760px}
+#view-jobb .j-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+#view-jobb .j-arr,#view-jobb .j-item,#view-jobb .j-flower{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+#view-jobb .j-arr.on{border-color:var(--accent);background:var(--accent-soft)}
+#view-jobb .j-item-main{flex:1 1 200px;min-width:0}
+#view-jobb .j-qty{width:96px}
+#view-jobb .j-form{display:grid;gap:10px}
+#view-jobb form.j-form.row{align-items:end}
+#view-jobb .j-big{font-size:26px;font-weight:800;margin:0;font-variant-numeric:tabular-nums}
+#view-jobb details>summary{cursor:pointer;min-height:44px;display:flex;align-items:center}
+#view-jobb fieldset{display:grid;gap:8px}
 @media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -218,6 +230,7 @@ ul.plain{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px}
     </div>
     <nav class="tabs" role="tablist" aria-label="Vyer">
       <button role="tab" data-tab="bukett" aria-selected="true">Bukett</button>
+      <button role="tab" data-tab="jobb" aria-selected="false">Jobb</button>
       <button role="tab" data-tab="prislista" aria-selected="false">Prislista</button>
       <button role="tab" data-tab="installningar" aria-selected="false">Inställningar</button>
     </nav>
@@ -256,6 +269,9 @@ ul.plain{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px}
       </div>
     </section>
 
+    <!-- JOBB (minimal jobbskärm, js/jobs-ui.js) -->
+    <section id="view-jobb" hidden aria-label="Jobb"></section>
+
     <!-- PRISLISTA -->
     <section id="view-prislista" hidden>
       <div style="display:grid;gap:16px">
@@ -293,6 +309,16 @@ ul.plain{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px}
 <div id="totalbar" role="status" aria-live="polite"></div>
 
 <script src="js/core/model.js"></script>
+<script src="js/core/money.js"></script>
+<script src="js/core/amounts.js"></script>
+<script src="js/core/tax.js"></script>
+<script src="js/core/pricing.js"></script>
+<script src="js/core/purchase.js"></script>
+<script src="js/core/items.js"></script>
+<script src="js/core/workspace.js"></script>
+<script src="js/core/store.js"></script>
+<script src="js/core/bridge.js"></script>
+<script src="js/jobs-ui.js"></script>
 <script>
 (function(){
 'use strict';
@@ -1328,13 +1354,28 @@ function csvCell(v){ v=String(v==null?'':v); return /[;"\n]/.test(v)?'"'+v.repla
 function currentCsv(){
   return ['Namn;Kategori;Antal per förp;Pris per förp;Enhet;Färg'].concat(plItems().map(i=>[i.namn,i.kategori,i.paket,String(i.pris).replace('.',','),i.enhet||'',i.farg||''].map(csvCell).join(';'))).join('\n');
 }
+/* Jobb-fliken: monteras första gången fliken öppnas. Går något fel där påverkas inte resten av appen. */
+let jobsCtl=null;
+function openJobs(){
+  const host=$('#view-jobb');
+  try{
+    if(!jobsCtl){
+      if(!window.BRJobsUI) throw new Error('jobbskärmen saknas');
+      jobsCtl=window.BRJobsUI.mount(host,{getView:view,today,storage:window.localStorage});
+    }
+    jobsCtl.activate();
+  }catch(e){
+    host.innerHTML='<div class="note bad" role="alert">Jobb-fliken kunde inte startas. De andra flikarna fungerar som vanligt.</div>';
+  }
+}
 function setTab(t){
   ui.tab=t;
   document.querySelectorAll('[role="tab"]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===t)));
-  $('#view-bukett').hidden=t!=='bukett'; $('#view-prislista').hidden=t!=='prislista'; $('#view-installningar').hidden=t!=='installningar';
+  $('#view-bukett').hidden=t!=='bukett'; $('#view-jobb').hidden=t!=='jobb'; $('#view-prislista').hidden=t!=='prislista'; $('#view-installningar').hidden=t!=='installningar';
   $('#totalbar').hidden=t!=='bukett';
   if(t==='prislista'){ renderPlHead(); renderPlTable(); renderImportPreview(); }
   if(t==='installningar') renderSettings();
+  if(t==='jobb') openJobs();
   window.scrollTo(0,0);
 }
 function touchList(){
@@ -1502,7 +1543,7 @@ checkRelay();
 initSample();
 
 /* för test */
-window.buketraknare={relay:()=>ui.relay,read:()=>ui.read,reader:()=>readerKind(),calc:()=>calc(view()),state:()=>view(),model:()=>state,rollbackV1:()=>M.downgradeV2toV1(state),readTable,detectPack,parseNum,matchKey,exampleState:exampleStateV1};
+window.buketraknare={jobs:()=>jobsCtl,relay:()=>ui.relay,read:()=>ui.read,reader:()=>readerKind(),calc:()=>calc(view()),state:()=>view(),model:()=>state,rollbackV1:()=>M.downgradeV2toV1(state),readTable,detectPack,parseNum,matchKey,exampleState:exampleStateV1};
 })();
 </script>
 </body>

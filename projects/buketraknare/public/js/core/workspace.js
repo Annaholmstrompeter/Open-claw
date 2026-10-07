@@ -113,6 +113,18 @@
     return st;
   }
 
+  /**
+   * Ändrar butikens prissättning (till exempel när floristens inställningar ändras). Kontrolleras som vid skapandet.
+   * Redan skapade offerter och kundorder påverkas aldrig: de är ögonblicksbilder med egna priser.
+   */
+  function updatePricing(st, ctx, patch) {
+    const next = { ...st.shop.pricing, ...(patch || {}) };
+    readPricing(next);
+    st.shop.pricing = clone(next);
+    st.shop.updatedAt = ctx.now(); st.shop.rev += 1;
+    return st.shop;
+  }
+
   function stamp(ctx, prefix, fields) {
     const now = ctx.now();
     return { id: ctx.newId(prefix), shopId: SHOP_ID, ...fields, createdAt: now, updatedAt: now, rev: 1, deletedAt: null };
@@ -642,7 +654,7 @@
 
   return {
     SHOP_ID, VERSION, EVENT_TYPES, HORIZONS, WorkspaceError,
-    defaultContext, defaultPricing, readPricing, createWorkspace,
+    defaultContext, defaultPricing, readPricing, createWorkspace, updatePricing,
     addCustomer, updateCustomer, createEvent, updateEvent, setOnHand,
     addArrangement, updateArrangement, addItem, updateItem, removeItem, removeArrangement, removeEvent,
     customers, eventsOf, arrangementsOf, itemsOf, purchaseNeeds, priceEvent, validateWorkspace,

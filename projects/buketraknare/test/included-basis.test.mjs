@@ -75,6 +75,9 @@ test('rad: ingår är ett eget prissättningssätt, och ett pris som saknas har 
   assert.equal(I.priceState(sup, { status: 'ok', cost: F(100) }), 'MARKUP');
   assert.equal(I.priceState(sup), 'PRICE_MISSING');
   assert.deepEqual(Object.values(I.PRICE_STATE).sort(), Object.values(P.PRICE_STATE).sort());     // samma ord i båda modulerna
+  // en rad som inte klarat kontrollen (fast pris utan belopp) ska aldrig kallas ett pris
+  assert.equal(I.priceState({ source: 'OWN_STOCK', pricing: { mode: 'FIXED_SALE_PRICE', unitSalePrice: null } }), 'PRICE_MISSING');
+  assert.equal(I.priceState({ source: 'OWN_STOCK', pricing: { mode: 'STANDARD_MARKUP', unitCostBasis: null } }), 'PRICE_MISSING');
 });
 
 test('arbetsyta: "Kvistar från egen trädgård" ingår, beställs inte och ger ett fullständigt pris', () => {
@@ -184,6 +187,9 @@ test('underlag för lönsamhet: kundpris, material/kalkylkostnad, arbete och öv
   assert.equal(pi.customerPrice.presentedIncVat, r.customerPrice); assert.equal(pi.customerPrice.calculatedExVat.toString(), '90500');   // 615 + 250 + 40 = 905 kr exkl. moms
   assert.equal(pi.calculationCost.complete, true); assert.equal(pi.externalCost.total.toString(), '30000'); assert.equal(pi.externalCost.complete, true);
   assert.deepEqual(pi.calculationCost.missingLineIds, []);
+  assert.equal(pi.charged.includedLines, 0);
+  const withIncluded = P.priceArrangement(input({ costLines: [std('a', K('100')), { id: 'k1', kind: 'flowers', pricing: 'INCLUDED' }, { id: 'k2', kind: 'accessories', pricing: 'INCLUDED', cost: K('0') }] }));
+  assert.equal(withIncluded.breakdown.profitabilityInputs.charged.includedLines, 2);            // två rader ingår, och det syns i underlaget
 });
 test('underlag för lönsamhet: okända kostnader redovisas som okända, aldrig som noll, och inga definierade "vinst"-fält finns', () => {
   const r = P.priceArrangement(input({ costLines: [std('a', K('100')), { id: 'vas', kind: 'accessories', pricing: 'FIXED_SALE_PRICE', salePrice: { amount: K('250'), basis: 'inc' } }] }));
@@ -233,4 +239,38 @@ test('egenskaper: överenskommet pris delas alltid exakt (800 slumpade fall)', (
     for (const g of out.byRate) { assert.ok(g.exVat.add(g.vat).eq(g.incVat)); assert.ok(!g.exVat.isNegative() && !g.vat.isNegative()); }
     assert.deepEqual(out.byRate.map(g => g.rateBp), [...new Set(out.byRate.map(g => g.rateBp))].sort((a, b) => a - b));
   }
+});
+
+// ---------- tillägg efter mutationstestning ----------
+test('bakåt: en rad som ingår är 0 kr och påverkar varken budgeten eller kräver ett pris', () => {
+  const back = (over = {}) => ({ ...input({ labor: { mode: 'fixed', fee: K('125') }, ...over }), target: K('800') });
+  const plain = P.budgetForTarget(back());
+  const withIncluded = P.budgetForTarget(back({ costLines: [{ id: 'kvistar', kind: 'flowers', pricing: 'INCLUDED' }] }));
+  assert.equal(withIncluded.status, 'OK');
+  assert.equal(withIncluded.materialBudget.toString(), plain.materialBudget.toString());
+  assert.equal(withIncluded.breakdown.goodsExVatAllowed.toString(), plain.breakdown.goodsExVatAllowed.toString());
+});
+
+test('överenskommet pris delas på satserna i proportion till det presenterade priset, inte lika', () => {
+  // presenterat: 200 kr med 6 % moms och 800 kr med 25 % moms. Överenskommet 1 000 kr delas 20/80, inte 50/50.
+  const r = P.allocateAgreed({ agreedIncVat: K('1000'), presentedByRate: [{ rateBp: 600, exVat: K('188.68'), vat: K('11.32'), incVat: K('200') }, { rateBp: 2500, exVat: K('640'), vat: K('160'), incVat: K('800') }] });
+  assert.deepEqual(r.byRate.map(g => [g.rateBp, s(g.incVat), s(g.exVat), s(g.vat)]), [[600, '200.00', '188.68', '11.32'], [2500, '800.00', '640.00', '160.00']]);
+  assert.equal(s(r.exVat), '828.68'); assert.equal(s(r.vat), '171.32'); assert.equal(s(r.incVat), '1000.00');
+  const half = P.allocateAgreed({ agreedIncVat: K('500'), presentedByRate: [{ rateBp: 600, exVat: K('188.68'), vat: K('11.32'), incVat: K('200') }, { rateBp: 2500, exVat: K('640'), vat: K('160'), incVat: K('800') }] });
+  assert.deepEqual(half.byRate.map(g => s(g.incVat)), ['100.00', '400.00']);
+});
+
+test('negativt överenskommet pris avvisas redan i delningen', () => {
+  assert.equal(code(() => P.allocateAgreed({ agreedIncVat: K('-1'), presentedByRate: [{ rateBp: 2500, exVat: K('80'), vat: K('20'), incVat: K('100') }] })), 'negative_amount');
+});
+
+test('updatePricing: en ogiltig ändring avvisas och lämnar inställningarna som de var', () => {
+  const ctx = makeCtx(), st = W.createWorkspace(ctx, {});
+  const before = JSON.stringify(st.shop.pricing), rev = st.shop.rev;
+  for (const patch of [{ markupBp: -1 }, { markupBp: 12.5 }, { rounding: { step: mj('0'), mode: 'CEIL' } }, { packMode: 'ALLA' }, { legacyVatPercent: 'x' }]) {
+    assert.throws(() => W.updatePricing(st, ctx, patch), e => e.problems && e.problems.length > 0, JSON.stringify(patch));
+    assert.equal(JSON.stringify(st.shop.pricing), before, JSON.stringify(patch)); assert.equal(st.shop.rev, rev);
+  }
+  W.updatePricing(st, ctx, { markupBp: 8000 });
+  assert.equal(st.shop.pricing.markupBp, 8000); assert.equal(st.shop.rev, rev + 1); assert.deepEqual(W.validateWorkspace(st), []);
 });

@@ -108,3 +108,28 @@ Annas besked, infört i `MASTER-PLAN.md` (version 2.2) och byggt i kod där det 
 11. **MVP 1B (grossistagent-PoC) ligger kvar parallellt** och väntar på pilotflorist, åtkomst och grossistens villkor. Inga köp.
 12. **Regressionsskydd:** de 266 testerna är oförändrade och gröna.
 
+## 2026-10-07 (senast): preciseringar, bryggan och den minimala jobbskärmen
+
+Annas besked om egna material, prisnivåer och prisgrund, och vilka val jag gjorde i genomförandet. Det som är mitt val kan ändras av Anna.
+
+**Annas beslut (byggt):**
+1. **Egna material:** standardpåslag kräver en kalkylkostnad större än noll. Floristen kan alltid välja "Ingår utan extra kostnad" (0 kr). **PRICE_MISSING** (ofullständig kalkyl) skiljs från **EXPLICITLY_INCLUDED** (giltigt 0 kr).
+2. **Tre prisnivåer** hålls isär: beräknat (667,75 kr), presenterat (670 kr) och överenskommet (till exempel sålt för 650 kr, lägre eller högre än presenterat). Den ursprungliga kalkylen förstörs aldrig.
+3. **Fasta priser** har en uttrycklig prisgrund (`inc`/`ex`). Förval: inkl. moms för privatkund, exkl. moms för företag.
+4. **Kalkylkostnad finns även när inköpskostnaden idag är 0** (egen trädgård, eget lager).
+5. **Underlag för lönsamhet** förbereds som data. Vinst och täckningsbidrag definieras inte.
+6. **Ordning:** bryggan mellan den nuvarande prislistan och arbetsytan, därefter offert och kundorder, därefter en minimal jobbskärm.
+7. **MVP 1B (grossistagent-PoC) ligger kvar parallellt.** Inga köp, inga automatiska beställningar. Mejlet till grossisten är inte skickat.
+
+**Mina val (kan ändras):**
+- **Spara är automatiskt.** Det finns ingen Spara-knapp att glömma. Skärmen visar "Sparat ✓" först när något faktiskt sparats, och "Inte sparat" om lagringen är full eller blockerad.
+- **"Min order" flyttas över en enda gång.** Därefter är jobbet en egen sak: ändringar i fliken Bukett följer inte med, och ett borttaget jobb kommer inte tillbaka av sig själv. Skälet: två ställen som ändras åt båda hållen är den vanligaste källan till tyst dataförlust.
+- **Inställningarna speglas åt ett håll** (från Inställningar till jobben). Bara ett ställe att ändra påslag och timpris tills vidare.
+- **Priskälla i bryggan:** ett pris som skrevs eller verifierades idag är `MANUAL` (bekräftat ✓), annat är `STALE` (ungefärligt ≈). Ett riktigt `LIVE` kräver en riktig grossistanslutning.
+- **Det överenskomna priset gäller per arrangemang** (per styck). Ett förhandlat totalpris för hela jobbet kommer senare.
+- **Favoriter (♡) ingår inte** i den minimala skärmen. De finns inte i datamodellen än.
+- **Ingen skärm för offert och kundorder än.** Domänkoden och testerna finns, men en knapp "Kunden sa ja" hör till nästa steg.
+- **Arbete anges exkl. moms** per arrangemang (fast belopp). Tomt fält betyder att inget arbete angetts.
+- **Vägen tillbaka:** arbetsytan har en egen lagringsnyckel. Tar man bort den (eller bara slutar använda fliken Jobb) är appen exakt som förut. Det finns också en funktion som gör ett jobb till en order i den gamla formen och säger vad som inte kan uttryckas där. Ingen knapp som skriver till den gamla ordern finns (det vore en risk för tyst överskrivning).
+
+**Regressionsskydd:** alla 348 tidigare tester finns kvar och är gröna. Två av dem fick en medveten ändring av en enda förväntan (listan över tillåtna prissättningssätt har ett tredje värde), och ett statiskt test som sa att appen inte laddar de nya modulerna ersattes av ett som kontrollerar att de laddas i rätt ordning och att den gamla appens lagring är orörd.
