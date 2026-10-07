@@ -46,3 +46,12 @@ Grossistens verkliga artiklar ska vara sanningen, och floristens egna arbete byg
 - **Den planerade matchningsfunktionen byggs inte.** Den ersätts av katalog, klassificering, sökning och favoriter.
 - **Ingen kod och inga tester ändras** tills konsekvensanalysen är granskad: `KONSEKVENSANALYS-FLORISTVISION.md`.
 - Listan över sådant som inte ska byggas ännu står i analysens avsnitt Q.
+
+## 2026-10-07 (senare): masterplan skriven, väntar på godkännande
+
+`MASTER-PLAN.md` samlar arkitektur, domänmodell, dataflöden, prismotor, grossistagent, policy för ekonomiska handlingar, kostnadsmodell (1/10/100/1000 floristar), MVP 1–5, risker och öppna beslut. Den ersätter inte `PLAN-grossistanslutning.md` utan bygger på den (jämförelsen står i avsnitt 2).
+
+- **Ingen produktionskod ändrad.** Alla 191 tester är gröna mot oförändrad kod.
+- **Inget byggs förrän planen är godkänd.** Nästa större implementation väntar på Annas svar på de öppna besluten i avsnitt 18.
+- **Inga ekonomiskt bindande automatiska handlingar.** Agenten får förbereda, aldrig slutföra köp, godta ersättningsvara med kostnadskonsekvens, skicka faktura eller ändra bindande order utan floristens uttryckliga godkännande.
+- **Uppgifter som är overifierade** (Blomstergrossistens villkor och inloggning, Cloudflares aktuella priser, cookie-överlämning i molnwebbläsare, krav på fakturor och GDPR) är markerade i bilaga B och ska kontrolleras innan de används.
