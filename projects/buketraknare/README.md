@@ -10,7 +10,7 @@ Appen är byggd för telefon. Den fungerar med vilken grossist som helst.
 
 ## Så används den
 
-1. **Första gången är allt tomt.** Inga blommor och inga priser. Man skriver blommans namn i sökrutan och trycker "Lägg till". Knappen "Prova med exempeldata" visar hur appen räknar, med påhittade priser.
+1. **Första gången finns de vanligaste blommorna som knappar, men utan priser.** Ett klick på en knapp lägger till en blomma i buketten, fler klick ger fler blommor, och minus tar bort en. Saknas en blomma trycker man på "Ny blomma" (eller skriver namnet i sökrutan) och skriver in den, så skapas en ny knapp. Knappen "Prova med exempeldata" visar hur appen räknar, med påhittade priser.
 2. **Välj blommor** i en eller flera buketter. Priser som ligger kvar från förra gången visas som "ca" och med ålder, så man får ungefärliga priser direkt.
 3. **Tryck "Uppdatera priser" när du valt klart.** Appen skapar ett uppdrag med de valda blommorna. Man klistrar in det i en AI-assistent som kan surfa (till exempel ChatGPT Work), loggar in på grossistens sida själv när assistenten ber om det, och klistrar tillbaka svaret i appen.
 4. Appen visar vad som lästes av: gammalt och nytt pris, procent per stjälk, **ändrad förpackning** och vad som inte hittades. Först när man trycker "Använd priserna" byts priserna, och de räknas då som aktuella idag.

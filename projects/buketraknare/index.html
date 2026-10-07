@@ -132,6 +132,8 @@ label.field span.hint{font-weight:400;color:var(--ink-2);font-size:13px}
 .tile{display:flex;align-items:stretch;background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--c,var(--line));border-radius:12px;min-height:76px;overflow:hidden;min-width:0}
 .tile.on{border-color:var(--accent);border-left-color:var(--c,var(--accent));box-shadow:inset 0 0 0 1px var(--accent);background:var(--accent-soft)}
 .tile.new{border-style:dashed;border-left-style:dashed}
+.tile.form{grid-column:1/-1;align-items:center;flex-wrap:wrap;gap:8px;padding:10px;border-left-width:1px}
+.tile.form input{flex:1;min-width:160px}
 .tile-main{flex:1;min-width:0;display:grid;gap:2px;align-content:center;text-align:left;background:none;border:0;padding:8px 10px;cursor:pointer}
 .tile-name{font-weight:600;font-size:15px;line-height:1.2;overflow-wrap:break-word}
 .tile-meta{font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums}
@@ -324,6 +326,17 @@ const SAMPLE_ITEMS=[
  {namn:'Eukalyptus',kategori:'Grönt',enhet:'bunt',paket:10,pris:65,farg:'#7fa392'},
  {namn:'Ruscus',kategori:'Grönt',enhet:'bunt',paket:10,pris:55,farg:'#2f6b4a'}
 ];
+/* de vanligaste snittblommorna som knappar vid första start, utan priser */
+const COMMON_FLOWERS=[
+ ['Röd ros','Blommor','#c0182f'],['Rosa ros','Blommor','#f08bb0'],['Vit ros','Blommor','#f4f1ea'],['Gul ros','Blommor','#f2c230'],
+ ['Tulpan','Blommor','#e8573d'],['Nejlika','Blommor','#d96a8f'],['Solros','Blommor','#f2b705'],['Alstroemeria','Blommor','#e9a6c9'],
+ ['Lisianthus','Blommor','#9c7bd0'],['Gerbera','Blommor','#f57c2a'],['Krysantemum','Blommor','#e7d96b'],['Lilja','Blommor','#f3a1b6'],
+ ['Freesia','Blommor','#f7e08a'],['Iris','Blommor','#5b6fd6'],['Pion','Blommor','#f4a6bd'],['Hortensia','Blommor','#8fb0e0'],
+ ['Ranunkel','Blommor','#f08a4b'],['Anemon','Blommor','#7a4fa0'],['Lejongap','Blommor','#e86f9a'],['Riddarsporre','Blommor','#4f7fd1'],
+ ['Påsklilja','Blommor','#f5d742'],['Hyacint','Blommor','#9a8be0'],
+ ['Eukalyptus','Grönt','#7fa392'],['Slöjflor','Grönt','#dfe6e0'],['Ruscus','Grönt','#2f6b4a'],['Salal','Grönt','#3f7a4f']
+];
+function commonItems(){ return COMMON_FLOWERS.map(([namn,kategori,farg])=>({namn,kategori,enhet:'',paket:1,pris:0,farg})); }
 const DEFAULT_SETTINGS={
   mode:'whole', markupPct:50, hourly:250, vatPct:25, roundStep:5,
   sizes:[
@@ -335,11 +348,12 @@ const DEFAULT_SETTINGS={
 };
 function items(obj){ const o={}; for(const [n,c] of Object.entries(obj)) o[keyOf(n)]=c; return o; }
 function emptyState(){
+  const its=commonItems(), labels={}; its.forEach(i=>{labels[keyOf(i.namn)]=i.namn;});
   return {
     v:1,
-    priceList:{meta:{namn:'Ingen prislista än',datum:'',kalla:'tom'},items:[]},
+    priceList:{meta:{namn:'Ingen prislista än',datum:'',kalla:'tom'},items:its},
     settings:clone(DEFAULT_SETTINGS),
-    labels:{},
+    labels,
     wholesaler:{namn:'',url:''},
     order:{buketter:[{id:'b1',size:'medel',qty:1,items:{}}],hemma:{},active:'b1',seq:1},
     recipes:[]
@@ -378,6 +392,9 @@ function load(){
         s.wholesaler=Object.assign({namn:'',url:''},s.wholesaler||{});
         s.order.hemma=s.order.hemma||{};
         if(!s.order.buketter.some(b=>b.id===s.order.active)) s.order.active=s.order.buketter[0].id;
+        if(s.priceList.meta&&s.priceList.meta.kalla==='tom'&&!s.priceList.items.length){
+          s.priceList.items=commonItems(); s.priceList.items.forEach(i=>{ s.labels[keyOf(i.namn)]=i.namn; });
+        }
         return s;
       }
     }
@@ -387,7 +404,7 @@ function load(){
 let state=load();
 let pending=null;                       // förhandsgranskning av hel ny prislista
 let pendingUpd=null;                    // förhandsgranskning av uppdaterade priser
-const ui={tab:'bukett',cat:'',q:'',open:{},copyText:'',focusNew:false,upd:false,updScope:'valda',msg:''};
+const ui={tab:'bukett',cat:'',q:'',open:{},copyText:'',focusNew:false,newFlower:false,upd:false,updScope:'valda',msg:''};
 function save(){ try{ localStorage.setItem(STORE_KEY,JSON.stringify(state)); }catch(e){} }
 
 /* ---------- räknemotor ---------- */
@@ -676,12 +693,13 @@ function renderTiles(){
   const all=state.priceList.items;
   const shown=all.filter(i=>(!ui.cat||i.kategori===ui.cat)&&(!q||keyOf(i.namn).includes(q)));
   const exact=q&&all.some(i=>keyOf(i.namn)===q);
+  const anyPriced=all.some(i=>i.pris>0);
   let h='';
   if(qRaw&&!exact){
     h+='<div class="tile new"><button class="tile-main" data-act="add-new" data-name="'+esc(qRaw)+'"><span class="tile-name">+ Lägg till "'+esc(qRaw)+'"</span><span class="tile-meta">Priset hämtas med Uppdatera priser</span></button></div>';
   }
   if(!all.length&&!qRaw){
-    h='<p class="muted" style="grid-column:1/-1">Du har inga blommor än. Skriv namnet i sökrutan, till exempel "Röd ros", och tryck på Lägg till. Priset fyller du i sist med Uppdatera priser.</p>';
+    h='<p class="muted" style="grid-column:1/-1">Det finns inga blommor. Tryck på Ny blomma och skriv namnet, så blir det en knapp.</p>';
   } else if(!shown.length&&!(qRaw&&!exact)){
     h='<p class="muted" style="grid-column:1/-1">Inga varor matchar. Ändra sökningen eller kategorin.</p>';
   }
@@ -689,14 +707,20 @@ function renderTiles(){
     const k=keyOf(it.namn), n=b.items[k]||0, p=Math.max(1,Math.round(+it.paket||1)), pr=+it.pris||0;
     const meta=pr>0
       ?'<span class="tile-meta">'+(it.uppd===t?'':'ca\u00a0')+esc(kr(pr/p))+'/st · '+esc(packLabel({enhet:it.enhet,paket:p}))+'</span>'
-      :'<span class="tile-meta nop">Pris saknas</span>';
+      :(anyPriced?'<span class="tile-meta nop">Pris saknas</span>':'');
     return '<div class="tile'+(n>0?' on':'')+'"'+(it.farg?' style="--c:'+esc(it.farg)+'"':'')+'>'
       +'<button class="tile-main" data-act="add" data-key="'+esc(k)+'" aria-label="Lägg till '+esc(it.namn)+(n>0?', '+n+' valda':'')+'">'
       +'<span class="tile-name">'+esc(it.namn)+'</span>'+meta+'</button>'
       +(n>0?'<div class="side"><span class="count">'+n+'</span><button class="minus" data-act="dec" data-key="'+esc(k)+'" aria-label="Ta bort en '+esc(it.namn)+'">−</button></div>':'')
       +'</div>';
   }).join('');
+  h+=ui.newFlower
+    ?'<div class="tile new form"><label class="vh" for="new-flower">Namn på ny blomma</label>'
+      +'<input id="new-flower" type="text" placeholder="Namn, till exempel Pelargon" autocomplete="off" enterkeyhint="done">'
+      +'<button class="btn primary" data-act="create-flower">Lägg till</button><button class="btn" data-act="cancel-new">Avbryt</button></div>'
+    :'<div class="tile new"><button class="tile-main" data-act="open-new"><span class="tile-name">+ Ny blomma</span><span class="tile-meta">Skriv namnet, så blir det en knapp</span></button></div>';
   $('#tiles').innerHTML=h;
+  if(ui.newFlower){ const ni=$('#new-flower'); if(ni) ni.focus(); }
 }
 function renderRecipes(){
   const rs=state.recipes;
@@ -1098,7 +1122,7 @@ function addNewFlower(name){
   }
   state.labels[k]=state.priceList.items.find(i=>keyOf(i.namn)===k).namn;
   const b=activeB(); b.items[k]=(b.items[k]||0)+1;
-  ui.q=''; $('#search').value='';
+  ui.q=''; ui.newFlower=false; $('#search').value='';
   save(); renderCats(); renderBuilder();
 }
 const act={
@@ -1110,6 +1134,9 @@ const act={
   'qty-dec'(){ const b=activeB(); b.qty=Math.max(1,b.qty-1); save(); renderBuilder(); },
   add(t){ const b=activeB(), k=t.dataset.key; b.items[k]=(b.items[k]||0)+1; const it=state.priceList.items.find(i=>keyOf(i.namn)===k); if(it) state.labels[k]=it.namn; save(); renderBuilder(); },
   'add-new'(t){ addNewFlower(t.dataset.name); },
+  'open-new'(){ ui.newFlower=true; renderTiles(); },
+  'cancel-new'(){ ui.newFlower=false; renderTiles(); },
+  'create-flower'(){ const i=$('#new-flower'); if(i&&i.value.trim()) addNewFlower(i.value); else if(i) i.focus(); },
   dec(t){ const b=activeB(), k=t.dataset.key; b.items[k]=(b.items[k]||0)-1; if(b.items[k]<=0) delete b.items[k]; save(); renderBuilder(); },
   'rm-item'(t){ delete activeB().items[t.dataset.key]; save(); renderBuilder(); },
   cat(t){ ui.cat=t.dataset.cat; renderCats(); renderTiles(); },
@@ -1162,6 +1189,7 @@ function runImport(text,name){
 document.addEventListener('click',e=>{
   const t=e.target.closest('[data-tab],[data-act]'); if(!t) return;
   if(t.dataset.tab){ setTab(t.dataset.tab); return; }
+  if(ui.newFlower&&!/^(create-flower|cancel-new|open-new)$/.test(t.dataset.act)) ui.newFlower=false;
   const fn=act[t.dataset.act]; if(fn) fn(t,e);
 });
 document.addEventListener('change',e=>{
@@ -1194,6 +1222,11 @@ document.addEventListener('change',e=>{
 });
 document.addEventListener('input',e=>{ if(e.target.id==='search'){ ui.q=e.target.value; renderTiles(); } });
 document.addEventListener('keydown',e=>{
+  if(e.target.id==='new-flower'){
+    if(e.key==='Enter'){ e.preventDefault(); act['create-flower'](); }
+    else if(e.key==='Escape'){ act['cancel-new'](); }
+    return;
+  }
   if(e.key==='Enter'&&e.target.id==='search'){
     e.preventDefault();
     const q=keyOf(e.target.value); if(!q) return;
