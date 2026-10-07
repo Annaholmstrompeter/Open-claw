@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Young+Serif&display=swap">
 <style>
 /* Layout: ett arbetsblad. Vänster: välj storlek och tryck på blommor. Höger: pris, inköpslista och överskott, alltid synliga.
-   På mobil ligger totalsumman och knappen Uppdatera priser i en fast list längst ned. */
+   På mobil ligger totalsumman och knappen Hämta pris i en fast list längst ned. */
 :root{
   --bg:#f2f5f1; --surface:#ffffff; --surface-2:#e7eee8; --ink:#17231d; --ink-2:#4b5c52; --line:#d2dcd4;
   --accent:#b3365f; --accent-ink:#ffffff; --accent-soft:#f7e1e8;
@@ -259,7 +259,7 @@ ul.plain{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px}
         <div id="pl-head" class="card"></div>
         <section class="card" aria-label="Hela prislistan">
           <h3>Läs in en hel prislista</h3>
-          <p class="muted small">Behövs bara om du har en färdig fil eller tabell från grossisten. Annars räcker knappen Uppdatera priser på första sidan. Klistra in tabellen från Excel, eller välj en CSV-fil. Första raden ska vara rubriker, till exempel <code>Namn; Antal per förp; Pris per förp</code>.</p>
+          <p class="muted small">Behövs bara om du har en färdig fil eller tabell från grossisten. Annars räcker knappen Hämta pris på första sidan. Klistra in tabellen från Excel, eller välj en CSV-fil. Första raden ska vara rubriker, till exempel <code>Namn; Antal per förp; Pris per förp</code>.</p>
           <label class="vh" for="csv-in">Prislista</label>
           <textarea id="csv-in" rows="6" placeholder="Namn;Antal per förp;Pris per förp&#10;Röd ros 60 cm;10;120&#10;Tulpan;10;55"></textarea>
           <div class="row">
@@ -331,10 +331,9 @@ const COMMON_FLOWERS=[
  ['Röd ros','Blommor','#c0182f'],['Rosa ros','Blommor','#f08bb0'],['Vit ros','Blommor','#f4f1ea'],['Gul ros','Blommor','#f2c230'],
  ['Tulpan','Blommor','#e8573d'],['Nejlika','Blommor','#d96a8f'],['Solros','Blommor','#f2b705'],['Alstroemeria','Blommor','#e9a6c9'],
  ['Lisianthus','Blommor','#9c7bd0'],['Gerbera','Blommor','#f57c2a'],['Krysantemum','Blommor','#e7d96b'],['Lilja','Blommor','#f3a1b6'],
- ['Freesia','Blommor','#f7e08a'],['Iris','Blommor','#5b6fd6'],['Pion','Blommor','#f4a6bd'],['Hortensia','Blommor','#8fb0e0'],
- ['Ranunkel','Blommor','#f08a4b'],['Anemon','Blommor','#7a4fa0'],['Lejongap','Blommor','#e86f9a'],['Riddarsporre','Blommor','#4f7fd1'],
- ['Påsklilja','Blommor','#f5d742'],['Hyacint','Blommor','#9a8be0'],
- ['Eukalyptus','Grönt','#7fa392'],['Slöjflor','Grönt','#dfe6e0'],['Ruscus','Grönt','#2f6b4a'],['Salal','Grönt','#3f7a4f']
+ ['Freesia','Blommor','#f7e08a'],['Hortensia','Blommor','#8fb0e0'],['Ranunkel','Blommor','#f08a4b'],['Iris','Blommor','#5b6fd6'],
+ ['Pion','Blommor','#f4a6bd'],
+ ['Eukalyptus','Grönt','#7fa392'],['Slöjflor','Grönt','#dfe6e0'],['Ruscus','Grönt','#2f6b4a']
 ];
 function commonItems(){ return COMMON_FLOWERS.map(([namn,kategori,farg])=>({namn,kategori,enhet:'',paket:1,pris:0,farg})); }
 const DEFAULT_SETTINGS={
@@ -354,7 +353,7 @@ function emptyState(){
     priceList:{meta:{namn:'Ingen prislista än',datum:'',kalla:'tom'},items:its},
     settings:clone(DEFAULT_SETTINGS),
     labels,
-    wholesaler:{namn:'',url:''},
+    wholesaler:{namn:'',url:'',ai:'chatgpt'},
     order:{buketter:[{id:'b1',size:'medel',qty:1,items:{}}],hemma:{},active:'b1',seq:1},
     recipes:[]
   };
@@ -366,7 +365,7 @@ function exampleState(){
     priceList:{meta:{namn:'Exempeldata',datum:today(),kalla:'exempel'},items:clone(SAMPLE_ITEMS)},
     settings:clone(DEFAULT_SETTINGS),
     labels,
-    wholesaler:{namn:'',url:''},
+    wholesaler:{namn:'',url:'',ai:'chatgpt'},
     order:{
       buketter:[
         {id:'b1',size:'liten',qty:1,items:items({'Rosa ros 50 cm':3,'Tulpan':4,'Eukalyptus':2})},
@@ -389,7 +388,7 @@ function load(){
         s.settings=Object.assign({},d.settings,s.settings||{});
         if(!Array.isArray(s.settings.sizes)||s.settings.sizes.length<1) s.settings.sizes=d.settings.sizes;
         s.labels=s.labels||{}; s.recipes=Array.isArray(s.recipes)?s.recipes:[];
-        s.wholesaler=Object.assign({namn:'',url:''},s.wholesaler||{});
+        s.wholesaler=Object.assign({namn:'',url:'',ai:'chatgpt'},s.wholesaler||{});
         s.order.hemma=s.order.hemma||{};
         if(!s.order.buketter.some(b=>b.id===s.order.active)) s.order.active=s.order.buketter[0].id;
         if(s.priceList.meta&&s.priceList.meta.kalla==='tom'&&!s.priceList.items.length){
@@ -696,7 +695,7 @@ function renderTiles(){
   const anyPriced=all.some(i=>i.pris>0);
   let h='';
   if(qRaw&&!exact){
-    h+='<div class="tile new"><button class="tile-main" data-act="add-new" data-name="'+esc(qRaw)+'"><span class="tile-name">+ Lägg till "'+esc(qRaw)+'"</span><span class="tile-meta">Priset hämtas med Uppdatera priser</span></button></div>';
+    h+='<div class="tile new"><button class="tile-main" data-act="add-new" data-name="'+esc(qRaw)+'"><span class="tile-name">+ Lägg till "'+esc(qRaw)+'"</span><span class="tile-meta">Priset fyller du i med Hämta pris</span></button></div>';
   }
   if(!all.length&&!qRaw){
     h='<p class="muted" style="grid-column:1/-1">Det finns inga blommor. Tryck på Ny blomma och skriv namnet, så blir det en knapp.</p>';
@@ -737,20 +736,20 @@ function renderFresh(){
   let h='';
   if(!priced.length){
     h='<div class="card fresh"><div class="line"><span class="badge">Inga priser än</span></div>'
-      +'<p class="small muted">Första gången är priserna tomma. Lägg till blommorna du vill använda, välj dem i en bukett och tryck sedan Uppdatera priser.</p>'
-      +'<div class="row"><button class="btn primary" data-act="open-update">Uppdatera priser</button><button class="btn" data-act="load-example">Prova med exempeldata</button></div></div>';
+      +'<p class="small muted">Första gången är priserna tomma. Lägg till blommorna du vill använda, välj dem i en bukett och tryck sedan Hämta pris.</p>'
+      +'<div class="row"><button class="btn primary" data-act="open-update">Hämta pris</button><button class="btn" data-act="load-example">Prova med exempeldata</button></div></div>';
   } else if(m.kalla==='exempel'){
     h='<div class="card fresh"><div class="line"><span class="badge warn">Exempelpriser</span></div>'
-      +'<p class="small muted">Påhittade priser som visar hur appen räknar. Tryck Uppdatera priser för att hämta riktiga.</p>'
-      +'<div class="row"><button class="btn primary" data-act="open-update">Uppdatera priser</button></div></div>';
+      +'<p class="small muted">Påhittade priser som visar hur appen räknar. Tryck Hämta pris för att få riktiga priser.</p>'
+      +'<div class="row"><button class="btn primary" data-act="open-update">Hämta pris</button></div></div>';
   } else {
     const last=priced.map(i=>i.uppd||'').sort().pop()||m.datum;
     const usedPriced=Object.values(C.buy).filter(b=>b.hasPrice);
     const allFresh=usedPriced.length>0&&usedPriced.every(b=>b.fresh);
     h='<div class="card fresh"><div class="line"><span>Priser från '+esc(last)+' ('+esc(ageText(last))+')</span>'
       +(allFresh?'<span class="badge ok">Aktuella idag</span>':'<span class="badge warn">Ungefärliga</span>')+'</div>'
-      +'<p class="small muted">'+(allFresh?'Priserna för dina valda blommor är uppdaterade idag.':'Priserna ligger kvar från förra uppdateringen och räknas som ungefärliga. Tryck Uppdatera priser när du har valt klart.')+'</p>'
-      +'<div class="row"><button class="btn'+(allFresh?'':' primary')+'" data-act="open-update">Uppdatera priser</button></div></div>';
+      +'<p class="small muted">'+(allFresh?'Priserna för dina valda blommor är uppdaterade idag.':'Priserna ligger kvar från förra uppdateringen och räknas som ungefärliga. Tryck Hämta pris när du har valt klart.')+'</p>'
+      +'<div class="row"><button class="btn'+(allFresh?'':' primary')+'" data-act="open-update">Hämta pris</button></div></div>';
   }
   if(msg) h='<div class="note ok" role="status">'+esc(msg)+'</div>'+h;
   el.innerHTML=h;
@@ -781,7 +780,7 @@ function renderSummary(){
     }
     if(r.incomplete){
       h+='<article class="card price-card"><div class="pc-head"><span>'+name+'</span><span class="pc-sub">'+r.stems+' stjälkar</span></div>'
-        +'<div><div class="big">–</div><div class="pc-sub">Pris saknas för '+r.noPrice.map(k=>esc(labelOf(k))).join(', ')+'. Tryck Uppdatera priser.</div></div></article>';
+        +'<div><div class="big">–</div><div class="pc-sub">Pris saknas för '+r.noPrice.map(k=>esc(labelOf(k))).join(', ')+'. Tryck Hämta pris.</div></div></article>';
       return;
     }
     const open=ui.open[r.b.id]?' open':'';
@@ -833,7 +832,7 @@ function renderSummary(){
   $('#summary').innerHTML=h;
   if(ui.copyText){ const cb=$('#copy-box'); if(cb){ cb.focus(); cb.select(); } }
   $('#totalbar').innerHTML='<div><small>Totalt inkl. moms</small><strong>'+(C.total==null||!filled.length?'–':money(C.total,C.approx))+'</strong></div>'
-    +'<div class="tb-actions"><button class="btn tb-link" data-act="goto-summary">Detaljer</button><button class="btn" data-act="open-update">Uppdatera priser</button></div>';
+    +'<div class="tb-actions"><button class="btn tb-link" data-act="goto-summary">Detaljer</button><button class="btn" data-act="open-update">Hämta pris</button></div>';
 }
 function renderBanner(){
   $('#banner').innerHTML=state.priceList.meta.kalla==='exempel'
@@ -865,20 +864,31 @@ function updPrompt(){
     'Skriv mitt namn på varan i kolumnen Namn. "Antal per förp" är antal stjälkar i en hel förpackning (bunt, pack eller kartong). "Pris per förp" är priset för hela förpackningen i kronor, exklusive moms. "Enhet" är bunt, pack eller styck.'
   ].join('\n');
 }
+function aiLink(){
+  const base=state.wholesaler.ai==='claude'?'https://claude.ai/new?q=':'https://chatgpt.com/?q=';
+  const enc=encodeURIComponent(updPrompt());
+  return enc.length<=6500?base+enc:'';
+}
 function refreshPrompt(){
   const ta=$('#upd-prompt'); if(!ta) return;
-  const n=updKeys().length;
+  const n=updKeys().length, ai=state.wholesaler.ai==='claude'?'Claude':'ChatGPT';
   ta.value=n?updPrompt():'';
   const c=$('#upd-count'); if(c) c.textContent=n+(n===1?' vara':' varor');
   const no=$('#upd-none'); if(no) no.hidden=n>0;
+  const a=$('#upd-open'), link=n?aiLink():'';
+  if(a){ a.hidden=!link; if(link){ a.href=link; a.textContent='Öppna '+ai+' med uppdraget'; } }
+  const h=$('#upd-ai-hint');
+  if(h) h.textContent=!n?'':!link?'Uppdraget är för långt för en länk. Kopiera det och klistra in det i '+ai+'.'
+    :ai==='ChatGPT'?'Välj Work om det inte redan är valt, så att assistenten kan surfa. Du loggar in själv när den ber om det, och inloggningen sparas hos ChatGPT till nästa gång.'
+    :'Claude kan läsa grossistens sida i Claudes skrivbordsapp på dator, inte från telefonen. Du loggar in själv.';
 }
 function renderUpdatePanel(){
   const el=$('#update-panel');
   if(!ui.upd){ el.hidden=true; el.innerHTML=''; return; }
   const W=state.wholesaler, url=safeUrl(W.url), chosen=chosenKeys().length, all=state.priceList.items.length;
   el.hidden=false;
-  el.innerHTML='<section class="card" aria-label="Uppdatera priser">'
-    +'<div class="head-row"><h3>Uppdatera priser</h3><button class="icon-btn" data-act="close-update" aria-label="Stäng">×</button></div>'
+  el.innerHTML='<section class="card" aria-label="Hämta pris">'
+    +'<div class="head-row"><h3>Hämta pris från grossisten</h3><button class="icon-btn" data-act="close-update" aria-label="Stäng">×</button></div>'
     +'<ol class="steps">'
     +'<li><div class="body"><strong>Din grossist</strong>'
       +'<label class="field">Namn<input id="ws-name" type="text" value="'+esc(W.namn)+'" placeholder="Till exempel grossisten du handlar av" autocomplete="off"></label>'
@@ -892,10 +902,13 @@ function renderUpdatePanel(){
       +'</div>'
       +'<p id="upd-none" class="note warn" hidden>Du har inte valt några blommor än. Välj blommor i en bukett, eller välj Hela min lista.</p>'
     +'</div></li>'
-    +'<li><div class="body"><strong>Skicka uppdraget till din AI-assistent</strong>'
-      +'<p class="small muted">Klistra in det i ChatGPT Work eller en annan AI som kan surfa. Logga in på grossistens sida själv när den ber om det. Skriv aldrig koden här i appen.</p>'
-      +'<div class="row"><button class="btn primary" data-act="copy-prompt">Kopiera uppdraget</button><span class="small muted" id="upd-count"></span></div>'
+    +'<li><div class="body"><strong>Öppna din AI-assistent med uppdraget</strong>'
+      +'<label class="field">Min AI-assistent<select id="ws-ai"><option value="chatgpt"'+(W.ai!=='claude'?' selected':'')+'>ChatGPT (Work)</option><option value="claude"'+(W.ai==='claude'?' selected':'')+'>Claude</option></select></label>'
+      +'<a id="upd-open" class="btn primary" href="#" target="_blank" rel="noopener" hidden></a>'
+      +'<p id="upd-ai-hint" class="small muted"></p>'
+      +'<div class="row"><button class="btn" data-act="copy-prompt">Kopiera uppdraget i stället</button><span class="small muted" id="upd-count"></span></div>'
       +'<details><summary>Visa uppdraget</summary><label class="vh" for="upd-prompt">Uppdraget</label><textarea id="upd-prompt" readonly></textarea></details>'
+      +'<p class="small muted">Skriv aldrig koden till grossisten här i appen. Du loggar in på grossistens sida, hos assistenten.</p>'
     +'</div></li>'
     +'<li><div class="body"><strong>Klistra in svaret</strong>'
       +'<label class="vh" for="upd-in">Svaret från AI-assistenten</label>'
@@ -1203,6 +1216,7 @@ document.addEventListener('change',e=>{
   }
   if(t.name==='mode'){ state.settings.mode=t.value; save(); renderSummary(); return; }
   if(t.name==='updscope'){ ui.updScope=t.value; refreshPrompt(); return; }
+  if(t.id==='ws-ai'){ state.wholesaler.ai=t.value==='claude'?'claude':'chatgpt'; save(); refreshPrompt(); return; }
   if(t.id==='ws-name'){ state.wholesaler.namn=t.value.trim(); save(); refreshPrompt(); return; }
   if(t.id==='ws-url'){ state.wholesaler.url=t.value.trim(); save(); refreshPrompt(); return; }
   if(t.dataset&&t.dataset.hemma){ const v=Math.max(0,Math.round(parseFloat(t.value)||0)); if(v>0) state.order.hemma[t.dataset.hemma]=v; else delete state.order.hemma[t.dataset.hemma]; ui.open.hemma=true; save(); renderSummary(); return; }

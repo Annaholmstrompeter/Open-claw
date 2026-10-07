@@ -10,9 +10,9 @@ Appen är byggd för telefon. Den fungerar med vilken grossist som helst.
 
 ## Så används den
 
-1. **Första gången finns de vanligaste blommorna som knappar, men utan priser.** Ett klick på en knapp lägger till en blomma i buketten, fler klick ger fler blommor, och minus tar bort en. Saknas en blomma trycker man på "Ny blomma" (eller skriver namnet i sökrutan) och skriver in den, så skapas en ny knapp. Knappen "Prova med exempeldata" visar hur appen räknar, med påhittade priser.
+1. **Första gången finns de 20 vanligaste bukett- och utsmyckningsblommorna som knappar, men utan priser.** Ett klick på en knapp lägger till en blomma i buketten, fler klick ger fler blommor, och minus tar bort en. Saknas en blomma trycker man på "Ny blomma" (eller skriver namnet i sökrutan) och skriver in den, så skapas en ny knapp. Knappen "Prova med exempeldata" visar hur appen räknar, med påhittade priser.
 2. **Välj blommor** i en eller flera buketter. Priser som ligger kvar från förra gången visas som "ca" och med ålder, så man får ungefärliga priser direkt.
-3. **Tryck "Uppdatera priser" när du valt klart.** Appen skapar ett uppdrag med de valda blommorna. Man klistrar in det i en AI-assistent som kan surfa (till exempel ChatGPT Work), loggar in på grossistens sida själv när assistenten ber om det, och klistrar tillbaka svaret i appen.
+3. **Tryck "Hämta pris" när du valt klart.** En ruta öppnas. Man skriver in sin grossist (namn och webbadress) och väljer sin AI-assistent (ChatGPT Work eller Claude). Det sparas till nästa gång. Knappen "Öppna ChatGPT med uppdraget" öppnar assistenten med uppdraget färdigskrivet för de valda blommorna. Det går också att kopiera uppdraget och klistra in det själv. Man loggar in på grossistens sida själv när assistenten ber om det (ChatGPT Work sparar inloggningen till nästa gång), och klistrar sedan tillbaka svaret i appen.
 4. Appen visar vad som lästes av: gammalt och nytt pris, procent per stjälk, **ändrad förpackning** och vad som inte hittades. Först när man trycker "Använd priserna" byts priserna, och de räknas då som aktuella idag.
 
 Uppdraget säger att AI:n bara ska läsa av, inte beställa eller ändra något. Koden till grossistens konto skrivs bara på grossistens egen sida, aldrig i appen. AI:ns avläsning kan bli fel, så man ska alltid kontrollera förhandsgranskningen.
@@ -41,7 +41,7 @@ Har man en färdig fil eller tabell kan man läsa in den under Prislista: klistr
 
 ## Inte byggt än
 
-- Direkt koppling till AI eller grossist. Idag lämnar man över uppdraget och svaret med kopiera och klistra in. En riktig inbyggd koppling skulle kräva en egen serverdel med en webbläsare i molnet, och är en annan storlek.
+- Automatisk koppling till AI eller grossist. Länken öppnar assistenten med uppdraget, men svaret måste klistras tillbaka för hand. Att länkarna (`chatgpt.com/?q=` och `claude.ai/new?q=`) fyller i texten, och om telefonen öppnar appen eller webbläsaren, är inte provat. En riktig inbyggd koppling skulle kräva en egen serverdel med en webbläsare i molnet, och är en annan storlek.
 - Konton och delad data mellan flera användare. Varje telefon har sin egen kopia.
 - Läsning av `.xlsx` och PDF direkt, foton på blommor, favoriter och senast använda.
 - Matchning på artikelnummer.
