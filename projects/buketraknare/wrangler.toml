@@ -1,0 +1,33 @@
+name = "buketraknare"
+main = "src/worker.js"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Själva appen
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+# Brevlådan (en liten lagring per engångskod) och dagsräknaren för avläsningar.
+# Skapas automatiskt vid första driftsättningen.
+[[durable_objects.bindings]]
+name = "INBOX"
+class_name = "Inbox"
+
+[[durable_objects.bindings]]
+name = "LIMITER"
+class_name = "Limiter"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Inbox"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["Limiter"]
+
+[vars]
+# Högsta antal avläsningar av skärmdumpar per dag, för att hålla nere kostnaden.
+READ_DAILY_LIMIT = "40"
+# Hemligheterna ANTHROPIC_API_KEY (krävs för avläsning) och READ_CODE (rekommenderas)
+# läggs in i Cloudflare under Settings -> Variables and Secrets. De ska aldrig stå här.
