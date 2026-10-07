@@ -60,6 +60,7 @@ p{margin:0}
 .btn{min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-weight:600;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .btn:hover{border-color:var(--ink-2)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+a.btn{text-decoration:none}
 .btn.danger{color:var(--bad)}
 .link{background:none;border:0;padding:0;color:var(--accent);font-weight:600;text-decoration:underline;cursor:pointer}
 .icon-btn{width:44px;height:44px;border:0;background:transparent;border-radius:10px;font-size:22px;color:var(--ink-2);cursor:pointer}
@@ -403,7 +404,7 @@ function load(){
 let state=load();
 let pending=null;                       // förhandsgranskning av hel ny prislista
 let pendingUpd=null;                    // förhandsgranskning av uppdaterade priser
-const ui={tab:'bukett',cat:'',q:'',open:{},copyText:'',focusNew:false,newFlower:false,upd:false,updScope:'valda',msg:''};
+const ui={tab:'bukett',cat:'',q:'',open:{},copyText:'',focusNew:false,newFlower:false,upd:false,updScope:'valda',msg:'',relay:null,code:'',poll:null,tick:null};
 function save(){ try{ localStorage.setItem(STORE_KEY,JSON.stringify(state)); }catch(e){} }
 
 /* ---------- räknemotor ---------- */
@@ -862,7 +863,49 @@ function updPrompt(){
     'Svara bara med en tabell, en rad per vara, med semikolon mellan kolumnerna och rubrikerna på första raden:',
     'Namn;Antal per förp;Pris per förp;Enhet;Anmärkning',
     'Skriv mitt namn på varan i kolumnen Namn. "Antal per förp" är antal stjälkar i en hel förpackning (bunt, pack eller kartong). "Pris per förp" är priset för hela förpackningen i kronor, exklusive moms. "Enhet" är bunt, pack eller styck.'
-  ].join('\n');
+  ].concat(ui.relay&&ui.code?[
+    '',
+    'Lämna sedan in samma tabell här: '+location.origin+'/leverera/'+ui.code,
+    'Öppna adressen, klistra in tabellen i textrutan och tryck på Skicka. Där finns bara en textruta och en knapp. Det är en tabell med priser, inga personuppgifter. Skriv också ut tabellen i chatten.'
+  ]:[]).join('\n');
+}
+async function checkRelay(){
+  if(location.protocol==='file:'){ ui.relay=false; return false; }
+  try{
+    const ctl=new AbortController(), to=setTimeout(()=>ctl.abort(),2000);
+    const r=await fetch('api/ping',{cache:'no-store',signal:ctl.signal}); clearTimeout(to);
+    const j=r.ok?await r.json():null;
+    ui.relay=!!(j&&j.ok&&j.app==='buketraknare');
+  }catch(e){ ui.relay=false; }
+  return ui.relay;
+}
+function newCode(){
+  const a=new Uint8Array(16);
+  if(window.crypto&&crypto.getRandomValues) crypto.getRandomValues(a); else for(let i=0;i<16;i++) a[i]=Math.floor(Math.random()*256);
+  return btoa(String.fromCharCode.apply(null,a)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function stopPoll(){ if(ui.poll){ clearTimeout(ui.poll); ui.poll=null; } ui.tick=null; }
+function showWait(msg,cls){ const w=$('#upd-wait'); if(!w) return; w.textContent=msg||''; w.hidden=!msg; w.className='note'+(cls?' '+cls:''); }
+function startPoll(){
+  stopPoll();
+  if(!ui.relay||!ui.code) return;
+  const code=ui.code, t0=Date.now();
+  const tick=async()=>{
+    ui.poll=null;
+    if(!ui.upd||ui.code!==code) return;
+    if(Date.now()-t0>30*60*1000){ showWait('Koden har gått ut. Tryck Hämta pris igen.','warn'); return; }
+    try{
+      const r=await fetch('api/inbox/'+code,{cache:'no-store'});
+      if(r.ok){ const j=await r.json(); if(j&&j.ready){ ui.tick=null; onDelivered(j.text); return; } }
+    }catch(e){}
+    if(ui.upd&&ui.code===code) ui.poll=setTimeout(tick,3000);
+  };
+  ui.tick=tick; ui.poll=setTimeout(tick,3000);
+}
+function onDelivered(text){
+  const ta=$('#upd-in'); if(ta) ta.value=text;
+  runUpdate(text);
+  showWait(pendingUpd?'Priserna kom in från assistenten. Kontrollera dem nedan.':'Assistenten lämnade in något som inte gick att läsa. Se felet nedan.',pendingUpd?'ok':'warn');
 }
 function aiLink(){
   const base=state.wholesaler.ai==='claude'?'https://claude.ai/new?q=':'https://chatgpt.com/?q=';
@@ -885,7 +928,7 @@ function refreshPrompt(){
 function renderUpdatePanel(){
   const el=$('#update-panel');
   if(!ui.upd){ el.hidden=true; el.innerHTML=''; return; }
-  const W=state.wholesaler, url=safeUrl(W.url), chosen=chosenKeys().length, all=state.priceList.items.length;
+  const W=state.wholesaler, url=safeUrl(W.url), chosen=chosenKeys().length, all=state.priceList.items.length, relayOn=!!(ui.relay&&ui.code);
   el.hidden=false;
   el.innerHTML='<section class="card" aria-label="Hämta pris">'
     +'<div class="head-row"><h3>Hämta pris från grossisten</h3><button class="icon-btn" data-act="close-update" aria-label="Stäng">×</button></div>'
@@ -910,7 +953,8 @@ function renderUpdatePanel(){
       +'<details><summary>Visa uppdraget</summary><label class="vh" for="upd-prompt">Uppdraget</label><textarea id="upd-prompt" readonly></textarea></details>'
       +'<p class="small muted">Skriv aldrig koden till grossisten här i appen. Du loggar in på grossistens sida, hos assistenten.</p>'
     +'</div></li>'
-    +'<li><div class="body"><strong>Klistra in svaret</strong>'
+    +'<li><div class="body"><strong>'+(relayOn?'Priserna dyker upp här':'Klistra in svaret')+'</strong>'
+      +(relayOn?'<p id="upd-wait" class="note">Väntar på att assistenten lämnar in priserna. De dyker upp här av sig själva när du kommer tillbaka till appen. Du kan också klistra in svaret nedan.</p>':'<p id="upd-wait" class="note" hidden></p>')
       +'<label class="vh" for="upd-in">Svaret från AI-assistenten</label>'
       +'<textarea id="upd-in" rows="5" placeholder="Namn;Antal per förp;Pris per förp;Enhet&#10;Röd ros 60 cm;10;129;pack"></textarea>'
       +'<div class="row"><button class="btn primary" data-act="parse-update">Läs in svaret</button></div>'
@@ -985,7 +1029,7 @@ function applyUpdate(){
   const meta=state.priceList.meta;
   meta.datum=t;
   if(meta.kalla==='tom'||meta.kalla==='exempel'||meta.kalla==='egen'){ meta.kalla='uppdaterad'; meta.namn='Min prislista'; }
-  pendingUpd=null; ui.upd=false; ui.msg='Uppdaterade '+n+(n===1?' pris.':' priser.');
+  stopPoll(); ui.code=''; pendingUpd=null; ui.upd=false; ui.msg='Uppdaterade '+n+(n===1?' pris.':' priser.');
   save(); renderAll();
   $('#fresh').scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -1170,8 +1214,14 @@ const act={
   'copy-list'(t){ copyText(shoppingText(calc(state)),t,()=>{ ui.copyText=shoppingText(calc(state)); renderSummary(); }); },
   'clear-order'(t){ twoStep(t,'Säker? Tryck igen',()=>{ const o=state.order; o.seq++; const id='b'+o.seq; o.buketter=[{id,size:o.buketter[0].size,qty:1,items:{}}]; o.active=id; o.hemma={}; ui.copyText=''; save(); renderBuilder(); }); },
   'goto-summary'(){ $('#summary').scrollIntoView({behavior:'smooth',block:'start'}); },
-  'open-update'(){ ui.upd=true; pendingUpd=null; renderUpdatePanel(); $('#update-panel').scrollIntoView({behavior:'smooth',block:'start'}); },
-  'close-update'(){ ui.upd=false; pendingUpd=null; renderUpdatePanel(); },
+  async 'open-update'(){
+    ui.upd=true; pendingUpd=null; stopPoll();
+    if(ui.relay!==true) await checkRelay();
+    ui.code=ui.relay?newCode():'';
+    renderUpdatePanel(); startPoll();
+    $('#update-panel').scrollIntoView({behavior:'smooth',block:'start'});
+  },
+  'close-update'(){ stopPoll(); ui.upd=false; ui.code=''; pendingUpd=null; renderUpdatePanel(); },
   'copy-prompt'(t){
     if(!updKeys().length){ const n=$('#upd-none'); if(n) n.hidden=false; return; }
     copyText(updPrompt(),t,()=>{ const d=t.closest('.body').querySelector('details'); if(d) d.open=true; const ta=$('#upd-prompt'); if(ta){ ta.focus(); ta.select(); } });
@@ -1252,11 +1302,15 @@ document.addEventListener('keydown',e=>{
 document.addEventListener('toggle',e=>{ const d=e.target; if(d.matches&&d.matches('details[data-did]')) ui.open[d.dataset.did]=d.open; },true);
 
 function renderAll(){ renderBanner(); renderCats(); renderRecipes(); renderBuilder(); renderUpdatePanel(); renderPlHead(); renderPlTable(); renderImportPreview(); }
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&ui.upd&&ui.relay&&ui.tick){ if(ui.poll){ clearTimeout(ui.poll); ui.poll=null; } ui.tick(); }
+});
 renderAll();
 setTab('bukett');
+checkRelay();
 
 /* för test */
-window.buketraknare={calc:()=>calc(state),state:()=>state,readTable,detectPack,parseNum,matchKey,exampleState};
+window.buketraknare={relay:()=>ui.relay,calc:()=>calc(state),state:()=>state,readTable,detectPack,parseNum,matchKey,exampleState};
 })();
 </script>
 </body>

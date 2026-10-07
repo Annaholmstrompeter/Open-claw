@@ -1,0 +1,17 @@
+name = "buketraknare"
+main = "src/worker.js"
+compatibility_date = "2025-01-01"
+
+# Själva appen
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+# Brevlådan: en liten lagring per engångskod. Skapas automatiskt vid första driftsättningen.
+[[durable_objects.bindings]]
+name = "INBOX"
+class_name = "Inbox"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Inbox"]
