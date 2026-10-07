@@ -62,8 +62,9 @@ export function v1State({ items = [], buketter, hemma = {}, settings = {}, kalla
  *  fetch    – falsk fetch(url, init); standard: ingen uppkoppling
  *  claude   – falsk window.claude (för "Claude i sidan")
  *  images   – true = falska createImageBitmap/canvas så att bilder kan förminskas
+ *  failWrite – lagringsnyckel vars skrivning ska kasta QuotaExceededError
  */
-export async function loadApp({ now = NOW, storage = {}, fetch, claude, images = false } = {}) {
+export async function loadApp({ now = NOW, storage = {}, fetch, claude, images = false, failWrite } = {}) {
   const calls = { fetch: [], scroll: 0, clipboard: [] };
   const dom = new JSDOM(HTML, {
     url: 'https://buketraknare.test/',
@@ -78,6 +79,10 @@ export async function loadApp({ now = NOW, storage = {}, fetch, claude, images =
       }
       window.Date = FakeDate;
       for (const [k, v] of Object.entries(storage)) window.localStorage.setItem(k, v);
+      if (failWrite) {           // simulerar full lagring (QuotaExceededError) för en viss nyckel
+        const real = window.Storage.prototype.setItem;
+        window.Storage.prototype.setItem = function (k, v) { if (k === failWrite) throw new window.DOMException('full', 'QuotaExceededError'); return real.call(this, k, v); };
+      }
       window.fetch = async (url, init) => {
         calls.fetch.push({ url: String(url), init });
         if (!fetch) throw new Error('offline');

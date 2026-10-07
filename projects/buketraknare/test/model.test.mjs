@@ -4,6 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import M from '../public/js/core/model.js';
 import { loadApp, v1State, item, keyOf } from './helpers/app.mjs';
+import { fixtures, randomV1State } from './support/v1-fixtures.mjs';
 
 const clone = o => JSON.parse(JSON.stringify(o));
 const deepFreeze = o => { if (o && typeof o === 'object' && !Object.isFrozen(o)) { Object.freeze(o); Object.values(o).forEach(deepFreeze); } return o; };
@@ -20,48 +21,6 @@ function canonV1(v1) {
 }
 const itemsOf = v1 => v1.priceList.items.map(i => ({ ...i }));
 const viewItemsNoId = st => M.viewOf(st).priceList.items.map(({ id, ...rest }) => rest);
-
-// ---------- fixturer: tillstånd som riktiga användare kan ha i sin telefon ----------
-
-const COMMON = ['Röd ros', 'Rosa ros', 'Vit ros', 'Gul ros', 'Tulpan', 'Nejlika', 'Solros', 'Alstroemeria', 'Lisianthus', 'Gerbera',
-  'Krysantemum', 'Lilja', 'Freesia', 'Hortensia', 'Ranunkel', 'Iris', 'Pion', 'Eukalyptus', 'Slöjflor', 'Ruscus'];
-
-function fixtures() {
-  const out = {};
-  out['tom start'] = v1State({ items: COMMON.map(n => item([n, n.match(/Eukal|Slöj|Ruscus/) ? 'Grönt' : 'Blommor', 1, 0, ''])), kalla: 'tom' });
-  out['egen lista med order, hemma och recept'] = v1State({
-    items: [
-      item(['Röd ros', 'Blommor', 10, 120, 'pack', '2026-10-07']),
-      item(['Rosa ros', 'Blommor', 10, 105.5, 'pack', '2026-09-20']),
-      item(['Tulpan', 'Blommor', 10, 55, 'bunt']),               // pris men ingen uppdateringsdag
-      item(['Nejlika', 'Blommor', 20, 0, 'bunt', '2026-10-01']), // dag men inget pris (tömt pris)
-      item(['Pion', 'Blommor', 5, 0, '']),                        // helt utan pris
-      item(['Eukalyptus', 'Grönt', 10, 65, 'bunt', '2026-10-07'])
-    ],
-    buketter: [
-      { size: 'liten', qty: 1, items: { 'Röd ros': 3, 'Eukalyptus': 2 } },
-      { size: 'stor', qty: 3, items: { 'Rosa ros': 12, 'Tulpan': 6, 'Pelargon': 2 } } // Pelargon finns inte i listan
-    ],
-    hemma: { 'Röd ros': 4, 'Pelargon': 1 },
-    recipes: [{ name: 'Vår', size: 'liten', items: { 'Tulpan': 5, 'Dahlia': 1 } }, { name: 'Ros', items: { 'Röd ros': 12 } }],
-    settings: { markupPct: 60, hourly: 300, vatPct: 12, roundStep: 10, mode: 'used', shipFee: 79, freeFrom: 600, minOrder: 300 },
-    wholesaler: { namn: 'Min grossist', url: 'https://grossist.example', ai: 'claude', mode: 'agent', readCode: 'hemlig' },
-    kalla: 'uppdaterad'
-  });
-  out['svåra namn'] = v1State({
-    items: ['Röd ros 60 cm', 'Åäö-blomma', 'Blomma "citat"', "Apostrof's", '<script>alert(1)</script>', 'Ännu en  blomma', 'Emoji 🌹', 'ÉCLAT', 'a/b\\c'].map(n => item([n, 'Övrigt', 10, 10, 'bunt', '2026-10-01'])),
-    buketter: [{ items: { 'Röd ros 60 cm': 2, 'Åäö-blomma': 3, 'Blomma "citat"': 1, '<script>alert(1)</script>': 4, 'Emoji 🌹': 5 } }]
-  });
-  out['dubbletter av samma namn'] = v1State({
-    items: [item(['Rosa ros', 'Blommor', 10, 100, 'pack', '2026-10-01']), item(['rosa  ros', 'Blommor', 20, 150, 'bunt', '2026-10-02'])],
-    buketter: [{ items: { 'Rosa ros': 4 } }]
-  });
-  out['stor lista'] = v1State({
-    items: Array.from({ length: 250 }, (_, i) => item([`Blomma ${i}`, i % 2 ? 'Blommor' : 'Grönt', (i % 5) + 1, i % 7 ? 10 + i : 0, 'bunt', i % 3 ? '2026-10-0' + ((i % 7) + 1) : undefined])),
-    buketter: [{ items: { 'Blomma 3': 3, 'Blomma 249': 2 } }]
-  });
-  return out;
-}
 
 // ---------- migrering v1 → v2 ----------
 
@@ -205,21 +164,9 @@ test('rollback: v1 efter rollback går att migrera igen och ger samma resultat (
 
 // ---------- slumpade tillstånd (fuzz) ----------
 
-function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
-
 test('slumpade tillstånd: migrering och rollback tappar aldrig något (1 000 st)', () => {
-  const pool = ['Röd ros', 'rosa  ros', 'Rosa ros', 'Åäö', 'Blomma "x"', '<b>fet</b>', 'a', 'A', 'ÉCLAT', 'éclat', '🌹', 'Tulpan  ', ' Tulpan', 'ros/ros', '\\', 'x'.repeat(60), 'Ett långt namn med många ord och siffror 123 456'];
-  const days = [undefined, '2026-10-07', '2026-09-30', '2025-12-24'];
   for (let n = 0; n < 1000; n++) {
-    const r = rng(n + 1);
-    const pick = a => a[Math.floor(r() * a.length)];
-    const items = Array.from({ length: Math.floor(r() * 12) }, () => item([pick(pool), pick(['Blommor', 'Grönt', 'Övrigt', '']), Math.floor(r() * 25) + 1, pick([0, 0, 12.5, 99, 120, 1234.56]), pick(['pack', 'bunt', 'styck', '']), pick(days)]));
-    const names = [...items.map(i => i.namn), 'Okänd vara', 'Dahlia'];
-    const mk = () => Object.fromEntries(Array.from({ length: Math.floor(r() * 5) }, () => [pick(names), Math.floor(r() * 9) + 1]));
-    const v1 = v1State({
-      items, buketter: Array.from({ length: Math.floor(r() * 3) + 1 }, () => ({ size: pick(['liten', 'medel', 'stor']), qty: Math.floor(r() * 4) + 1, items: mk() })),
-      hemma: mk(), recipes: Array.from({ length: Math.floor(r() * 3) }, (_, i) => ({ name: 'R' + i, items: mk() })), kalla: pick(['tom', 'egen', 'import', 'uppdaterad', 'exempel'])
-    });
+    const v1 = randomV1State(n);
     const st = M.migrateV1toV2(v1);
     assert.deepEqual(viewItemsNoId(st), itemsOf(v1), 'fuzz ' + n + ' varor');
     assert.deepEqual(canonV1(M.downgradeV2toV1(st)), canonV1(v1), 'fuzz ' + n + ' rollback');
