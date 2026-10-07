@@ -1,0 +1,912 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Buketträknaren</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Young+Serif&display=swap">
+<style>
+/* Layout: ett arbetsblad. Vänster: välj storlek och tryck på blommor. Höger: pris, inköpslista och överskott, alltid synliga.
+   På mobil ligger totalsumman i en fast list längst ned. */
+:root{
+  --bg:#f2f5f1; --surface:#ffffff; --surface-2:#e7eee8; --ink:#17231d; --ink-2:#4b5c52; --line:#d2dcd4;
+  --accent:#b3365f; --accent-ink:#ffffff; --accent-soft:#f7e1e8;
+  --leaf:#2f6b4a; --leaf-soft:#dcebe1;
+  --warn:#8a5a00; --warn-soft:#fbecc9; --bad:#a42a2a; --bad-soft:#f8dcdc;
+  --focus:#1b6fd1;
+  --font-display:'Young Serif', Georgia, 'Times New Roman', serif;
+  --font-body:'Figtree', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101712; --surface:#18221c; --surface-2:#212d26; --ink:#e9f0ea; --ink-2:#9db0a3; --line:#2f3d34;
+    --accent:#e0708f; --accent-ink:#1a0a10; --accent-soft:#3a1d28;
+    --leaf:#6fc08d; --leaf-soft:#1f3328;
+    --warn:#e8b64d; --warn-soft:#3a2f14; --bad:#f08a8a; --bad-soft:#3b1d1d;
+    --focus:#6aa8ff; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101712; --surface:#18221c; --surface-2:#212d26; --ink:#e9f0ea; --ink-2:#9db0a3; --line:#2f3d34;
+  --accent:#e0708f; --accent-ink:#1a0a10; --accent-soft:#3a1d28;
+  --leaf:#6fc08d; --leaf-soft:#1f3328;
+  --warn:#e8b64d; --warn-soft:#3a2f14; --bad:#f08a8a; --bad-soft:#3b1d1d;
+  --focus:#6aa8ff; color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--font-body);padding-inline:16px;padding-block:0 104px}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{margin:0;text-wrap:balance}
+p{margin:0}
+.wrap{max-width:1120px;margin:0 auto}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.muted{color:var(--ink-2)}
+.small{font-size:13px}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+/* huvud och flikar */
+.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:end;justify-content:space-between;padding-block:20px 14px}
+.top h1{font:400 28px/1.1 var(--font-display)}
+.top .sub{margin-top:4px;font-size:14px}
+.tabs{display:flex;gap:4px;background:var(--surface-2);padding:4px;border-radius:12px}
+.tabs button{min-height:44px;padding:0 16px;border:0;border-radius:9px;background:transparent;font-weight:600;font-size:15px;cursor:pointer;color:var(--ink-2)}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
+@media (max-width:520px){.tabs{width:100%}.tabs button{flex:1;padding:0 6px}}
+
+/* knappar och fält */
+.btn{min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-weight:600;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn:hover{border-color:var(--ink-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{color:var(--bad)}
+.link{background:none;border:0;padding:0;color:var(--accent);font-weight:600;text-decoration:underline;cursor:pointer}
+.icon-btn{width:44px;height:44px;border:0;background:transparent;border-radius:10px;font-size:22px;color:var(--ink-2);cursor:pointer}
+.icon-btn:hover{color:var(--bad)}
+input,select,textarea{background:var(--surface);border:1px solid var(--line);border-radius:8px;min-height:44px;padding:0 10px;font-size:16px;max-width:100%}
+textarea{padding:10px;width:100%;resize:vertical;line-height:1.4}
+input[type=number]{width:100%;font-variant-numeric:tabular-nums}
+label.field{display:grid;gap:4px;font-size:14px;font-weight:600}
+label.field span.hint{font-weight:400;color:var(--ink-2);font-size:13px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+/* notiser och märken */
+.note{padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);font-size:14px}
+.note.warn{background:var(--warn-soft);border-color:var(--warn)}
+.note.bad{background:var(--bad-soft);border-color:var(--bad)}
+.note.ok{background:var(--leaf-soft);border-color:var(--leaf)}
+.note + .note{margin-top:8px}
+#banner{margin-bottom:12px}
+.badge{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);white-space:nowrap}
+.badge.warn{background:var(--warn-soft);color:var(--ink);box-shadow:inset 0 0 0 1px var(--warn)}
+.badge.ok{background:var(--leaf-soft);color:var(--ink)}
+.badge.bad{background:var(--bad-soft);color:var(--ink)}
+
+/* arbetsyta */
+.cols{display:grid;gap:20px}
+.col-builder{display:grid;gap:16px;min-width:0;align-content:start}
+.col-summary{display:grid;gap:12px;min-width:0;align-content:start}
+@media (min-width:900px){
+  .cols{grid-template-columns:minmax(0,1fr) 400px;align-items:start}
+  .col-summary{position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto;padding-right:2px}
+  #totalbar{display:none!important}
+  body{padding-block:0 40px}
+}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:12px}
+.card h3{font-size:17px}
+.section-title{font:400 20px/1.2 var(--font-display)}
+
+/* bukettlista */
+#chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:stretch;border:1px solid var(--line);border-radius:999px;background:var(--surface);overflow:hidden}
+.chip.on{border-color:var(--accent);background:var(--accent-soft)}
+.chip button{background:none;border:0;cursor:pointer;min-height:44px;padding:0 14px;font-weight:600;font-size:15px}
+.chip .chip-x{padding:0 12px 0 2px;color:var(--ink-2);font-size:20px}
+.chip.add{padding:0;border-style:dashed;color:var(--ink-2)}
+
+/* storlek, antal, mätare */
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.seg button{min-height:60px;border:1px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer;display:grid;gap:0;align-content:center;padding:6px}
+.seg button strong{font-size:16px}
+.seg button span{font-size:13px;color:var(--ink-2)}
+.seg button[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:var(--accent-soft)}
+.qty{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:15px;font-weight:600}
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.stepper button{width:48px;height:44px;border:0;background:var(--surface);font-size:22px;cursor:pointer;color:var(--accent)}
+.stepper output{min-width:40px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+.meter-text{font-size:14px;font-weight:600}
+.meter{height:8px;border-radius:999px;background:var(--surface-2);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--leaf);border-radius:999px}
+.meter.over i{background:var(--warn)}
+
+/* blommor */
+.picker-tools{display:grid;gap:8px}
+#search{width:100%}
+#cats{display:flex;flex-wrap:wrap;gap:6px}
+#cats button{min-height:44px;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:var(--surface);cursor:pointer;font-weight:600;font-size:14px}
+#cats button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+#tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+.tile{display:flex;align-items:stretch;background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--c,var(--line));border-radius:12px;min-height:76px;overflow:hidden;min-width:0}
+.tile.on{border-color:var(--accent);border-left-color:var(--c,var(--accent));box-shadow:inset 0 0 0 1px var(--accent);background:var(--accent-soft)}
+.tile-main{flex:1;min-width:0;display:grid;gap:2px;align-content:center;text-align:left;background:none;border:0;padding:8px 10px;cursor:pointer}
+.tile-name{font-weight:600;font-size:15px;line-height:1.2;overflow-wrap:break-word}
+.tile-meta{font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.tile .side{width:48px;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding-top:6px;border-left:1px solid var(--line)}
+.count{min-width:28px;height:28px;border-radius:999px;background:var(--accent);color:var(--accent-ink);display:inline-grid;place-items:center;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums;padding:0 6px}
+.minus{width:48px;height:40px;border:0;background:transparent;font-size:24px;color:var(--accent);cursor:pointer}
+.recipes{display:grid;gap:8px}
+.recipes .row button.recipe{min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:0 12px;font-weight:600;font-size:14px;cursor:pointer}
+.save-recipe{display:flex;gap:8px;flex-wrap:wrap}
+.save-recipe input{flex:1;min-width:160px}
+
+/* summering */
+.price-card{display:grid;gap:8px}
+.pc-head{display:flex;justify-content:space-between;gap:12px;align-items:baseline;font-weight:600}
+.big{font:400 36px/1.05 var(--font-display);font-variant-numeric:tabular-nums}
+.pc-sub{font-size:13px;color:var(--ink-2)}
+details summary{cursor:pointer;font-weight:600;font-size:14px;min-height:32px;display:flex;align-items:center}
+dl.lines{display:grid;grid-template-columns:1fr auto;gap:4px 12px;margin:8px 0 0;font-size:14px;font-variant-numeric:tabular-nums}
+dl.lines dt{color:var(--ink-2)}
+dl.lines dd{margin:0;text-align:right}
+dl.lines .sum{font-weight:700;color:var(--ink)}
+.total{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.total .big{color:var(--bg)}
+.total .pc-sub{color:var(--bg);opacity:.8}
+.scroll-x{overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.tbl th{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2);text-align:left;padding:4px 6px;font-weight:600}
+.tbl td{padding:8px 6px;border-top:1px solid var(--line);vertical-align:top}
+.tbl .num{text-align:right;white-space:nowrap}
+.tbl td small{display:block;color:var(--ink-2);font-size:12px}
+.tbl tfoot td{font-weight:700}
+table.pl{min-width:640px}
+table.pl td{vertical-align:middle;padding:4px}
+table.pl input{min-width:0}
+.hemma{display:grid;gap:8px;margin-top:8px}
+.hemma label{display:grid;grid-template-columns:1fr 96px;gap:8px;align-items:center;font-size:14px}
+#copy-box{font-size:14px}
+
+/* fast totallist på mobil */
+#totalbar{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px calc(10px + env(safe-area-inset-bottom, 0px))}
+#totalbar small{display:block;font-size:12px;opacity:.8}
+#totalbar strong{font:400 26px/1.1 var(--font-display);font-variant-numeric:tabular-nums}
+#totalbar .btn{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+
+.head-row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between}
+.grid-2{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+fieldset{border:0;padding:0;margin:0;display:grid;gap:8px}
+legend{font-weight:700;font-size:15px;padding:0;margin-bottom:6px}
+.radio{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:start;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.radio input{min-height:0;width:20px;height:20px;margin:2px 0 0}
+.radio span{font-weight:600}
+.radio small{grid-column:2;color:var(--ink-2);font-size:13px}
+ul.plain{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Buketträknaren</h1>
+      <p class="sub muted">Välj storlek och blommor. Priset räknas på hela förpackningar.</p>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Vyer">
+      <button role="tab" data-tab="bukett" aria-selected="true">Bukett</button>
+      <button role="tab" data-tab="prislista" aria-selected="false">Prislista</button>
+      <button role="tab" data-tab="installningar" aria-selected="false">Inställningar</button>
+    </nav>
+  </header>
+  <div id="banner"></div>
+
+  <main>
+    <!-- BUKETT -->
+    <section id="view-bukett">
+      <div class="cols">
+        <div class="col-builder">
+          <div id="chips" role="group" aria-label="Buketter i ordern"></div>
+          <div id="editor" class="card"></div>
+          <section class="picker-tools" aria-label="Välj blommor">
+            <h2 class="section-title">Blommor och grönt</h2>
+            <label class="vh" for="search">Sök blomma</label>
+            <input id="search" type="search" placeholder="Sök blomma" autocomplete="off">
+            <div id="cats" role="group" aria-label="Kategori"></div>
+            <div id="tiles"></div>
+          </section>
+          <section class="recipes card" aria-label="Recept">
+            <h3>Recept</h3>
+            <div id="recipes"></div>
+            <div class="save-recipe">
+              <label class="vh" for="recipe-name">Namn på receptet</label>
+              <input id="recipe-name" type="text" placeholder="Namn på receptet, till exempel Födelsedagsbukett" autocomplete="off">
+              <button class="btn" data-act="save-recipe">Spara denna bukett som recept</button>
+            </div>
+          </section>
+        </div>
+        <aside class="col-summary" id="summary" aria-label="Pris och inköpslista"></aside>
+      </div>
+    </section>
+
+    <!-- PRISLISTA -->
+    <section id="view-prislista" hidden>
+      <div style="display:grid;gap:16px">
+        <div id="pl-head" class="card"></div>
+        <section class="card" aria-label="Ny prislista">
+          <h3>Ny prislista från grossisten</h3>
+          <p class="muted small">Klistra in tabellen från Excel, eller välj en CSV-fil (semikolon, komma eller tabb). Första raden ska vara rubriker, till exempel <code>Namn; Antal per förp; Pris per förp</code>. Kolumnerna Enhet, Kategori och Färg är valfria.</p>
+          <label class="vh" for="csv-in">Prislista</label>
+          <textarea id="csv-in" rows="6" placeholder="Namn;Antal per förp;Pris per förp&#10;Röd ros 60 cm;10;120&#10;Tulpan;10;55"></textarea>
+          <div class="row">
+            <label class="btn" for="csv-file">Välj fil<input id="csv-file" type="file" accept=".csv,.txt,.tsv,text/csv,text/plain" class="vh"></label>
+            <button class="btn primary" data-act="parse-import">Läs in och jämför</button>
+            <button class="btn" data-act="copy-csv">Kopiera nuvarande lista som CSV</button>
+          </div>
+          <p id="import-msg" class="note bad" role="alert" hidden></p>
+          <div id="csv-out"></div>
+          <p class="muted small">Kopplingen som hämtar senaste listan från Drive eller mejl är inte byggd än. Tills vidare läser du in listan här.</p>
+        </section>
+        <div id="import-preview"></div>
+        <section class="card" aria-label="Varor i prislistan">
+          <div class="head-row"><h3>Varor i prislistan</h3><button class="btn" data-act="add-row">+ Lägg till vara</button></div>
+          <p class="muted small">Priset gäller hela förpackningen, exklusive moms. Ändra här om något är fel.</p>
+          <div id="pl-table" class="scroll-x"></div>
+          <datalist id="pl-cats"></datalist>
+        </section>
+      </div>
+    </section>
+
+    <!-- INSTÄLLNINGAR -->
+    <section id="view-installningar" hidden>
+      <div id="settings" style="display:grid;gap:16px"></div>
+    </section>
+  </main>
+</div>
+
+<div id="totalbar" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+const STORE_KEY='buketraknare.v1';
+
+/* ---------- hjälpfunktioner ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const keyOf=s=>String(s||'').normalize('NFC').trim().replace(/\s+/g,' ').toLowerCase();
+const stripD=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();
+const nf0=new Intl.NumberFormat('sv-SE',{maximumFractionDigits:0});
+const nf2=new Intl.NumberFormat('sv-SE',{minimumFractionDigits:2,maximumFractionDigits:2});
+const nf1=new Intl.NumberFormat('sv-SE',{maximumFractionDigits:1});
+const num=x=>nf1.format(x);
+const kr=x=>{ if(!isFinite(x)) return '–'; const r=Math.round(x); return (Math.abs(x-r)<0.005?nf0.format(r):nf2.format(x))+' kr'; };
+const today=()=>new Date().toLocaleDateString('sv-SE');
+const clone=o=>JSON.parse(JSON.stringify(o));
+function ceilTo(x,step){ step=+step; if(!(step>0)) return Math.round(x); return Math.ceil(x/step-1e-9)*step; }
+
+/* ---------- exempeldata (påhittade priser) ---------- */
+const SAMPLE_ITEMS=[
+ {namn:'Röd ros 60 cm',kategori:'Blommor',enhet:'pack',paket:10,pris:120,farg:'#c0182f'},
+ {namn:'Rosa ros 50 cm',kategori:'Blommor',enhet:'pack',paket:10,pris:105,farg:'#f08bb0'},
+ {namn:'Vit ros 50 cm',kategori:'Blommor',enhet:'pack',paket:10,pris:110,farg:'#f4f1ea'},
+ {namn:'Tulpan',kategori:'Blommor',enhet:'bunt',paket:10,pris:55,farg:'#e8573d'},
+ {namn:'Nejlika',kategori:'Blommor',enhet:'bunt',paket:20,pris:70,farg:'#d96a8f'},
+ {namn:'Solros',kategori:'Blommor',enhet:'bunt',paket:10,pris:95,farg:'#f2b705'},
+ {namn:'Alstroemeria',kategori:'Blommor',enhet:'bunt',paket:10,pris:70,farg:'#e9a6c9'},
+ {namn:'Lisianthus',kategori:'Blommor',enhet:'bunt',paket:10,pris:110,farg:'#9c7bd0'},
+ {namn:'Gerbera',kategori:'Blommor',enhet:'pack',paket:10,pris:90,farg:'#f57c2a'},
+ {namn:'Hortensia',kategori:'Blommor',enhet:'styck',paket:1,pris:35,farg:'#8fb0e0'},
+ {namn:'Gipsört',kategori:'Grönt',enhet:'bunt',paket:5,pris:60,farg:'#dfe6e0'},
+ {namn:'Eukalyptus',kategori:'Grönt',enhet:'bunt',paket:10,pris:65,farg:'#7fa392'},
+ {namn:'Ruscus',kategori:'Grönt',enhet:'bunt',paket:10,pris:55,farg:'#2f6b4a'}
+];
+const DEFAULT_SETTINGS={
+  mode:'whole', markupPct:50, hourly:250, vatPct:25, roundStep:5,
+  sizes:[
+    {id:'liten',name:'Liten',stems:9,minutes:15,wrap:15},
+    {id:'medel',name:'Medel',stems:15,minutes:25,wrap:25},
+    {id:'stor',name:'Stor',stems:25,minutes:40,wrap:40}
+  ],
+  minOrder:0, shipFee:0, freeFrom:0
+};
+function items(obj){ const o={}; for(const [n,c] of Object.entries(obj)) o[keyOf(n)]=c; return o; }
+function defaultState(){
+  const labels={}; SAMPLE_ITEMS.forEach(i=>{labels[keyOf(i.namn)]=i.namn;});
+  return {
+    v:1,
+    priceList:{meta:{namn:'Exempeldata',datum:today(),kalla:'exempel'},items:clone(SAMPLE_ITEMS)},
+    settings:clone(DEFAULT_SETTINGS),
+    labels,
+    order:{
+      buketter:[
+        {id:'b1',size:'liten',qty:1,items:items({'Rosa ros 50 cm':3,'Tulpan':4,'Eukalyptus':2})},
+        {id:'b2',size:'medel',qty:1,items:items({'Rosa ros 50 cm':5,'Tulpan':6,'Alstroemeria':2,'Eukalyptus':2})}
+      ],
+      hemma:{}, active:'b1', seq:2
+    },
+    recipes:[
+      {id:'r1',name:'Liten vårbukett (exempel)',size:'liten',items:items({'Tulpan':5,'Eukalyptus':2,'Gipsört':2})},
+      {id:'r2',name:'Stor rosbukett (exempel)',size:'stor',items:items({'Röd ros 60 cm':12,'Gipsört':5,'Eukalyptus':4,'Ruscus':4})}
+    ]
+  };
+}
+function load(){
+  try{
+    const raw=localStorage.getItem(STORE_KEY);
+    if(raw){
+      const s=JSON.parse(raw), d=defaultState();
+      if(s&&s.priceList&&Array.isArray(s.priceList.items)&&s.order&&Array.isArray(s.order.buketter)&&s.order.buketter.length){
+        s.settings=Object.assign({},d.settings,s.settings||{});
+        if(!Array.isArray(s.settings.sizes)||s.settings.sizes.length<1) s.settings.sizes=d.settings.sizes;
+        s.labels=s.labels||{}; s.recipes=Array.isArray(s.recipes)?s.recipes:[];
+        s.order.hemma=s.order.hemma||{};
+        if(!s.order.buketter.some(b=>b.id===s.order.active)) s.order.active=s.order.buketter[0].id;
+        return s;
+      }
+    }
+  }catch(e){}
+  return defaultState();
+}
+let state=load();
+let pending=null;                       // förhandsgranskning av ny prislista
+const ui={tab:'bukett',cat:'',q:'',open:{},copyText:'',focusNew:false};
+function save(){ try{ localStorage.setItem(STORE_KEY,JSON.stringify(state)); }catch(e){} }
+
+/* ---------- räknemotor ---------- */
+function indexList(list){
+  const m={};
+  for(const it of list){
+    m[keyOf(it.namn)]={namn:it.namn,kategori:it.kategori,enhet:it.enhet,farg:it.farg,
+      paket:Math.max(1,Math.round(+it.paket||1)),pris:Math.max(0,+it.pris||0)};
+  }
+  return m;
+}
+function sizeOf(id,S=state.settings){ return S.sizes.find(s=>s.id===id)||S.sizes[0]; }
+function calc(st){
+  const S=st.settings, list=indexList(st.priceList.items), ord=st.order;
+  const needed={}, missing=[], noPrice=[];
+  for(const b of ord.buketter){
+    for(const [k,n] of Object.entries(b.items)){
+      if(!(n>0)) continue;
+      needed[k]=(needed[k]||0)+n*b.qty;
+    }
+  }
+  const buy={}; let purchaseSum=0;
+  for(const [k,need] of Object.entries(needed)){
+    const it=list[k];
+    if(!it){ missing.push(k); continue; }
+    if(!(it.pris>0)) noPrice.push(k);
+    const have=Math.min(need,Math.max(0,Math.round(+ord.hemma[k]||0)));
+    const toBuy=need-have;
+    const packs=Math.ceil(toBuy/it.paket);
+    const bought=packs*it.paket;
+    const perStem=it.pris/it.paket;
+    const cost=packs*it.pris;
+    const used=S.mode==='whole'?cost:toBuy*perStem;
+    buy[k]={k,it,need,have,toBuy,packs,bought,cost,used,leftover:bought-toBuy,leftoverValue:(bought-toBuy)*perStem};
+    purchaseSum+=cost;
+  }
+  const ship=(S.shipFee>0&&purchaseSum>0&&!(S.freeFrom>0&&purchaseSum>=S.freeFrom))?S.shipFee:0;
+  const rows=ord.buketter.map((b,idx)=>{
+    const size=sizeOf(b.size,S);
+    let flowers=0, stems=0;
+    for(const [k,n] of Object.entries(b.items)){
+      if(!(n>0)) continue;
+      stems+=n;
+      const bk=buy[k];
+      if(bk&&bk.need>0) flowers+=n*(bk.used/bk.need);
+    }
+    return {b,idx,size,stems,flowers,empty:stems===0};
+  });
+  const flowersAll=rows.reduce((s,r)=>s+r.flowers*r.b.qty,0);
+  const qtyAll=rows.reduce((s,r)=>s+(r.empty?0:r.b.qty),0)||1;
+  let total=0, count=0;
+  for(const r of rows){
+    if(r.empty){ r.price=0; r.lineTotal=0; continue; }
+    r.shipShare=ship?(flowersAll>0?ship*r.flowers/flowersAll:ship/qtyAll):0;
+    r.wrap=r.size.wrap;
+    r.base=r.flowers+r.shipShare+r.wrap;
+    r.markup=r.base*S.markupPct/100;
+    r.labor=r.size.minutes/60*S.hourly;
+    r.exVat=r.base+r.markup+r.labor;
+    r.vat=r.exVat*S.vatPct/100;
+    const incl=r.exVat+r.vat;
+    r.price=ceilTo(incl,S.roundStep);
+    r.rounding=r.price-incl;
+    r.priceExVat=r.price/(1+S.vatPct/100);
+    r.margin=r.priceExVat>0?(r.priceExVat-r.base)/r.priceExVat:0;
+    r.lineTotal=r.price*r.b.qty;
+    total+=r.lineTotal; count+=r.b.qty;
+  }
+  const bl=Object.values(buy);
+  return {rows,buy,needed,missing,noPrice,purchaseSum,ship,total,count,
+    leftoverStems:bl.reduce((s,x)=>s+x.leftover,0),leftoverValue:bl.reduce((s,x)=>s+x.leftoverValue,0)};
+}
+
+/* ---------- import av prislista ---------- */
+function parseNum(s){
+  s=String(s==null?'':s).replace(/[ \s]/g,'').replace(/(kr|sek|:-)/gi,'');
+  if(!s) return NaN;
+  const hasC=s.includes(','), hasD=s.includes('.');
+  if(hasC&&hasD){ s=s.lastIndexOf(',')>s.lastIndexOf('.')?s.replace(/\./g,'').replace(',','.'):s.replace(/,/g,''); }
+  else if(hasC) s=s.replace(',','.');
+  else if(hasD&&/^\d{1,3}(\.\d{3})+$/.test(s)) s=s.replace(/\./g,'');
+  return /^-?\d+(\.\d+)?$/.test(s)?parseFloat(s):NaN;
+}
+function detectPack(text){
+  const t=String(text||'');
+  const pats=[
+    /(\d+)\s*-?\s*pack\b/i,
+    /\bpack\s*(?:à|a|om|of)?\s*(\d+)/i,
+    /(?:bunt|knippe|förp\w*|kartong|låda|box)\s*(?:à|a|om|of|\/)?\s*(\d+)/i,
+    /(\d+)\s*(?:st|stk|stjälkar)?\s*\/\s*(?:bunt|knippe|förp\w*|pack|kartong)/i,
+    /(?:^|\s)[aà]\s*(\d+)\b/i
+  ];
+  for(const p of pats){ const m=t.match(p); if(m){ const n=parseInt(m[1],10); if(n>=1&&n<=1000) return n; } }
+  return null;
+}
+function classifyHeader(h){
+  const n=stripD(h);
+  if(/(^|\s)(nr|nummer|artnr|id)(\s|$)|artikelnr|artikelnummer|art\.?\s?nr/.test(n)) return null;
+  if(/pris|price/.test(n)) return 'pris';
+  if(/enhet|forpackningstyp|unit/.test(n)) return 'enhet';
+  if(/antal|forp|pack|bunt|per\s?st|st\/|stjalk|quantity|qty/.test(n)) return 'paket';
+  if(/farg|colou?r/.test(n)) return 'farg';
+  if(/kategori|grupp|category|typ/.test(n)) return 'kategori';
+  if(/namn|artikel|produkt|benamn|beskriv|vara|name|sort/.test(n)) return 'namn';
+  return null;
+}
+function splitRows(text,d){
+  const rows=[]; let row=[], cur='', q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; }
+    else if(c==='"') q=true;
+    else if(c===d){ row.push(cur); cur=''; }
+    else if(c==='\n'){ row.push(cur); rows.push(row); row=[]; cur=''; }
+    else cur+=c;
+  }
+  row.push(cur); rows.push(row);
+  return rows.filter(r=>r.some(c=>c.trim()!==''));
+}
+function readTable(text){
+  text=String(text||'').replace(/^﻿/,'').replace(/\r\n?/g,'\n').trim();
+  if(!text) return {error:'Det finns ingen text att läsa in. Klistra in prislistan eller välj en fil.'};
+  const first=text.split('\n')[0];
+  const counts=[';','\t',','].map(d=>[d,first.split(d).length-1]);
+  const best=counts.reduce((a,b)=>b[1]>a[1]?b:a);
+  if(best[1]===0) return {error:'Jag hittar inga kolumner. Prislistan behöver minst Namn och Pris, åtskilda med semikolon, komma eller tabb.'};
+  const rows=splitRows(text,best[0]);
+  const head=rows[0].map(h=>h.trim());
+  const col={};
+  head.forEach((h,i)=>{ const c=classifyHeader(h); if(c&&!(c in col)) col[c]=i; });
+  if(col.namn===undefined||col.pris===undefined){
+    return {error:'Jag hittar inte kolumnerna Namn och Pris. Rubrikerna jag läste: '+head.map(h=>'"'+h+'"').join(', ')+'. Första raden ska vara rubriker, till exempel "Namn;Antal per förp;Pris per förp".'};
+  }
+  const pHead=stripD(head[col.pris]);
+  const basisGuess=/(per|\/)\s*(st|stk|styck|stjalk)|a-?pris|styckpris|\bst\b/.test(pHead)?'st':'forp';
+  const out=[];
+  for(const r of rows.slice(1)){
+    const g=i=>i===undefined?'':String(r[i]==null?'':r[i]).trim();
+    const namn=g(col.namn); if(!namn) continue;
+    const enhet=g(col.enhet);
+    out.push({
+      namn,kategori:g(col.kategori),enhet,
+      farg:/^#[0-9a-f]{3,8}$/i.test(g(col.farg))?g(col.farg):'',
+      paketNum:col.paket===undefined?NaN:parseNum(g(col.paket)),
+      prisNum:parseNum(g(col.pris)),
+      packDetected:detectPack(namn+' '+enhet+' '+g(col.paket))
+    });
+  }
+  if(!out.length) return {error:'Hittade rubrikerna men inga varor under dem.'};
+  return {rows:out,basisGuess,hasPackCol:col.paket!==undefined,priceHeader:head[col.pris]};
+}
+function recomputePending(){
+  const rows=pending.parsed.rows, basis=pending.basis;
+  const its=[], skipped=[], guessed=[];
+  for(const r of rows){
+    if(!isFinite(r.prisNum)||r.prisNum<0){ skipped.push(r.namn); continue; }
+    let paket=r.paketNum>=1?Math.round(r.paketNum):null, how='';
+    if(paket==null){
+      if(r.packDetected){ paket=r.packDetected; how='tolkat ur texten'; }
+      else { paket=1; how='saknas, räknas som 1'; }
+    }
+    const pris=Math.round((basis==='st'?r.prisNum*paket:r.prisNum)*100)/100;
+    its.push({namn:r.namn,kategori:r.kategori||'Övrigt',enhet:r.enhet||(paket===1?'styck':'förp'),paket,pris,farg:r.farg||''});
+    if(how) guessed.push({namn:r.namn,paket,how});
+  }
+  const seen=new Set(); let dupes=0;
+  its.forEach(i=>{ const k=keyOf(i.namn); if(seen.has(k)) dupes++; seen.add(k); });
+  pending.items=its; pending.skipped=skipped; pending.guessed=guessed; pending.dupes=dupes;
+  pending.diff=state.priceList.meta.kalla==='exempel'?null:diffLists(state.priceList.items,its);
+}
+function diffLists(oldItems,newItems){
+  const o=new Map(oldItems.map(i=>[keyOf(i.namn),i])), n=new Map(newItems.map(i=>[keyOf(i.namn),i]));
+  const changed=[], added=[], removed=[];
+  for(const [k,ni] of n){
+    const oi=o.get(k);
+    if(!oi){ added.push(ni); continue; }
+    const op=Math.max(1,Math.round(+oi.paket||1));
+    if(Math.abs(oi.pris-ni.pris)>0.004||op!==ni.paket){
+      changed.push({k,old:oi,nu:ni,packChanged:op!==ni.paket,
+        stemPct:(oi.pris/op)>0?((ni.pris/ni.paket)/(oi.pris/op)-1)*100:0});
+    }
+  }
+  for(const [k,oi] of o) if(!n.has(k)) removed.push(oi);
+  return {changed,added,removed};
+}
+function usedKeys(){
+  const s=new Set();
+  state.order.buketter.forEach(b=>Object.keys(b.items).forEach(k=>{ if(b.items[k]>0) s.add(k); }));
+  state.recipes.forEach(r=>Object.keys(r.items).forEach(k=>s.add(k)));
+  return s;
+}
+
+/* ---------- små hjälpare för visning ---------- */
+function packLabel(it){
+  const e=String(it.enhet||'').toLowerCase();
+  if(it.paket>1&&e==='pack') return it.paket+'-pack';
+  if(it.paket===1) return 'styck';
+  return (it.enhet||'förp')+' à '+it.paket;
+}
+function labelOf(k,list){ return state.labels[k]||(list&&list[k]&&list[k].namn)||k; }
+function activeB(){ return state.order.buketter.find(b=>b.id===state.order.active)||state.order.buketter[0]; }
+function sumStems(b){ return Object.values(b.items).reduce((s,n)=>s+(n>0?n:0),0); }
+
+/* ---------- rendering: bukett ---------- */
+function renderChips(){
+  const o=state.order;
+  $('#chips').innerHTML=o.buketter.map((b,i)=>{
+    const on=b.id===o.active;
+    return '<span class="chip'+(on?' on':'')+'"><button data-act="chip" data-id="'+esc(b.id)+'" aria-pressed="'+on+'">Bukett '+(i+1)+' · '+esc(sizeOf(b.size).name)+(b.qty>1?' ×'+b.qty:'')+'</button>'
+      +(o.buketter.length>1?'<button class="chip-x" data-act="del-bouquet" data-id="'+esc(b.id)+'" aria-label="Ta bort bukett '+(i+1)+'">×</button>':'')+'</span>';
+  }).join('')+'<span class="chip add"><button data-act="new-bouquet">+ Ny bukett</button></span>';
+}
+function renderEditor(){
+  const b=activeB(), S=state.settings, size=sizeOf(b.size), stems=sumStems(b), target=size.stems, nm=size.name.toLowerCase();
+  const list=indexList(state.priceList.items);
+  let msg, over=false;
+  if(stems===0) msg='Välj blommor nedan. Riktvärde för '+nm+': '+target+' stjälkar.';
+  else if(stems<target) msg=stems+' av '+target+' stjälkar, '+(target-stems)+' kvar till '+nm;
+  else if(stems===target) msg=stems+' av '+target+' stjälkar, riktvärdet är nått';
+  else { msg=stems+' stjälkar, '+(stems-target)+' över riktvärdet för '+nm; over=true; }
+  const pct=target>0?Math.min(100,stems/target*100):0;
+  const missing=Object.keys(b.items).filter(k=>b.items[k]>0&&!list[k]);
+  $('#editor').innerHTML=
+    '<div class="seg" role="group" aria-label="Storlek">'+S.sizes.map(s=>'<button data-act="size" data-size="'+esc(s.id)+'" aria-pressed="'+(s.id===size.id)+'"><strong>'+esc(s.name)+'</strong><span>'+s.stems+' stjälkar</span></button>').join('')+'</div>'
+    +'<div class="qty"><span>Antal likadana buketter</span><div class="stepper"><button data-act="qty-dec" aria-label="Färre buketter">−</button><output aria-live="polite">'+b.qty+'</output><button data-act="qty-inc" aria-label="Fler buketter">+</button></div></div>'
+    +'<div><p class="meter-text">'+esc(msg)+'</p><div class="meter'+(over?' over':'')+'" aria-hidden="true"><i style="width:'+pct+'%"></i></div></div>'
+    +(missing.length?'<div class="note warn">Saknas i prislistan: '+missing.map(k=>'<button class="link" data-act="rm-item" data-key="'+esc(k)+'" title="Ta bort ur buketten">'+esc(labelOf(k))+' (ta bort)</button>').join(', ')+'.</div>':'');
+}
+function renderCats(){
+  const cats=[...new Set(state.priceList.items.map(i=>i.kategori).filter(Boolean))];
+  if(ui.cat&&!cats.includes(ui.cat)) ui.cat='';
+  $('#cats').innerHTML=['',...cats].map(c=>'<button data-act="cat" data-cat="'+esc(c)+'" aria-pressed="'+(ui.cat===c)+'">'+esc(c||'Alla')+'</button>').join('');
+}
+function renderTiles(){
+  const b=activeB(), q=keyOf(ui.q);
+  const shown=state.priceList.items.filter(i=>(!ui.cat||i.kategori===ui.cat)&&(!q||keyOf(i.namn).includes(q)));
+  if(!shown.length){
+    $('#tiles').innerHTML='<p class="muted" style="grid-column:1/-1">Inga varor matchar. Ändra sökningen eller lägg in prislistan under Prislista.</p>';
+    return;
+  }
+  $('#tiles').innerHTML=shown.map(it=>{
+    const k=keyOf(it.namn), n=b.items[k]||0, p=Math.max(1,Math.round(+it.paket||1));
+    const lab=packLabel({enhet:it.enhet,paket:p});
+    return '<div class="tile'+(n>0?' on':'')+'"'+(it.farg?' style="--c:'+esc(it.farg)+'"':'')+'>'
+      +'<button class="tile-main" data-act="add" data-key="'+esc(k)+'" aria-label="Lägg till '+esc(it.namn)+(n>0?', '+n+' valda':'')+'">'
+      +'<span class="tile-name">'+esc(it.namn)+'</span>'
+      +'<span class="tile-meta">'+esc(lab)+' · '+kr(+it.pris||0)+'</span></button>'
+      +(n>0?'<div class="side"><span class="count">'+n+'</span><button class="minus" data-act="dec" data-key="'+esc(k)+'" aria-label="Ta bort en '+esc(it.namn)+'">−</button></div>':'')
+      +'</div>';
+  }).join('');
+}
+function renderRecipes(){
+  const rs=state.recipes;
+  $('#recipes').innerHTML=rs.length
+    ?'<div class="row">'+rs.map(r=>'<span class="chip"><button class="recipe" data-act="use-recipe" data-id="'+esc(r.id)+'" title="Lägg till som ny bukett">+ '+esc(r.name)+'</button><button class="chip-x" data-act="del-recipe" data-id="'+esc(r.id)+'" aria-label="Ta bort receptet '+esc(r.name)+'">×</button></span>').join('')+'</div>'
+    :'<p class="muted small">Inga recept sparade än.</p>';
+}
+
+/* ---------- rendering: summering ---------- */
+function listOrder(C){
+  const idx={}; state.priceList.items.forEach((it,i)=>{ idx[keyOf(it.namn)]=i; });
+  return Object.values(C.buy).sort((a,b)=>(idx[a.k]??1e9)-(idx[b.k]??1e9));
+}
+function shoppingText(C){
+  const L=['Inköpslista (priser exklusive moms)'];
+  listOrder(C).forEach(b=>{ if(b.packs>0) L.push(b.packs+' × '+b.it.namn+' – '+packLabel(b.it)+' ('+kr(b.cost)+')'); });
+  L.push('Summa: '+kr(C.purchaseSum));
+  if(C.ship>0) L.push('Frakt: '+kr(C.ship));
+  return L.join('\n');
+}
+function renderSummary(){
+  const C=calc(state), S=state.settings;
+  let h='<h2 class="section-title">Pris till kund</h2>';
+  const filled=C.rows.filter(r=>!r.empty);
+  if(!filled.length){
+    h+='<div class="card"><p>Välj blommor till bukett 1 så visas priset här.</p><p class="muted small">Priset räknas på hela förpackningar, så det kan vara högre än du tror för små buketter.</p></div>';
+  }
+  C.rows.forEach(r=>{
+    const name='Bukett '+(r.idx+1)+' · '+esc(r.size.name)+(r.b.qty>1?' × '+r.b.qty:'');
+    if(r.empty){
+      h+='<div class="card price-card"><div class="pc-head"><span>'+name+'</span></div><p class="muted small">Inga blommor valda.</p></div>';
+      return;
+    }
+    const open=ui.open[r.b.id]?' open':'';
+    h+='<article class="card price-card"><div class="pc-head"><span>'+name+'</span><span class="pc-sub">'+r.stems+' stjälkar</span></div>'
+      +'<div><div class="big">'+kr(r.price)+'</div><div class="pc-sub">inkl. moms'+(r.b.qty>1?' · '+kr(r.lineTotal)+' för '+r.b.qty+' st':'')+'</div></div>'
+      +'<details data-did="'+esc(r.b.id)+'"'+open+'><summary>Så räknas priset</summary><dl class="lines">'
+      +'<dt>Blommor och grönt ('+(S.mode==='whole'?'hela förpackningar':'använda stjälkar')+')</dt><dd>'+kr(r.flowers)+'</dd>'
+      +(r.shipShare>0.004?'<dt>Frakt, andel</dt><dd>'+kr(r.shipShare)+'</dd>':'')
+      +'<dt>Emballage</dt><dd>'+kr(r.wrap)+'</dd>'
+      +'<dt>Påslag '+num(S.markupPct)+' %</dt><dd>'+kr(r.markup)+'</dd>'
+      +'<dt>Arbete, '+num(r.size.minutes)+' min</dt><dd>'+kr(r.labor)+'</dd>'
+      +'<dt>Moms '+num(S.vatPct)+' %</dt><dd>'+kr(r.vat)+'</dd>'
+      +(Math.abs(r.rounding)>0.004?'<dt>Avrundning uppåt</dt><dd>'+kr(r.rounding)+'</dd>':'')
+      +'<dt class="sum">Pris inkl. moms</dt><dd class="sum">'+kr(r.price)+'</dd>'
+      +'<dt>Kvar efter inköp, före moms</dt><dd>'+Math.round(r.margin*100)+' %</dd>'
+      +'</dl></details></article>';
+  });
+  if(filled.length){
+    h+='<div class="card total"><div class="pc-sub">Totalt för kunden, inkl. moms</div><div class="big">'+kr(C.total)+'</div><div class="pc-sub">'+C.count+(C.count===1?' bukett':' buketter')+'</div></div>';
+  }
+  const bl=listOrder(C);
+  if(bl.length){
+    h+='<h2 class="section-title">Inköpslista</h2><section class="card"><div class="scroll-x"><table class="tbl"><thead><tr><th>Vara</th><th class="num">Behövs</th><th class="num">Köp</th><th class="num">Kostnad</th></tr></thead><tbody>';
+    bl.forEach(b=>{
+      h+='<tr><td>'+esc(b.it.namn)+'<small>'+esc(packLabel(b.it))+' · '+kr(b.it.pris)+(b.leftover>0?' · '+b.leftover+' över':'')+'</small></td>'
+        +'<td class="num">'+b.need+(b.have>0?'<small>'+b.have+' hemma</small>':'')+'</td>'
+        +'<td class="num">'+(b.packs>0?b.packs+' × '+b.it.paket:'–')+'</td>'
+        +'<td class="num">'+kr(b.cost)+'</td></tr>';
+    });
+    h+='</tbody><tfoot><tr><td colspan="3">Summa inköp, ex. moms</td><td class="num">'+kr(C.purchaseSum)+'</td></tr>'
+      +(C.ship>0?'<tr><td colspan="3">Frakt</td><td class="num">'+kr(C.ship)+'</td></tr>':'')+'</tfoot></table></div>';
+    h+='<p class="small muted">Blir över: '+C.leftoverStems+' stjälkar, värde '+kr(C.leftoverValue)+'. '
+      +(S.mode==='whole'?'Det ingår i priset, eftersom hela förpackningen debiteras kunden.':'Det tas inte ut i priset.')+'</p>';
+    if(C.missing.length) h+='<div class="note bad">Saknas i prislistan: '+C.missing.map(k=>esc(labelOf(k))).join(', ')+'. Priset är ofullständigt.</div>';
+    if(C.noPrice.length) h+='<div class="note warn">Pris saknas för: '+C.noPrice.map(k=>esc(labelOf(k))).join(', ')+'.</div>';
+    const pcs=C.purchaseSum;
+    if(S.minOrder>0&&pcs>0&&pcs<S.minOrder) h+='<div class="note warn">Under grossistens minsta order. Det saknas '+kr(S.minOrder-pcs)+'.</div>';
+    if(S.freeFrom>0&&S.shipFee>0&&pcs>0&&pcs<S.freeFrom) h+='<div class="note">Fri frakt från '+kr(S.freeFrom)+'. Det saknas '+kr(S.freeFrom-pcs)+'.</div>';
+    h+='<details data-did="hemma"'+(ui.open.hemma?' open':'')+'><summary>Har du något hemma?</summary><div class="hemma">'
+      +bl.map(b=>'<label>'+esc(b.it.namn)+'<input type="number" min="0" step="1" inputmode="numeric" data-hemma="'+esc(b.k)+'" value="'+(state.order.hemma[b.k]||0)+'" aria-label="Antal '+esc(b.it.namn)+' hemma"></label>').join('')
+      +'<p class="small muted">Stjälkar du redan har dras av från inköpet.</p></div></details>';
+    h+='<div class="row"><button class="btn" data-act="copy-list">Kopiera inköpslista</button><button class="btn danger" data-act="clear-order">Töm ordern</button></div>';
+    if(ui.copyText) h+='<div><label class="small muted" for="copy-box">Markera och kopiera texten</label><textarea id="copy-box" readonly rows="'+Math.min(10,ui.copyText.split('\n').length+1)+'">'+esc(ui.copyText)+'</textarea></div>';
+    h+='</section>';
+  }
+  $('#summary').innerHTML=h;
+  if(ui.copyText){ const cb=$('#copy-box'); if(cb){ cb.focus(); cb.select(); } }
+  $('#totalbar').innerHTML='<div><small>Totalt inkl. moms</small><strong>'+kr(C.total)+'</strong></div><button class="btn" data-act="goto-summary">Se detaljer</button>';
+}
+function renderBanner(){
+  $('#banner').innerHTML=state.priceList.meta.kalla==='exempel'
+    ?'<div class="note warn"><strong>Exempeldata.</strong> Priser, recept och inställningar är påhittade. Lägg in din egen prislista under <button class="link" data-tab="prislista">Prislista</button> och dina egna värden under <button class="link" data-tab="installningar">Inställningar</button>.</div>':'';
+}
+function renderBuilder(){ renderChips(); renderEditor(); renderTiles(); renderSummary(); }
+
+/* ---------- rendering: prislista ---------- */
+function renderPlHead(){
+  const m=state.priceList.meta, n=state.priceList.items.length;
+  const tag=m.kalla==='exempel'?'<span class="badge warn">Exempeldata</span>':m.kalla==='import'?'<span class="badge ok">Inläst lista</span>':'<span class="badge">Egen lista</span>';
+  $('#pl-head').innerHTML='<div class="head-row"><h3>Aktuell prislista</h3>'+tag+'</div><p><strong>'+esc(m.namn)+'</strong> · '+esc(m.datum)+' · '+n+' varor</p>';
+}
+function renderPlTable(){
+  const its=state.priceList.items;
+  $('#pl-cats').innerHTML=[...new Set(its.map(i=>i.kategori).filter(Boolean))].map(c=>'<option value="'+esc(c)+'">').join('');
+  $('#pl-table').innerHTML='<table class="tbl pl"><thead><tr><th>Namn</th><th>Kategori</th><th class="num">Antal per förp</th><th class="num">Pris per förp</th><th class="num">Per stjälk</th><th><span class="vh">Ta bort</span></th></tr></thead><tbody>'
+    +its.map((it,i)=>'<tr>'
+      +'<td><input data-pl="namn" data-i="'+i+'" value="'+esc(it.namn)+'" aria-label="Namn" style="min-width:150px"></td>'
+      +'<td><input data-pl="kategori" data-i="'+i+'" value="'+esc(it.kategori)+'" list="pl-cats" aria-label="Kategori" style="min-width:100px"></td>'
+      +'<td class="num"><input data-pl="paket" data-i="'+i+'" type="number" min="1" step="1" inputmode="numeric" value="'+it.paket+'" aria-label="Antal per förpackning" style="width:84px"></td>'
+      +'<td class="num"><input data-pl="pris" data-i="'+i+'" type="number" min="0" step="0.01" inputmode="decimal" value="'+it.pris+'" aria-label="Pris per förpackning" style="width:100px"></td>'
+      +'<td class="num" id="ps-'+i+'">'+kr(it.pris/Math.max(1,it.paket))+'</td>'
+      +'<td><button class="icon-btn" data-act="del-row" data-i="'+i+'" aria-label="Ta bort '+esc(it.namn)+'">×</button></td></tr>').join('')
+    +'</tbody></table>';
+  if(ui.focusNew){ ui.focusNew=false; const ins=document.querySelectorAll('#pl-table input[data-pl="namn"]'); const last=ins[ins.length-1]; if(last){ last.focus(); last.select(); } }
+}
+function renderImportPreview(){
+  const el=$('#import-preview');
+  if(!pending){ el.innerHTML=''; return; }
+  const p=pending, used=usedKeys();
+  let h='<section class="card" aria-label="Förhandsgranskning"><h3>Förhandsgranskning: '+esc(p.name)+'</h3>'
+    +'<p>'+p.items.length+' varor lästes in'+(p.skipped.length?'. '+p.skipped.length+' rader hoppades över eftersom priset saknas ('+p.skipped.slice(0,5).map(esc).join(', ')+(p.skipped.length>5?' …':'')+')':'')+'.</p>'
+    +'<label class="field" for="basis">Priskolumnen avser'
+    +'<select id="basis"><option value="forp"'+(p.basis==='forp'?' selected':'')+'>hela förpackningen</option><option value="st"'+(p.basis==='st'?' selected':'')+'>en stjälk</option></select>'
+    +'<span class="hint">Rubriken i filen är "'+esc(p.parsed.priceHeader)+'". Kontrollera att valet stämmer. Gäller priset en stjälk räknar appen om det till pris per förpackning.</span></label>';
+  if(p.dupes) h+='<div class="note warn">'+p.dupes+' varor har samma namn som en annan rad i listan.</div>';
+  if(p.guessed.length){
+    h+='<div class="note warn"><strong>Kontrollera antal per förpackning:</strong><ul class="plain">'+p.guessed.slice(0,12).map(g=>'<li>'+esc(g.namn)+': '+g.paket+' st ('+esc(g.how)+')</li>').join('')+(p.guessed.length>12?'<li>… och '+(p.guessed.length-12)+' till</li>':'')+'</ul>Du kan ändra dem i tabellen längre ned när listan är använd.</div>';
+  }
+  if(p.diff){
+    const d=p.diff, flag=k=>used.has(k)?' <span class="badge warn">används i din order eller dina recept</span>':'';
+    const nPack=d.changed.filter(c=>c.packChanged).length;
+    h+='<div class="row"><span class="badge">'+d.changed.length+(d.changed.length===1?' ändrad':' ändrade')+'</span><span class="badge">'+d.added.length+(d.added.length===1?' ny':' nya')+'</span><span class="badge'+(d.removed.length?' warn':'')+'">'+d.removed.length+(d.removed.length===1?' försvunnen':' försvunna')+'</span><span class="badge'+(nPack?' warn':'')+'">'+nPack+' med ändrad förpackning</span></div>';
+    if(d.changed.length) h+='<div class="scroll-x"><table class="tbl"><thead><tr><th>Vara</th><th class="num">Pris per förp</th><th class="num">Per stjälk</th></tr></thead><tbody>'
+      +d.changed.slice(0,60).map(c=>'<tr><td>'+esc(c.nu.namn)+(c.packChanged?'<small><span class="badge warn">Förpackning '+c.old.paket+' → '+c.nu.paket+' st</span></small>':'')+(used.has(c.k)?'<small><span class="badge warn">används i din order eller dina recept</span></small>':'')+'</td><td class="num">'+kr(c.old.pris)+' → '+kr(c.nu.pris)+'</td><td class="num">'+(c.stemPct>0?'+':'')+nf0.format(Math.round(c.stemPct))+' %</td></tr>').join('')
+      +'</tbody></table></div>';
+    if(d.removed.length) h+='<div class="note warn"><strong>Finns inte i nya listan:</strong> '+d.removed.map(i=>esc(i.namn)+flag(keyOf(i.namn))).join(', ')+'.</div>';
+    if(d.added.length) h+='<p class="small muted"><strong>Nya varor:</strong> '+d.added.slice(0,30).map(i=>esc(i.namn)).join(', ')+(d.added.length>30?' …':'')+'.</p>';
+  } else {
+    h+='<div class="note">Det här ersätter exempellistan, så det finns inga tidigare priser att jämföra med.</div>';
+  }
+  h+='<div class="row"><button class="btn primary" data-act="apply-import">Använd den nya listan</button><button class="btn" data-act="cancel-import">Avbryt</button></div></section>';
+  el.innerHTML=h;
+}
+function showImportMsg(msg){ const m=$('#import-msg'); m.textContent=msg||''; m.hidden=!msg; }
+function applyImport(){
+  if(!pending) return;
+  pending.items.forEach(i=>{ state.labels[keyOf(i.namn)]=i.namn; });
+  state.priceList={meta:{namn:pending.name,datum:today(),kalla:'import'},items:pending.items.map(i=>({...i}))};
+  pending=null; ui.cat=''; save();
+  renderBanner(); renderPlHead(); renderPlTable(); renderImportPreview(); renderCats(); renderBuilder();
+  showImportMsg('');
+}
+
+/* ---------- rendering: inställningar ---------- */
+function renderSettings(){
+  const S=state.settings;
+  const f=(label,key,step,hint)=>'<label class="field">'+label+'<input type="number" min="0" step="'+(step||'any')+'" inputmode="decimal" data-set="'+key+'" value="'+S[key]+'">'+(hint?'<span class="hint">'+hint+'</span>':'')+'</label>';
+  $('#settings').innerHTML=
+    '<section class="card"><fieldset><legend>Vad debiteras kunden för blommor?</legend>'
+    +'<label class="radio"><input type="radio" name="mode" value="whole"'+(S.mode==='whole'?' checked':'')+'><span>Hela förpackningar</span><small>Köper du ett 10-pack för 3 rosor betalar kunden för hela paketet. Har flera buketter samma blomma delar de på paketen.</small></label>'
+    +'<label class="radio"><input type="radio" name="mode" value="used"'+(S.mode==='used'?' checked':'')+'><span>Bara använda stjälkar</span><small>Kunden betalar packpris delat på antal, gånger det antal du använder. Överskottet tar du via påslaget.</small></label>'
+    +'</fieldset></section>'
+    +'<section class="card"><h3>Pris</h3><div class="grid-2">'
+    +f('Påslag på varor och emballage (%)','markupPct',1)
+    +f('Timpris för arbete (kr)','hourly',1)
+    +f('Moms (%)','vatPct',1,'Kontrollera med din redovisning vilken momssats som gäller.')
+    +f('Avrunda uppåt till närmaste (kr)','roundStep',1,'1 = hela kronor, 5 = jämna femtal.')
+    +'</div></section>'
+    +'<section class="card"><h3>Storlekar</h3><div class="scroll-x"><table class="tbl"><thead><tr><th>Namn</th><th class="num">Stjälkar</th><th class="num">Minuter</th><th class="num">Emballage (kr)</th></tr></thead><tbody>'
+    +S.sizes.map(s=>'<tr><td><input data-sz="'+esc(s.id)+'" data-f="name" value="'+esc(s.name)+'" aria-label="Namn" style="min-width:90px"></td>'
+      +'<td class="num"><input type="number" min="1" step="1" inputmode="numeric" data-sz="'+esc(s.id)+'" data-f="stems" value="'+s.stems+'" aria-label="Stjälkar i '+esc(s.name)+'" style="width:84px"></td>'
+      +'<td class="num"><input type="number" min="0" step="1" inputmode="numeric" data-sz="'+esc(s.id)+'" data-f="minutes" value="'+s.minutes+'" aria-label="Minuter för '+esc(s.name)+'" style="width:84px"></td>'
+      +'<td class="num"><input type="number" min="0" step="1" inputmode="decimal" data-sz="'+esc(s.id)+'" data-f="wrap" value="'+s.wrap+'" aria-label="Emballage för '+esc(s.name)+'" style="width:100px"></td></tr>').join('')
+    +'</tbody></table></div><p class="muted small">Stjälkar är ett riktvärde som visas i mätaren. Det stoppar dig inte från att lägga till fler.</p></section>'
+    +'<section class="card"><h3>Inköp hos grossisten</h3><div class="grid-2">'
+    +f('Minsta order (kr, 0 = ingen)','minOrder',1)
+    +f('Fraktavgift (kr, 0 = ingen)','shipFee',1,'Läggs på buketterna efter hur mycket blommor de innehåller.')
+    +f('Fri frakt från (kr, 0 = aldrig)','freeFrom',1)
+    +'</div></section>'
+    +'<section class="card"><h3>Data</h3><p class="muted small">Prislista, recept, order och inställningar sparas i den här webbläsaren. Byter du telefon eller rensar webbläsaren försvinner de.</p>'
+    +'<div class="row"><button class="btn danger" data-act="reset-all">Återställ exempeldata</button></div></section>';
+}
+
+/* ---------- händelser ---------- */
+function twoStep(btn,label,fn){
+  if(btn.dataset.armed){ clearTimeout(btn._t); delete btn.dataset.armed; fn(); return; }
+  btn.dataset.armed='1'; const old=btn.textContent; btn.textContent=label;
+  btn._t=setTimeout(()=>{ delete btn.dataset.armed; btn.textContent=old; },3500);
+}
+async function copyText(text,btn){
+  try{ await navigator.clipboard.writeText(text); const old=btn.textContent; btn.textContent='Kopierat'; setTimeout(()=>{ btn.textContent=old; },1500); }
+  catch(e){ ui.copyText=text; renderSummary(); }
+}
+function csvCell(v){ v=String(v==null?'':v); return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
+function currentCsv(){
+  return ['Namn;Kategori;Antal per förp;Pris per förp;Enhet;Färg'].concat(state.priceList.items.map(i=>[i.namn,i.kategori,i.paket,String(i.pris).replace('.',','),i.enhet||'',i.farg||''].map(csvCell).join(';'))).join('\n');
+}
+function setTab(t){
+  ui.tab=t;
+  document.querySelectorAll('[role="tab"]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===t)));
+  $('#view-bukett').hidden=t!=='bukett'; $('#view-prislista').hidden=t!=='prislista'; $('#view-installningar').hidden=t!=='installningar';
+  $('#totalbar').hidden=t!=='bukett';
+  if(t==='prislista'){ renderPlHead(); renderPlTable(); renderImportPreview(); }
+  if(t==='installningar') renderSettings();
+  window.scrollTo(0,0);
+}
+function renameKey(a,b){
+  const mv=o=>{ if(o&&Object.prototype.hasOwnProperty.call(o,a)){ if(!(b in o)) o[b]=o[a]; delete o[a]; } };
+  state.order.buketter.forEach(x=>mv(x.items)); mv(state.order.hemma); state.recipes.forEach(r=>mv(r.items));
+}
+function touchList(){
+  const m=state.priceList.meta;
+  if(m.kalla==='exempel'){ m.kalla='egen'; m.namn='Egen lista'; m.datum=today(); renderBanner(); renderPlHead(); }
+}
+function plEdit(t){
+  const i=+t.dataset.i, it=state.priceList.items[i], fld=t.dataset.pl; if(!it) return;
+  if(fld==='namn'){
+    const nv=t.value.trim(); if(!nv){ t.value=it.namn; return; }
+    const ok=keyOf(it.namn), nk=keyOf(nv);
+    if(ok!==nk) renameKey(ok,nk);
+    it.namn=nv; state.labels[nk]=nv;
+  }
+  else if(fld==='kategori') it.kategori=t.value.trim()||'Övrigt';
+  else if(fld==='paket'){ it.paket=Math.max(1,Math.round(parseFloat(t.value)||1)); t.value=it.paket; }
+  else if(fld==='pris'){ it.pris=Math.max(0,parseFloat(t.value)||0); }
+  touchList(); save();
+  const ps=$('#ps-'+i); if(ps) ps.textContent=kr(it.pris/Math.max(1,it.paket));
+  renderCats(); renderBuilder();
+}
+const act={
+  chip(t){ state.order.active=t.dataset.id; save(); renderBuilder(); },
+  'new-bouquet'(){ const o=state.order, id='b'+(++o.seq); o.buketter.push({id,size:activeB().size,qty:1,items:{}}); o.active=id; save(); renderBuilder(); },
+  'del-bouquet'(t){ const o=state.order; if(o.buketter.length<2) return; o.buketter=o.buketter.filter(b=>b.id!==t.dataset.id); if(o.active===t.dataset.id) o.active=o.buketter[0].id; save(); renderBuilder(); },
+  size(t){ activeB().size=t.dataset.size; save(); renderBuilder(); },
+  'qty-inc'(){ const b=activeB(); b.qty=Math.min(99,b.qty+1); save(); renderBuilder(); },
+  'qty-dec'(){ const b=activeB(); b.qty=Math.max(1,b.qty-1); save(); renderBuilder(); },
+  add(t){ const b=activeB(), k=t.dataset.key; b.items[k]=(b.items[k]||0)+1; const it=state.priceList.items.find(i=>keyOf(i.namn)===k); if(it) state.labels[k]=it.namn; save(); renderBuilder(); },
+  dec(t){ const b=activeB(), k=t.dataset.key; b.items[k]=(b.items[k]||0)-1; if(b.items[k]<=0) delete b.items[k]; save(); renderBuilder(); },
+  'rm-item'(t){ delete activeB().items[t.dataset.key]; save(); renderBuilder(); },
+  cat(t){ ui.cat=t.dataset.cat; renderCats(); renderTiles(); },
+  'save-recipe'(){
+    const b=activeB(), inp=$('#recipe-name'), name=inp.value.trim();
+    if(!name||sumStems(b)===0){ inp.focus(); return; }
+    const ex=state.recipes.find(r=>keyOf(r.name)===keyOf(name));
+    const rec={id:ex?ex.id:'r'+Date.now(),name,size:b.size,items:clone(b.items)};
+    if(ex) Object.assign(ex,rec); else state.recipes.push(rec);
+    inp.value=''; save(); renderRecipes();
+  },
+  'use-recipe'(t){
+    const r=state.recipes.find(x=>x.id===t.dataset.id); if(!r) return;
+    const o=state.order, id='b'+(++o.seq);
+    o.buketter.push({id,size:r.size,qty:1,items:clone(r.items)}); o.active=id; save(); renderBuilder();
+  },
+  'del-recipe'(t){ state.recipes=state.recipes.filter(r=>r.id!==t.dataset.id); save(); renderRecipes(); },
+  'copy-list'(t){ copyText(shoppingText(calc(state)),t); },
+  'clear-order'(t){ twoStep(t,'Säker? Tryck igen',()=>{ const o=state.order; o.seq++; const id='b'+o.seq; o.buketter=[{id,size:o.buketter[0].size,qty:1,items:{}}]; o.active=id; o.hemma={}; ui.copyText=''; save(); renderBuilder(); }); },
+  'goto-summary'(){ $('#summary').scrollIntoView({behavior:'smooth',block:'start'}); },
+  'parse-import'(){ runImport($('#csv-in').value,'Inklistrad lista'); },
+  'apply-import'(){ applyImport(); },
+  'cancel-import'(){ pending=null; renderImportPreview(); },
+  'copy-csv'(t){
+    const text=currentCsv();
+    navigator.clipboard.writeText(text).then(()=>{ const old=t.textContent; t.textContent='Kopierat'; setTimeout(()=>{ t.textContent=old; },1500); })
+      .catch(()=>{ $('#csv-out').innerHTML='<textarea id="csv-box" readonly rows="8" aria-label="Prislistan som CSV">'+esc(text)+'</textarea>'; const b=$('#csv-box'); b.focus(); b.select(); });
+  },
+  'add-row'(){ state.priceList.items.push({namn:'Ny vara',kategori:'Blommor',enhet:'bunt',paket:10,pris:0,farg:''}); touchList(); ui.focusNew=true; save(); renderPlTable(); renderPlHead(); renderCats(); renderBuilder(); },
+  'del-row'(t){ state.priceList.items.splice(+t.dataset.i,1); touchList(); save(); renderPlTable(); renderPlHead(); renderCats(); renderBuilder(); },
+  'reset-all'(t){ twoStep(t,'Säker? Tryck igen',()=>{ state=defaultState(); pending=null; ui.cat=''; ui.q=''; ui.copyText=''; $('#search').value=''; save(); renderAll(); renderSettings(); }); }
+};
+function runImport(text,name){
+  showImportMsg('');
+  const res=readTable(text);
+  if(res.error){ pending=null; renderImportPreview(); showImportMsg(res.error); return; }
+  pending={name,parsed:res,basis:res.basisGuess};
+  recomputePending(); renderImportPreview();
+  const pv=$('#import-preview'); if(pv) pv.scrollIntoView({behavior:'smooth',block:'start'});
+}
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-tab],[data-act]'); if(!t) return;
+  if(t.dataset.tab){ setTab(t.dataset.tab); return; }
+  const fn=act[t.dataset.act]; if(fn) fn(t,e);
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset&&t.dataset.pl!==undefined) return plEdit(t);
+  if(t.dataset&&t.dataset.set){ const v=parseFloat(t.value); state.settings[t.dataset.set]=isFinite(v)&&v>=0?v:0; save(); renderSummary(); return; }
+  if(t.dataset&&t.dataset.sz){
+    const s=state.settings.sizes.find(x=>x.id===t.dataset.sz); if(!s) return;
+    if(t.dataset.f==='name') s.name=t.value.trim()||s.name; else { const v=parseFloat(t.value); s[t.dataset.f]=isFinite(v)&&v>=0?v:0; if(t.dataset.f==='stems') s.stems=Math.max(1,Math.round(s.stems)); }
+    save(); renderBuilder(); return;
+  }
+  if(t.name==='mode'){ state.settings.mode=t.value; save(); renderSummary(); return; }
+  if(t.dataset&&t.dataset.hemma){ const v=Math.max(0,Math.round(parseFloat(t.value)||0)); if(v>0) state.order.hemma[t.dataset.hemma]=v; else delete state.order.hemma[t.dataset.hemma]; ui.open.hemma=true; save(); renderSummary(); return; }
+  if(t.id==='basis'&&pending){ pending.basis=t.value; recomputePending(); renderImportPreview(); return; }
+  if(t.id==='csv-file'&&t.files&&t.files[0]){
+    const file=t.files[0];
+    const rd=new FileReader();
+    rd.onload=()=>{
+      let text; const buf=rd.result;
+      try{ text=new TextDecoder('utf-8',{fatal:true}).decode(buf); }catch(err){ text=new TextDecoder('windows-1252').decode(buf); }
+      $('#csv-in').value=text; runImport(text,file.name);
+    };
+    rd.onerror=()=>showImportMsg('Kunde inte läsa filen. Spara den som CSV och försök igen.');
+    rd.readAsArrayBuffer(file); t.value='';
+  }
+});
+document.addEventListener('input',e=>{ if(e.target.id==='search'){ ui.q=e.target.value; renderTiles(); } });
+document.addEventListener('toggle',e=>{ const d=e.target; if(d.matches&&d.matches('details[data-did]')) ui.open[d.dataset.did]=d.open; },true);
+
+function renderAll(){ renderBanner(); renderCats(); renderRecipes(); renderBuilder(); renderPlHead(); renderPlTable(); renderImportPreview(); }
+renderAll();
+setTab('bukett');
+
+/* för test */
+window.buketraknare={calc:()=>calc(state),state:()=>state,readTable,detectPack,parseNum};
+})();
+</script>
+</body>
+</html>
