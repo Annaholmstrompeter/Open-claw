@@ -15,11 +15,13 @@ Data (prislista, recept, order, inställningar) sparas i telefonens webbläsare,
 
 1. **Första gången finns de 20 vanligaste bukett- och utsmyckningsblommorna som knappar, men utan priser.** Ett klick på en knapp lägger till en blomma i buketten, fler klick ger fler blommor, och minus tar bort en. Saknas en blomma trycker man på "Ny blomma" (eller skriver namnet i sökrutan) och skriver in den, så skapas en ny knapp. Knappen "Prova med exempeldata" visar hur appen räknar, med påhittade priser.
 2. **Välj blommor** i en eller flera buketter. Priser som ligger kvar från förra gången visas som "ca" och med ålder, så man får ungefärliga priser direkt.
-3. **Tryck "Hämta pris" när du valt klart.** En ruta öppnas. Man skriver in sin grossist (namn och webbadress) och väljer sin AI-assistent (ChatGPT Work eller Claude). Det sparas till nästa gång. Knappen "Öppna ChatGPT med uppdraget" öppnar assistenten med uppdraget färdigskrivet för de valda blommorna. Man loggar in på grossistens sida själv när assistenten ber om det (ChatGPT Work sparar inloggningen till nästa gång).
-4. **Priserna kommer tillbaka.** Med brevlådan lämnar assistenten själv in tabellen i ett formulär, och appen visar den av sig själv när man kommer tillbaka till den. Utan brevlådan klistrar man in svaret.
+3. **Tryck "Hämta pris" när du valt klart.** En ruta öppnas med två val. Grossistens namn och webbadress, och vilken AI man använder, sparas till nästa gång.
+   - **Skärmdumpar** (förvalt, ingen prenumeration behövs). Man loggar in hos grossisten själv, söker fram blommorna som visas under "Sök fram" och tar skärmdumpar. Sedan öppnar man ChatGPT eller Claude med uppdraget (knappen "Öppna … med uppdraget", eller kopiera det), bifogar skärmdumparna i chatten och klistrar tillbaka svaret i appen.
+   - **ChatGPT Work** (kräver ChatGPT-abonnemang). Knappen öppnar ChatGPT med uppdraget färdigskrivet. Man tar över molnwebbläsaren för att logga in hos grossisten själv (inloggningen sparas till nästa gång) och assistenten hämtar priserna.
+4. **Priserna kommer tillbaka.** Med ChatGPT Work och brevlådan lämnar assistenten själv in tabellen i ett formulär, och appen visar den av sig själv när man kommer tillbaka till den. I övriga fall klistrar man in svaret.
 5. Appen visar vad som lästes av: gammalt och nytt pris, procent per stjälk, **ändrad förpackning** och vad som inte hittades. Först när man trycker "Använd priserna" byts priserna, och de räknas då som aktuella idag.
 
-Uppdraget säger att AI:n bara ska läsa av, inte beställa eller ändra något. Koden till grossistens konto skrivs bara på grossistens egen sida, aldrig i appen. AI:ns avläsning kan bli fel, så man ska alltid kontrollera förhandsgranskningen.
+I ChatGPT Work-läget säger uppdraget att AI:n bara ska läsa av, inte beställa eller ändra något. I skärmdumpsläget säger det att den aldrig ska gissa ett pris. Koden till grossistens konto skrivs bara på grossistens egen sida, aldrig i appen. AI:ns avläsning kan bli fel, så man ska alltid kontrollera förhandsgranskningen.
 
 Svaret kan vara en tabell med semikolon, en markdown-tabell eller ett kodblock, även med en inledande mening före. Förväntade kolumner är `Namn; Antal per förp; Pris per förp; Enhet; Anmärkning`. Namnet matchas mot dina egna blommor, även när AI:n skrivit en variant ("Röd ros Freedom 60 cm" matchar "Röd ros"). Varianten visas i förhandsgranskningen.
 
@@ -65,16 +67,18 @@ Har man en färdig fil eller tabell kan man läsa in den under Prislista: klistr
 
 ## Testat och inte testat
 
-Testat (headless Chromium och Cloudflares egen lokala runtime): räknemotorn, tom start, nya blommor, uppdraget, inläsning av AI-svar, matchning, import av hel lista, brevlådans API (engångskod, storleksgräns, felkoder, säkerhetshuvuden) och hela kedjan där en låtsasassistent lämnar in i formuläret och appen visar priserna av sig själv.
+Testat (headless Chromium och Cloudflares egen lokala runtime): de två valen (skärmdumpar och ChatGPT Work) och att uppdraget blir rätt i båda, räknemotorn, tom start, nya blommor, uppdraget, inläsning av AI-svar, matchning, import av hel lista, brevlådans API (engångskod, storleksgräns, felkoder, säkerhetshuvuden) och hela kedjan där en låtsasassistent lämnar in i formuläret och appen visar priserna av sig själv.
 
 **Inte provat:**
 - Att ChatGPT Work faktiskt öppnar inlämningsadressen, fyller i formuläret och trycker Skicka. Den kan neka eller fråga om lov först. Fungerar det inte kan man klistra in svaret för hand.
+- Att ChatGPT eller Claude läser skärmdumpar bra nog för att priserna blir rätt. Förhandsgranskningen finns för att man ska kunna kontrollera.
 - Att länkarna `chatgpt.com/?q=` och `claude.ai/new?q=` fyller i texten, och om telefonen öppnar appen eller webbläsaren.
 - Någon riktig grossist. Avläsningen på grossistens sida beror på hur den ser ut.
 - Driftsättningen på Cloudflare. Den har inte körts, bara samma kod lokalt.
 
 ## Inte byggt än
 
+- Att appen själv läser av skärmdumparna, så att man slipper öppna en chatt och klistra in. Det kräver en API-nyckel hos en AI-leverantör, som kostar några tiotals öre per körning, och en spärr mot att andra använder den. Appen fungerar utan.
 - Automatisk inloggning och avläsning på servern (utan assistent). Det vore en egen webbläsare i molnet och kräver att grossistens inloggning sparas. Det kan bli aktuellt om assistenten inte klarar inlämningen.
 - Konton och delad data mellan användare. Varje telefon har sin egen kopia.
 - Läsning av `.xlsx` och PDF direkt, foton på blommor, favoriter och matchning på artikelnummer.
