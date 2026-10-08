@@ -130,14 +130,14 @@ test('Annas flöde: kund och jobb → arrangemang → blomma → eget material �
 });
 
 // ---------- min order ----------
-test('"Min order": den gamla ordern syns som ett jobb med exakt samma totalsumma som calc(), och fliken Bukett är oförändrad', async () => {
+test('"Min order": den gamla ordern syns som ett jobb med exakt samma totalsumma som calc(), och fliken Snabbkalkyl är oförändrad', async () => {
   const old = basic({ buketter: [{ size: 'medel', qty: 2, items: { 'Röd ros': 5, 'Eukalyptus': 2 } }, { size: 'liten', qty: 1, items: { 'Röd ros': 3 } }], hemma: { 'Röd ros': 1 } });
   await withApp(seed(old), async app => {
     const C = app.calc(), modelBefore = JSON.stringify(app.hook.model()), v2Before = app.storage()['buketraknare.v2'];
     assert.equal(C.incomplete, false);
     await openJobs(app);
     assert.match(app.text('#j-job option'), /Min order/);
-    assert.match(app.text('#view-jobb'), /Din nuvarande order finns nu som jobbet "Min order"/); assert.match(app.text('#view-jobb'), /Fliken Bukett är oförändrad/);
+    assert.match(app.text('#view-jobb'), /Din nuvarande order finns nu som jobbet "Min order"/); assert.match(app.text('#view-jobb'), /Fliken Snabbkalkyl är oförändrad/);
     assert.deepEqual(app.$$('#view-jobb .j-arr .link').map(e => e.textContent), ['Bukett 1 ×2', 'Bukett 2']);
     assert.match(NB(app.text('#j-total .j-big')), new RegExp(krText(Money.fromDecimal(String(C.total))) + ' inkl\\. moms'));
     assert.equal(JSON.stringify(app.hook.model()), modelBefore); assert.equal(app.storage()['buketraknare.v2'], v2Before);        // gamla appen är orörd

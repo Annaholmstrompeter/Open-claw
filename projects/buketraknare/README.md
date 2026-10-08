@@ -12,11 +12,17 @@ Appen är byggd för telefon. Den fungerar med vilken grossist som helst.
 
 Data (prislista, recept, order, inställningar) sparas i telefonens webbläsare, så den följer inte med om man byter telefon eller rensar webbläsaren.
 
-## Så används den
+## Gränssnittet: en floriststudio
+
+Appen öppnas på **Hem** med frågan "Vad vill du skapa idag?" och två val: **Skapa en bukett** (byggaren öppnas direkt, jobbet skapas först när du lägger till något) och **Planera ett kundjobb** (kund, typ, datum, arrangemang). Menyn har fyra mål: **Hem**, **Jobb**, **Blommor** (katalogen: sök, priser, färskhet) och **Snabbkalkyl** (den gamla Bukett-fliken). **Inställningar** nås med reglaget uppe till höger. I byggaren skriver man in priset där man står om det saknas, och kundpriset syns hela tiden i ett fast fält. Under **Kalkyl och inköp** i jobbet ser man hur priset byggs upp, beräknat mot presenterat (och överenskommet när kunden sagt ja) samt vad som ska köpas och vad som blir över. Allt sparas automatiskt och status syns i rubrikraden.
+
+Designen (färger med uppmätt kontrast, typografi, ljust och mörkt läge, tillgänglighet) och planen skärm för skärm står i `docs/DESIGN-OMARBETNING.md`. Filerna: `public/index.html` (skal och de gamla vyerna), `public/css/studio.css` (designsystemet), `public/js/home-ui.js` (Hem) och `public/js/jobs-ui.js` (Jobb, byggare, kalkyl och inköp). Inga bilder används och inga nycklar finns i webbläsaren.
+
+## Så används den (Snabbkalkyl och prisuppdatering)
 
 1. **Första gången finns de 20 vanligaste bukett- och utsmyckningsblommorna som knappar, men utan priser.** Ett klick på en knapp lägger till en blomma i buketten, fler klick ger fler blommor, och minus tar bort en. Saknas en blomma trycker man på "Ny blomma" (eller skriver namnet i sökrutan) och skriver in den, så skapas en ny knapp. Knappen "Prova med exempeldata" visar hur appen räknar, med påhittade priser.
 2. **Välj blommor** i en eller flera buketter. Priser som ligger kvar från förra gången visas som "ca" och med ålder, så man får ungefärliga priser direkt.
-3. **Tryck "Hämta pris" när du valt klart.** En ruta öppnas med två val. Grossistens namn och webbadress, och vilken AI man använder, sparas till nästa gång.
+3. **Tryck "Uppdatera priser" när du valt klart** (finns i Snabbkalkyl och under Blommor). En ruta öppnas med två val. Grossistens namn och webbadress, och vilken AI man använder, sparas till nästa gång.
    - **Skärmdumpar** (förvalt, ingen prenumeration behövs). Man loggar in hos grossisten själv, söker fram blommorna som visas under "Sök fram" och tar skärmdumpar. Sedan trycker man "Välj skärmdumpar" i appen. Appen läser av dem själv (via Claude i sidan, eller via serverdelen på en egen webbplats) och priserna dyker upp i förhandsgranskningen, utan att man kopierar något. Fungerar det inte finns en AI-chatt som reserv: man öppnar ChatGPT eller Claude med uppdraget, bifogar bilderna och klistrar tillbaka svaret. Där varken Claude i sidan eller serverdelen finns (till exempel i ren fil-läge) är chatten det enda sättet.
    - **ChatGPT Work** (kräver ChatGPT-abonnemang). Knappen öppnar ChatGPT med uppdraget färdigskrivet. Man tar över molnwebbläsaren för att logga in hos grossisten själv (inloggningen sparas till nästa gång) och assistenten hämtar priserna.
 4. **Priserna kommer tillbaka.** Med ChatGPT Work och brevlådan lämnar assistenten själv in tabellen i ett formulär, och appen visar den av sig själv när man kommer tillbaka till den. I övriga fall klistrar man in svaret.
@@ -71,7 +77,7 @@ Under Inställningar kan man i stället välja att bara debitera använda stjäl
 
 ## Hela prislistor
 
-Har man en färdig fil eller tabell kan man läsa in den under Prislista: klistra in från Excel eller välj en CSV-fil. Se `exempel-prislista.csv` för formatet.
+Har man en färdig fil eller tabell kan man läsa in den under Blommor ("Läs in en hel prislista"): klistra in från Excel eller välj en CSV-fil. Se `exempel-prislista.csv` för formatet.
 
 - Första raden är rubriker. Namn och Pris krävs. Antal per förp, Enhet, Kategori och Färg är valfria.
 - Semikolon, komma och tabb funkar, liksom decimalkomma och UTF-8 eller Windows-1252.
@@ -119,13 +125,14 @@ Körs med Nodes egen testkörare och `jsdom`, utan webbläsare. Testerna startar
 - **Egna material, prisnivåer och offert/order** (`included-basis.test.mjs`, `quotes-orders.test.mjs`): "ingår / 0 kr" mot pris som saknas, fasta priser inkl. och exkl. moms, kalkylkostnad trots noll inköpskostnad, beräknat ≠ presenterat ≠ överenskommet (lägre och högre), oföränderliga offerter och order, och en sparad och återöppnad order som behåller alla tre prisnivåerna exakt.
 - **Bryggan** (`bridge.test.mjs`): katalog, inställningar, "Min order" som jobb (en gång, allt eller inget, gamla vyn orörd), differenstest mot `calc()` på de 145 tillstånden och vägen tillbaka.
 - **Fliken Jobb** (`jobs-ui.test.mjs`): hela flödet i en riktig sida, att öppna igen efter omstart, att den gamla appens lagring är orörd, trasig och full lagring, felaktig inmatning och att alla fält har etiketter.
+- **Floriststudions gränssnitt** (`studio-ui.test.mjs`, `design-contrast.test.mjs`): Hem, "Skapa en bukett" utan tomma jobb, första priset skrivet där man står (och att det räknas av motorn), ändra och ta bort, kalkyl och inköp, "Överenskommet" bara när det finns, katalogens ärliga fakta, sparstatus, fönstret med Escape och fokus, landmärken och en h1 per vy, inga bilder och inga nycklar, samt kontrast i ljust och mörkt läge mätt ur CSS-filen. Själva utseendet (layout, mellanrum, färger i verkligheten) provas i en riktig webbläsare, inte i jsdom: se `docs/DESIGN-OMARBETNING.md`.
 - Mutationstestning av allt detta: 59 medvetna fel i de nya delarna, alla fångade (fem överlevde första omgången och fick egna tester).
 
 ## Ekonomimodulen och fliken Jobb
 
-Exakta pengar, moms, pris och arbetsyta i `public/js/core/`: `money.js` (`Money`, exakta bråk, avrundning), `amounts.js` (exkl. moms, moms, inkl. moms), `tax.js` (versionerade skatteregler som data), `pricing.js` (prismotorn: framåt och baklänges, fast kundpris, "ingår", beräknat och presenterat pris, delning av ett överenskommet pris), `purchase.js` (hela förpackningar och frakt), `items.js` (grossistartiklar och egna tillägg i ett arrangemang), `workspace.js` (kund, jobb, arrangemang, rader, offert och kundorder), `store.js` (lagringsgränssnitt) och `bridge.js` (bryggan till den nuvarande prislistan, inställningarna och ordern). Fliken **Jobb** (`public/js/jobs-ui.js`) är en minimal skärm på toppen av detta: skapa kund och jobb, arrangemang, blommor och eget material, arbete, se kundpriset och öppna igen. Den sparar automatiskt i en egen lagringsnyckel (`buketraknare.workspace.v1`) och rör aldrig den gamla appens lagring.
+Exakta pengar, moms, pris och arbetsyta i `public/js/core/`: `money.js` (`Money`, exakta bråk, avrundning), `amounts.js` (exkl. moms, moms, inkl. moms), `tax.js` (versionerade skatteregler som data), `pricing.js` (prismotorn: framåt och baklänges, fast kundpris, "ingår", beräknat och presenterat pris, delning av ett överenskommet pris), `purchase.js` (hela förpackningar och frakt), `items.js` (grossistartiklar och egna tillägg i ett arrangemang), `workspace.js` (kund, jobb, arrangemang, rader, offert och kundorder), `store.js` (lagringsgränssnitt) och `bridge.js` (bryggan till den nuvarande prislistan, inställningarna och ordern). Fliken **Jobb** (`public/js/jobs-ui.js`) är skärmen på toppen av detta: skapa kund och jobb, arrangemang, bukettbyggaren (blommor, eget material, arbete), kundpriset och kalkyl och inköp, och öppna igen. Den sparar automatiskt i en egen lagringsnyckel (`buketraknare.workspace.v1`) och rör aldrig den gamla appens lagring.
 
-Fliken Bukett använder fortfarande bara den gamla `calc()`, som ligger kvar orörd som referensmotor. Din nuvarande order kopieras en enda gång till jobbet "Min order" när du först öppnar fliken Jobb. Därefter är jobbet en egen sak. **Inga momssatser i koden är verifierade.** De som finns i tester är testdata, och fliken Jobb säger att momsen är din egen inställning. Se `docs/EKONOMIREGLER.md` för vad som är byggt, vad som är testdata och hur den nya motorn avviker från `calc()`.
+Fliken **Snabbkalkyl** (tidigare Bukett) använder fortfarande bara den gamla `calc()`, som ligger kvar orörd som referensmotor. Din nuvarande order kopieras en enda gång till jobbet "Min order" när du först öppnar fliken Jobb. Därefter är jobbet en egen sak. **Inga momssatser i koden är verifierade.** De som finns i tester är testdata, och fliken Jobb säger att momsen är din egen inställning. Se `docs/EKONOMIREGLER.md` för vad som är byggt, vad som är testdata och hur den nya motorn avviker från `calc()`.
 
 ## Datamodell (v2) och migrering
 

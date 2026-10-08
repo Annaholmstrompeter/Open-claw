@@ -191,3 +191,24 @@ Annas beslut:
 - **Kostnaden för självtestet är en uppskattning** (3 till 6 kr, tak ungefär 10 kr), inte mätt.
 
 **Inte gjort och inte bevisat:** ingen riktig modell har körts (ingen nyckel hos mig), inget är provat mot grossistens riktiga butik, dubbelklicksfilerna är bara kontrollerade statiskt och provade på Linux, och grossistens villkor har inte gått att läsa. RIKTIG GROSSIST är därför **inte redo** förrän DEMO och självtestet har fungerat hos Anna.
+
+## 2026-10-08 (fjärde beslutet): gränssnittet görs om till en floriststudio
+
+Annas uppdrag: Buketträknaren ska kännas som ett exklusivt kreativt verktyg, inte ett ekonomisystem, och en florist som aldrig sett appen ska kunna skapa sitt första jobb och förstå sitt kundpris utan instruktioner. Penga-, moms-, förpacknings- och lagringslogik, snapshots, bryggan och grossistagenten rörs inte. Plan och resultat: `DESIGN-OMARBETNING.md`.
+
+**Byggt:** designsystem (`public/css/studio.css`) med ivory, deep olive, dusty rose, sage och stone, serif för stora rubriker och sans för all funktionell text och alla siffror, ljust och mörkt läge; nytt skal med nederkant på mobil och sidofält på dator; startsida (`home-ui.js`); omgjord jobbskärm med bukettbyggare, kalkyl och inköp (`jobs-ui.js`); katalogen Blommor; synlig sparstatus; tillgänglighet (hoppa-länk, landmärken, fokus, Escape, inaktiv bakgrund bakom fönster).
+
+**Mina val (kan ändras):**
+- **Fyra mål i menyn:** Hem, Jobb, Blommor och **Snabbkalkyl** (den gamla Bukett-fliken, oförändrad i funktion). Inställningar nås med ett reglage uppe till höger. Två byggare med samma namn ("Bukett") hade förvirrat en ny florist, så den gamla fliken fick ett eget namn. Det ändrar en rad text i ett test (`jobs-ui.test.mjs`: "Fliken Bukett" → "Fliken Snabbkalkyl"), ingen logik.
+- **"Skapa en bukett" öppnar bukettbyggaren i jobbsystemet**, inte den gamla kalkylatorn, eftersom bara byggaren har eget material och arbete. Jobbet (typ Bukett, utan kund) skapas först när något läggs till, så att inga tomma jobb samlas.
+- **Priset skrivs in där man står.** Saknas priset på en blomma frågar raden "Vad kostar …?" och svaret sparas i prislistan med samma funktion som fliken Blommor (`setManualPrice`), så priset syns överallt. Det var det största hindret för en ny florist: utan priser gick det inte att få ett kundpris utan att lämna skärmen.
+- **Jobbskärmen startar när appen öppnas** (inte först när fliken Jobb öppnas), för att startsidan ska kunna visa senaste jobb. Det betyder att "Min order" kopieras över vid första öppning i stället för vid första besöket i Jobb. Importen är fortfarande en enda gång, allt eller inget.
+- **Katalogen visar bara fakta som finns.** Den egna prislistan har inget artikelnummer, ingen tillgänglighet och ingen längd, så de visas inte. Sort, längd, tillgänglighet och källa visas när datamodellen har dem (en riktig grossistkoppling). Färskhet är ✓ idag, ≈ N dagar eller "Prisets datum är okänt". Favoriter visas inte: de finns inte i datamodellen och är pausade sedan tidigare beslut.
+- **Överenskommet pris** visas i Kalkyl och inköp bara när en kundorder finns. Det går inte att skapa en i gränssnittet än (knapparna är fortfarande pausade).
+- **Palett anpassad där originalet inte klarar kontrast:** dusty rose som text på ivory är 2,58:1 och stone som fältkant 1,81:1, så text, länkar och fält använder en djupare ton (`--rose-ink`, `--line-strong`). De fem originalfärgerna används för ytor och dekor. Mätningen ligger som test (`design-contrast.test.mjs`).
+- **Typsnitt hämtas från Google Fonts** (Cormorant Garamond och Figtree), som tidigare Figtree och Young Serif. Det är ett externt beroende: utan nät används Georgia och systemets sans. Att lägga typsnitten i `public/` är ett enkelt nästa steg om Anna vill slippa Googles server.
+- **Bakåtknappen** går mellan menyvalen. Inne i byggaren och kalkylen används knapparna "Tillbaka till jobbet" och "Klart".
+- **Ljust och mörkt läge följer enheten.** Ingen manuell växlare byggdes.
+- **Två befintliga brister rörs inte:** "Töm allt och börja om" rensar prislista, order och recept men inte jobben i arbetsytan, och "Min order" kopieras bara en gång.
+
+**Inte byggt:** offert- och "kunden sa ja"-knappar, favoriter, förhandlat totalpris, manuell växling mellan ljust och mörkt, bilder, riktiga artikelnummer och tillgänglighet.

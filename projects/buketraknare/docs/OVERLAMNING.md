@@ -14,6 +14,10 @@ Senast uppdaterad 2026-10-08 (efter tredje beslutet: självtest, lägre tak, min
 | Planer och beslut | `docs/MASTER-PLAN.md` (v2.6, avsnitt 7.7, 7.7.1 och 7.7.2), `docs/BESLUT.md` (tre poster 2026-10-08) |
 | PoC-instruktioner | `poc/grossistagent/README.md` (på svenska, skriven för Anna) |
 
+## Designomarbetningen (egen gren, ovanpå PR #10)
+
+Anna bad 2026-10-08 om en ny design av Buketträknarens gränssnitt ("floriststudio"). Det ligger på grenen `ccr-b409dede-q2ilay` som en **egen draft-PR med PR #10:s gren som bas**. PR #9, PR #10 och master är orörda. Det **pausade** UI-arbetet (offertknappar, favoriter) gäller fortfarande: designuppdraget gällde utseende, flöde och tillgänglighet, inte nya affärsfunktioner. Allt står i `docs/DESIGN-OMARBETNING.md` (inventering, plan, mätningar, vad som testats visuellt och vad som bara är kodtestat) och i `docs/BESLUT.md` (fjärde beslutet 2026-10-08). Räknemotorer, bryggan, lagringen och grossistagenten är oförändrade. Alla befintliga tester är kvar (en rad copy i `jobs-ui.test.mjs` ändrades: fliken Bukett heter nu Snabbkalkyl), och nya tester finns i `studio-ui.test.mjs` och `design-contrast.test.mjs`.
+
 ## Annas stående regler (gäller tills hon säger annat)
 
 - PR #9 rörs inte. PR #10 förblir **draft** och mergas aldrig utan hennes uttryckliga godkännande. **master rörs inte.** (Repots `CLAUDE.md` föreslår annars att anteckningar pushas till master. Annas uttryckliga regel går före: lägg allt på grenen.)
