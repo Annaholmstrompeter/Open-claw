@@ -206,6 +206,18 @@ legend{font-weight:700;font-size:15px;padding:0;margin-bottom:6px}
 .radio span{font-weight:600}
 .radio small{grid-column:2;color:var(--ink-2);font-size:13px}
 ul.plain{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px}
+/* Jobb-fliken (minimal jobbskärm) */
+#view-jobb .j-grid{display:grid;gap:16px;max-width:760px}
+#view-jobb .j-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+#view-jobb .j-arr,#view-jobb .j-item,#view-jobb .j-flower{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+#view-jobb .j-arr.on{border-color:var(--accent);background:var(--accent-soft)}
+#view-jobb .j-item-main{flex:1 1 200px;min-width:0}
+#view-jobb .j-qty{width:96px}
+#view-jobb .j-form{display:grid;gap:10px}
+#view-jobb form.j-form.row{align-items:end}
+#view-jobb .j-big{font-size:26px;font-weight:800;margin:0;font-variant-numeric:tabular-nums}
+#view-jobb details>summary{cursor:pointer;min-height:44px;display:flex;align-items:center}
+#view-jobb fieldset{display:grid;gap:8px}
 @media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -218,6 +230,7 @@ ul.plain{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px}
     </div>
     <nav class="tabs" role="tablist" aria-label="Vyer">
       <button role="tab" data-tab="bukett" aria-selected="true">Bukett</button>
+      <button role="tab" data-tab="jobb" aria-selected="false">Jobb</button>
       <button role="tab" data-tab="prislista" aria-selected="false">Prislista</button>
       <button role="tab" data-tab="installningar" aria-selected="false">Inställningar</button>
     </nav>
@@ -256,6 +269,9 @@ ul.plain{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px}
       </div>
     </section>
 
+    <!-- JOBB (minimal jobbskärm, js/jobs-ui.js) -->
+    <section id="view-jobb" hidden aria-label="Jobb"></section>
+
     <!-- PRISLISTA -->
     <section id="view-prislista" hidden>
       <div style="display:grid;gap:16px">
@@ -292,10 +308,23 @@ ul.plain{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px}
 
 <div id="totalbar" role="status" aria-live="polite"></div>
 
+<script src="js/core/model.js"></script>
+<script src="js/core/money.js"></script>
+<script src="js/core/amounts.js"></script>
+<script src="js/core/tax.js"></script>
+<script src="js/core/pricing.js"></script>
+<script src="js/core/purchase.js"></script>
+<script src="js/core/items.js"></script>
+<script src="js/core/workspace.js"></script>
+<script src="js/core/store.js"></script>
+<script src="js/core/bridge.js"></script>
+<script src="js/jobs-ui.js"></script>
 <script>
 (function(){
 'use strict';
-const STORE_KEY='buketraknare.v1';
+// Datamodell v2 (stabila id:n) ligger i js/core/model.js. Den gamla lagringen (v1) rörs aldrig: den läses en gång och migreras.
+const STORE_KEY='buketraknare.v2', LEGACY_KEY='buketraknare.v1';
+const M=window.BRModel;
 
 /* ---------- hjälpfunktioner ---------- */
 const $=(s,r=document)=>r.querySelector(s);
@@ -349,7 +378,7 @@ const DEFAULT_SETTINGS={
   minOrder:0, shipFee:0, freeFrom:0
 };
 function items(obj){ const o={}; for(const [n,c] of Object.entries(obj)) o[keyOf(n)]=c; return o; }
-function emptyState(){
+function emptyStateV1(){
   const its=commonItems(), labels={}; its.forEach(i=>{labels[keyOf(i.namn)]=i.namn;});
   return {
     v:1,
@@ -361,7 +390,7 @@ function emptyState(){
     recipes:[]
   };
 }
-function exampleState(){
+function exampleStateV1(){
   const labels={}; SAMPLE_ITEMS.forEach(i=>{labels[keyOf(i.namn)]=i.namn;});
   return {
     v:1,
@@ -382,11 +411,13 @@ function exampleState(){
     ]
   };
 }
-function load(){
+const emptyState=()=>M.migrateV1toV2(emptyStateV1());
+const exampleState=()=>M.migrateV1toV2(exampleStateV1());
+/* v1 (gamla lagringen): samma kontroller och standardvärden som förut, sedan migrering till v2 */
+function normalizeV1(s){
   try{
-    const raw=localStorage.getItem(STORE_KEY);
-    if(raw){
-      const s=JSON.parse(raw), d=emptyState();
+    {
+      const d=emptyStateV1();
       if(s&&s.priceList&&Array.isArray(s.priceList.items)&&s.order&&Array.isArray(s.order.buketter)&&s.order.buketter.length){
         s.settings=Object.assign({},d.settings,s.settings||{});
         if(!Array.isArray(s.settings.sizes)||s.settings.sizes.length<1) s.settings.sizes=d.settings.sizes;
@@ -401,9 +432,43 @@ function load(){
       }
     }
   }catch(e){}
+  return null;
+}
+/* v2: fyll i standardvärden utan att ta bort något */
+function withDefaults(st){
+  const d=emptyStateV1();
+  st.settings=Object.assign({},d.settings,st.settings||{});
+  if(!Array.isArray(st.settings.sizes)||st.settings.sizes.length<1) st.settings.sizes=d.settings.sizes;
+  st.wholesaler=Object.assign({namn:'',url:'',ai:'chatgpt',mode:'skarm',readCode:''},st.wholesaler||{});
+  if(!st.order.buketter.some(b=>b.id===st.order.active)) st.order.active=st.order.buketter[0].id;
+  if(st.priceListMeta.kalla==='tom'&&!st.products.length){
+    COMMON_FLOWERS.forEach(([namn,kategori,farg])=>M.addProduct(st,{name:namn,category:kategori,color:farg,paket:1,enhet:'',pris:0}));
+  }
+  return st;
+}
+function load(){
+  try{
+    const raw2=localStorage.getItem(STORE_KEY);
+    if(raw2){ const s2=M.loadV2(raw2); if(s2) return withDefaults(s2); }
+  }catch(e){}
+  try{
+    const raw=localStorage.getItem(LEGACY_KEY);
+    if(raw){
+      const s1=normalizeV1(JSON.parse(raw));
+      if(s1){
+        const s2=M.migrateV1toV2(s1);
+        try{ localStorage.setItem(STORE_KEY,JSON.stringify(s2)); }catch(e){}   // v1-nyckeln lämnas orörd
+        return s2;
+      }
+    }
+  }catch(e){}
   return emptyState();
 }
 let state=load();
+/* vy i det gamla formatet (varor med id), som räknemotorn och skärmarna läser */
+const view=()=>M.viewOf(state);
+const plItems=()=>view().priceList.items;
+const nowIso=()=>new Date().toISOString();
 let pending=null;                       // förhandsgranskning av hel ny prislista
 let pendingUpd=null;                    // förhandsgranskning av uppdaterade priser
 const ui={tab:'bukett',cat:'',q:'',open:{},copyText:'',focusNew:false,newFlower:false,upd:false,updScope:'valda',msg:'',relay:null,read:false,needsCode:false,sample:null,sampleImages:null,ctl:null,code:'',poll:null,tick:null};
@@ -413,7 +478,7 @@ function save(){ try{ localStorage.setItem(STORE_KEY,JSON.stringify(state)); }ca
 function indexList(list){
   const m={};
   for(const it of list){
-    m[keyOf(it.namn)]={namn:it.namn,kategori:it.kategori,enhet:it.enhet,farg:it.farg,uppd:it.uppd,
+    m[it.id]={namn:it.namn,kategori:it.kategori,enhet:it.enhet,farg:it.farg,uppd:it.uppd,
       paket:Math.max(1,Math.round(+it.paket||1)),pris:Math.max(0,+it.pris||0)};
   }
   return m;
@@ -613,8 +678,8 @@ function recomputePending(){
   const seen=new Set(); let dupes=0;
   r.its.forEach(i=>{ const k=keyOf(i.namn); if(seen.has(k)) dupes++; seen.add(k); });
   pending.items=r.its; pending.skipped=r.skipped; pending.guessed=r.guessed; pending.dupes=dupes;
-  const hadPrices=state.priceList.items.some(i=>i.pris>0)&&state.priceList.meta.kalla!=='exempel';
-  pending.diff=hadPrices?diffLists(state.priceList.items,r.its):null;
+  const hadPrices=plItems().some(i=>i.pris>0)&&state.priceListMeta.kalla!=='exempel';
+  pending.diff=hadPrices?diffLists(plItems(),r.its):null;
 }
 function diffLists(oldItems,newItems){
   const o=new Map(oldItems.map(i=>[keyOf(i.namn),i])), n=new Map(newItems.map(i=>[keyOf(i.namn),i]));
@@ -631,10 +696,11 @@ function diffLists(oldItems,newItems){
   for(const [k,oi] of o) if(!n.has(k)) removed.push(oi);
   return {changed,added,removed};
 }
-function usedKeys(){
-  const s=new Set();
-  state.order.buketter.forEach(b=>Object.keys(b.items).forEach(k=>{ if(b.items[k]>0) s.add(k); }));
-  state.recipes.forEach(r=>Object.keys(r.items).forEach(k=>s.add(k)));
+function usedKeys(){            // namnnycklar (listor jämförs på namn) för varor som används i ordern eller recepten
+  const list=indexList(plItems()), s=new Set();
+  const add=id=>s.add(keyOf(labelOf(id,list)));
+  state.order.buketter.forEach(b=>Object.keys(b.items).forEach(k=>{ if(b.items[k]>0) add(k); }));
+  state.recipes.forEach(r=>Object.keys(r.items).forEach(add));
   return s;
 }
 function chosenKeys(){
@@ -671,7 +737,7 @@ function renderChips(){
 }
 function renderEditor(){
   const b=activeB(), S=state.settings, size=sizeOf(b.size), stems=sumStems(b), target=size.stems, nm=size.name.toLowerCase();
-  const list=indexList(state.priceList.items);
+  const list=indexList(plItems());
   let msg, over=false;
   if(stems===0) msg='Välj blommor nedan. Riktvärde för '+nm+': '+target+' stjälkar.';
   else if(stems<target) msg=stems+' av '+target+' stjälkar, '+(target-stems)+' kvar till '+nm;
@@ -686,13 +752,13 @@ function renderEditor(){
     +(missing.length?'<div class="note warn">Finns inte i prislistan: '+missing.map(k=>'<button class="link" data-act="rm-item" data-key="'+esc(k)+'" title="Ta bort ur buketten">'+esc(labelOf(k))+' (ta bort)</button>').join(', ')+'.</div>':'');
 }
 function renderCats(){
-  const cats=[...new Set(state.priceList.items.map(i=>i.kategori).filter(Boolean))];
+  const cats=[...new Set(plItems().map(i=>i.kategori).filter(Boolean))];
   if(ui.cat&&!cats.includes(ui.cat)) ui.cat='';
   $('#cats').innerHTML=cats.length>1?['',...cats].map(c=>'<button data-act="cat" data-cat="'+esc(c)+'" aria-pressed="'+(ui.cat===c)+'">'+esc(c||'Alla')+'</button>').join(''):'';
 }
 function renderTiles(){
   const b=activeB(), qRaw=ui.q.trim(), q=keyOf(qRaw), t=today();
-  const all=state.priceList.items;
+  const all=plItems();
   const shown=all.filter(i=>(!ui.cat||i.kategori===ui.cat)&&(!q||keyOf(i.namn).includes(q)));
   const exact=q&&all.some(i=>keyOf(i.namn)===q);
   const anyPriced=all.some(i=>i.pris>0);
@@ -706,7 +772,7 @@ function renderTiles(){
     h='<p class="muted" style="grid-column:1/-1">Inga varor matchar. Ändra sökningen eller kategorin.</p>';
   }
   h+=shown.map(it=>{
-    const k=keyOf(it.namn), n=b.items[k]||0, p=Math.max(1,Math.round(+it.paket||1)), pr=+it.pris||0;
+    const k=it.id, n=b.items[k]||0, p=Math.max(1,Math.round(+it.paket||1)), pr=+it.pris||0;
     const meta=pr>0
       ?'<span class="tile-meta">'+(it.uppd===t?'':'ca\u00a0')+esc(kr(pr/p))+'/st · '+esc(packLabel({enhet:it.enhet,paket:p}))+'</span>'
       :(anyPriced?'<span class="tile-meta nop">Pris saknas</span>':'');
@@ -733,8 +799,8 @@ function renderRecipes(){
 
 /* ---------- rendering: färskhet, summering ---------- */
 function renderFresh(){
-  const el=$('#fresh'), m=state.priceList.meta, C=calc(state);
-  const priced=state.priceList.items.filter(i=>i.pris>0);
+  const el=$('#fresh'), m=state.priceListMeta, C=calc(view());
+  const priced=plItems().filter(i=>i.pris>0);
   const msg=ui.msg; ui.msg='';
   let h='';
   if(!priced.length){
@@ -758,7 +824,7 @@ function renderFresh(){
   el.innerHTML=h;
 }
 function listOrder(C){
-  const idx={}; state.priceList.items.forEach((it,i)=>{ idx[keyOf(it.namn)]=i; });
+  const idx={}; plItems().forEach((it,i)=>{ idx[it.id]=i; });
   return Object.values(C.buy).sort((a,b)=>(idx[a.k]??1e9)-(idx[b.k]??1e9));
 }
 function shoppingText(C){
@@ -769,7 +835,7 @@ function shoppingText(C){
   return L.join('\n');
 }
 function renderSummary(){
-  const C=calc(state), S=state.settings;
+  const C=calc(view()), S=state.settings;
   let h='<h2 class="section-title">Pris till kund</h2>';
   const filled=C.rows.filter(r=>!r.empty);
   if(!filled.length){
@@ -838,14 +904,14 @@ function renderSummary(){
     +'<div class="tb-actions"><button class="btn tb-link" data-act="goto-summary">Detaljer</button><button class="btn" data-act="open-update">Hämta pris</button></div>';
 }
 function renderBanner(){
-  $('#banner').innerHTML=state.priceList.meta.kalla==='exempel'
+  $('#banner').innerHTML=state.priceListMeta.kalla==='exempel'
     ?'<div class="note warn"><strong>Exempeldata.</strong> Priser, recept och inställningar är påhittade. Under <button class="link" data-tab="installningar">Inställningar</button> kan du tömma appen och börja med dina egna blommor.</div>':'';
 }
 function renderBuilder(){ renderChips(); renderEditor(); renderTiles(); renderFresh(); renderSummary(); }
 
 /* ---------- uppdatera priser: uppdrag till AI och inläsning av svaret ---------- */
 function updKeys(){
-  if(ui.updScope==='alla') return state.priceList.items.map(i=>keyOf(i.namn));
+  if(ui.updScope==='alla') return plItems().map(i=>i.id);
   return chosenKeys();
 }
 const FORMAT_LINES=[
@@ -855,7 +921,7 @@ const FORMAT_LINES=[
 ];
 const VARIANT_LINE='Om en vara finns i flera varianter väljer du den som ligger närmast mitt namn på varan och skriver vilken du valde i kolumnen Anmärkning. Hittar du inte varan skriver du "saknas" som pris.';
 function updPrompt(){
-  const W=state.wholesaler, list=indexList(state.priceList.items);
+  const W=state.wholesaler, list=indexList(plItems());
   const names=updKeys().map(k=>labelOf(k,list));
   const url=safeUrl(W.url), agent=W.mode==='agent';
   const who='Jag är kund hos '+(W.namn.trim()||'min blomstergrossist')+(url?' ('+url+')':'')+'.';
@@ -929,7 +995,7 @@ function refreshPrompt(){
   ta.value=n?updPrompt():'';
   const c=$('#upd-count'); if(c) c.textContent=n+(n===1?' vara':' varor');
   const no=$('#upd-none'); if(no) no.hidden=n>0;
-  const nm=$('#upd-names'); if(nm){ const list=indexList(state.priceList.items); nm.textContent=keys.map(k=>labelOf(k,list)).join(', '); }
+  const nm=$('#upd-names'); if(nm){ const list=indexList(plItems()); nm.textContent=keys.map(k=>labelOf(k,list)).join(', '); }
   const a=$('#upd-open'), link=n?aiLink():'';
   if(a){ a.hidden=!link; if(link){ a.href=link; a.textContent='Öppna '+ai+' med uppdraget'; } }
   const h=$('#upd-ai-hint');
@@ -957,7 +1023,7 @@ function pasteBody(waitHtml){
 function renderUpdatePanel(){
   const el=$('#update-panel');
   if(!ui.upd){ el.hidden=true; el.innerHTML=''; return; }
-  const W=state.wholesaler, url=safeUrl(W.url), chosen=chosenKeys().length, all=state.priceList.items.length;
+  const W=state.wholesaler, url=safeUrl(W.url), chosen=chosenKeys().length, all=plItems().length;
   const agent=W.mode==='agent', relayOn=agent&&!!(ui.relay&&ui.code), kind=readerKind(), reader=!agent&&!!kind;
   el.hidden=false;
   const li=(title,body)=>'<li><div class="body"><strong>'+title+'</strong>'+body+'</div></li>';
@@ -1100,7 +1166,7 @@ async function readShots(fileList){
   const alt=$('#upd-alt');
   const keys=updKeys();
   if(!keys.length){ setShots('Välj blommor först, eller välj Hela min lista.','warn'); return; }
-  const list=indexList(state.priceList.items), names=keys.map(k=>labelOf(k,list));
+  const list=indexList(plItems()), names=keys.map(k=>labelOf(k,list));
   if(!ui.read) return readShotsViaClaude(files,names);
   if(files.length>8){ setShots('Välj högst 8 bilder åt gången.','warn'); return; }
   setShots('Förbereder '+files.length+(files.length===1?' bild':' bilder')+' …');
@@ -1128,14 +1194,15 @@ function runUpdate(text){
 }
 function recomputeUpd(){
   const P=pendingUpd, r=normalizeRows(P.parsed.rows,P.basis);
-  const cat=state.priceList.items, keys=cat.map(i=>keyOf(i.namn));
+  const cat=plItems(), keys=cat.map(i=>keyOf(i.namn));
   const matches=[], unmatched=[], seen=new Set();
   for(const it of r.its){
     const m=matchKey(it.namn,keys);
     if(!m){ unmatched.push(it.namn); continue; }
-    if(seen.has(m.key)) continue;
-    seen.add(m.key);
-    matches.push({key:m.key,how:m.how,row:it,old:cat[keys.indexOf(m.key)]});
+    const old=cat[keys.indexOf(m.key)];
+    if(seen.has(old.id)) continue;
+    seen.add(old.id);
+    matches.push({key:old.id,how:m.how,row:it,old});
   }
   P.matches=matches; P.unmatched=unmatched; P.skipped=r.skipped; P.guessed=r.guessed;
   P.noAnswer=P.requested.filter(k=>!seen.has(k));
@@ -1144,7 +1211,7 @@ function renderUpdPreview(){
   const el=$('#upd-preview'); if(!el) return;
   const P=pendingUpd;
   if(!P){ el.innerHTML=''; return; }
-  const list=indexList(state.priceList.items);
+  const list=indexList(plItems());
   let h='<div class="card" style="border-color:var(--accent)"><h3>Kontrollera innan du använder priserna</h3>'
     +'<p>'+P.matches.length+' av '+P.requested.length+' efterfrågade priser kunde läsas in.</p>'
     +'<label class="field" for="upd-basis">Priskolumnen avser'
@@ -1172,14 +1239,12 @@ function renderUpdPreview(){
 }
 function applyUpdate(){
   const P=pendingUpd; if(!P||!P.matches.length) return;
-  const t=today(); let n=0;
+  const t=today(), now=nowIso(), items=plItems(); let n=0;
   P.matches.forEach(m=>{
-    const it=state.priceList.items.find(i=>keyOf(i.namn)===m.key); if(!it) return;
-    it.paket=m.row.paket; it.pris=m.row.pris;
-    it.enhet=m.row.enhetRaw||it.enhet||(m.row.paket===1?'styck':'förp');
-    it.uppd=t; n++;
+    const it=items.find(i=>i.id===m.key); if(!it) return;
+    M.setManualPrice(state,it.id,{paket:m.row.paket,pris:m.row.pris,enhet:m.row.enhetRaw||it.enhet||(m.row.paket===1?'styck':'förp')},{today:t,now}); n++;
   });
-  const meta=state.priceList.meta;
+  const meta=state.priceListMeta;
   meta.datum=t;
   if(meta.kalla==='tom'||meta.kalla==='exempel'||meta.kalla==='egen'){ meta.kalla='uppdaterad'; meta.namn='Min prislista'; }
   stopPoll(); ui.code=''; pendingUpd=null; ui.upd=false; ui.msg='Uppdaterade '+n+(n===1?' pris.':' priser.');
@@ -1189,12 +1254,12 @@ function applyUpdate(){
 
 /* ---------- rendering: prislista ---------- */
 function renderPlHead(){
-  const m=state.priceList.meta, n=state.priceList.items.length, np=state.priceList.items.filter(i=>i.pris>0).length;
+  const m=state.priceListMeta, n=plItems().length, np=plItems().filter(i=>i.pris>0).length;
   const tags={exempel:'<span class="badge warn">Exempeldata</span>',import:'<span class="badge ok">Inläst lista</span>',uppdaterad:'<span class="badge ok">Uppdaterad med AI</span>',egen:'<span class="badge">Egen lista</span>',tom:'<span class="badge">Tom</span>'};
   $('#pl-head').innerHTML='<div class="head-row"><h3>Aktuell prislista</h3>'+(tags[m.kalla]||'')+'</div><p><strong>'+esc(m.namn)+'</strong>'+(m.datum?' · '+esc(m.datum):'')+' · '+n+' varor, '+np+' med pris</p>';
 }
 function renderPlTable(){
-  const its=state.priceList.items;
+  const its=plItems();
   $('#pl-cats').innerHTML=[...new Set(its.map(i=>i.kategori).filter(Boolean))].map(c=>'<option value="'+esc(c)+'">').join('');
   if(!its.length){ $('#pl-table').innerHTML='<p class="muted small">Inga varor än. Lägg till en vara här, eller skriv namnet i sökrutan på första sidan.</p>'; return; }
   $('#pl-table').innerHTML='<table class="tbl pl"><thead><tr><th>Namn</th><th>Kategori</th><th class="num">Antal per förp</th><th class="num">Pris per förp</th><th class="num">Per stjälk</th><th><span class="vh">Ta bort</span></th></tr></thead><tbody>'
@@ -1240,8 +1305,7 @@ function showImportMsg(msg){ const m=$('#import-msg'); m.textContent=msg||''; m.
 function applyImport(){
   if(!pending) return;
   const t=today();
-  pending.items.forEach(i=>{ state.labels[keyOf(i.namn)]=i.namn; });
-  state.priceList={meta:{namn:pending.name,datum:t,kalla:'import'},items:pending.items.map(({enhetRaw,...i})=>({...i,uppd:t}))};
+  M.replaceFromImport(state,pending.items.map(({enhetRaw,...i})=>i),{today:t,now:nowIso(),name:pending.name});
   pending=null; ui.cat=''; save();
   renderAll(); showImportMsg('');
 }
@@ -1288,50 +1352,57 @@ async function copyText(text,btn,onFail){
 }
 function csvCell(v){ v=String(v==null?'':v); return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
 function currentCsv(){
-  return ['Namn;Kategori;Antal per förp;Pris per förp;Enhet;Färg'].concat(state.priceList.items.map(i=>[i.namn,i.kategori,i.paket,String(i.pris).replace('.',','),i.enhet||'',i.farg||''].map(csvCell).join(';'))).join('\n');
+  return ['Namn;Kategori;Antal per förp;Pris per förp;Enhet;Färg'].concat(plItems().map(i=>[i.namn,i.kategori,i.paket,String(i.pris).replace('.',','),i.enhet||'',i.farg||''].map(csvCell).join(';'))).join('\n');
+}
+/* Jobb-fliken: monteras första gången fliken öppnas. Går något fel där påverkas inte resten av appen. */
+let jobsCtl=null;
+function openJobs(){
+  const host=$('#view-jobb');
+  try{
+    if(!jobsCtl){
+      if(!window.BRJobsUI) throw new Error('jobbskärmen saknas');
+      jobsCtl=window.BRJobsUI.mount(host,{getView:view,today,storage:window.localStorage});
+    }
+    jobsCtl.activate();
+  }catch(e){
+    host.innerHTML='<div class="note bad" role="alert">Jobb-fliken kunde inte startas. De andra flikarna fungerar som vanligt.</div>';
+  }
 }
 function setTab(t){
   ui.tab=t;
   document.querySelectorAll('[role="tab"]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===t)));
-  $('#view-bukett').hidden=t!=='bukett'; $('#view-prislista').hidden=t!=='prislista'; $('#view-installningar').hidden=t!=='installningar';
+  $('#view-bukett').hidden=t!=='bukett'; $('#view-jobb').hidden=t!=='jobb'; $('#view-prislista').hidden=t!=='prislista'; $('#view-installningar').hidden=t!=='installningar';
   $('#totalbar').hidden=t!=='bukett';
   if(t==='prislista'){ renderPlHead(); renderPlTable(); renderImportPreview(); }
   if(t==='installningar') renderSettings();
+  if(t==='jobb') openJobs();
   window.scrollTo(0,0);
 }
-function renameKey(a,b){
-  const mv=o=>{ if(o&&Object.prototype.hasOwnProperty.call(o,a)){ if(!(b in o)) o[b]=o[a]; delete o[a]; } };
-  state.order.buketter.forEach(x=>mv(x.items)); mv(state.order.hemma); state.recipes.forEach(r=>mv(r.items));
-}
 function touchList(){
-  const m=state.priceList.meta;
+  const m=state.priceListMeta;
   if(m.kalla==='exempel'||m.kalla==='tom'){ m.kalla='egen'; m.namn='Egen lista'; m.datum=today(); renderBanner(); }
   renderPlHead();
 }
 function plEdit(t){
-  const i=+t.dataset.i, it=state.priceList.items[i], fld=t.dataset.pl; if(!it) return;
+  const i=+t.dataset.i, it=plItems()[i], fld=t.dataset.pl; if(!it) return;
   if(fld==='namn'){
     const nv=t.value.trim(); if(!nv){ t.value=it.namn; return; }
-    const ok=keyOf(it.namn), nk=keyOf(nv);
-    if(ok!==nk) renameKey(ok,nk);
-    it.namn=nv; state.labels[nk]=nv;
+    M.renameProduct(state,it.id,nv);
   }
-  else if(fld==='kategori') it.kategori=t.value.trim()||'Övrigt';
-  else if(fld==='paket'){ it.paket=Math.max(1,Math.round(parseFloat(t.value)||1)); t.value=it.paket; it.uppd=today(); }
-  else if(fld==='pris'){ it.pris=Math.max(0,parseFloat(t.value)||0); it.uppd=today(); }
+  else if(fld==='kategori') M.setCategory(state,it.id,t.value.trim()||'Övrigt');
+  else if(fld==='paket'){ const v=Math.max(1,Math.round(parseFloat(t.value)||1)); t.value=v; M.setManualPrice(state,it.id,{paket:v},{today:today(),now:nowIso()}); }
+  else if(fld==='pris') M.setManualPrice(state,it.id,{pris:Math.max(0,parseFloat(t.value)||0)},{today:today(),now:nowIso()});
   touchList(); save();
-  const ps=$('#ps-'+i); if(ps) ps.textContent=it.pris>0?kr(it.pris/Math.max(1,it.paket)):'–';
+  const nu=plItems()[i], ps=$('#ps-'+i); if(ps&&nu) ps.textContent=nu.pris>0?kr(nu.pris/Math.max(1,nu.paket)):'–';
   renderCats(); renderBuilder();
 }
 function addNewFlower(name){
   name=String(name||'').trim(); if(!name) return;
   name=name.charAt(0).toUpperCase()+name.slice(1);
-  const k=keyOf(name);
-  if(!state.priceList.items.some(i=>keyOf(i.namn)===k)){
-    state.priceList.items.push({namn:name,kategori:ui.cat||'Blommor',enhet:'',paket:1,pris:0,farg:''});
-  }
-  state.labels[k]=state.priceList.items.find(i=>keyOf(i.namn)===k).namn;
-  const b=activeB(); b.items[k]=(b.items[k]||0)+1;
+  const k=keyOf(name), ex=plItems().find(i=>keyOf(i.namn)===k);
+  const id=ex?ex.id:M.addProduct(state,{name,category:ui.cat||'Blommor',enhet:'',paket:1,pris:0},{now:nowIso()});
+  state.labels[id]=ex?ex.namn:name;
+  const b=activeB(); b.items[id]=(b.items[id]||0)+1;
   ui.q=''; ui.newFlower=false; $('#search').value='';
   save(); renderCats(); renderBuilder();
 }
@@ -1342,7 +1413,7 @@ const act={
   size(t){ activeB().size=t.dataset.size; save(); renderBuilder(); },
   'qty-inc'(){ const b=activeB(); b.qty=Math.min(99,b.qty+1); save(); renderBuilder(); },
   'qty-dec'(){ const b=activeB(); b.qty=Math.max(1,b.qty-1); save(); renderBuilder(); },
-  add(t){ const b=activeB(), k=t.dataset.key; b.items[k]=(b.items[k]||0)+1; const it=state.priceList.items.find(i=>keyOf(i.namn)===k); if(it) state.labels[k]=it.namn; save(); renderBuilder(); },
+  add(t){ const b=activeB(), k=t.dataset.key; b.items[k]=(b.items[k]||0)+1; const it=plItems().find(i=>i.id===k); if(it) state.labels[k]=it.namn; save(); renderBuilder(); },
   'add-new'(t){ addNewFlower(t.dataset.name); },
   'open-new'(){ ui.newFlower=true; renderTiles(); },
   'cancel-new'(){ ui.newFlower=false; renderTiles(); },
@@ -1364,7 +1435,7 @@ const act={
     o.buketter.push({id,size:r.size,qty:1,items:clone(r.items)}); o.active=id; save(); renderBuilder();
   },
   'del-recipe'(t){ state.recipes=state.recipes.filter(r=>r.id!==t.dataset.id); save(); renderRecipes(); },
-  'copy-list'(t){ copyText(shoppingText(calc(state)),t,()=>{ ui.copyText=shoppingText(calc(state)); renderSummary(); }); },
+  'copy-list'(t){ copyText(shoppingText(calc(view())),t,()=>{ ui.copyText=shoppingText(calc(view())); renderSummary(); }); },
   'clear-order'(t){ twoStep(t,'Säker? Tryck igen',()=>{ const o=state.order; o.seq++; const id='b'+o.seq; o.buketter=[{id,size:o.buketter[0].size,qty:1,items:{}}]; o.active=id; o.hemma={}; ui.copyText=''; save(); renderBuilder(); }); },
   'goto-summary'(){ $('#summary').scrollIntoView({behavior:'smooth',block:'start'}); },
   async 'open-update'(){
@@ -1391,8 +1462,8 @@ const act={
     const text=currentCsv();
     copyText(text,t,()=>{ $('#csv-out').innerHTML='<textarea id="csv-box" readonly rows="8" aria-label="Prislistan som CSV">'+esc(text)+'</textarea>'; const b=$('#csv-box'); b.focus(); b.select(); });
   },
-  'add-row'(){ state.priceList.items.push({namn:'Ny vara',kategori:'Blommor',enhet:'bunt',paket:10,pris:0,farg:''}); touchList(); ui.focusNew=true; save(); renderPlTable(); renderCats(); renderBuilder(); },
-  'del-row'(t){ state.priceList.items.splice(+t.dataset.i,1); touchList(); save(); renderPlTable(); renderCats(); renderBuilder(); },
+  'add-row'(){ M.addProduct(state,{name:'Ny vara',category:'Blommor',enhet:'bunt',paket:10,pris:0},{now:nowIso()}); touchList(); ui.focusNew=true; save(); renderPlTable(); renderCats(); renderBuilder(); },
+  'del-row'(t){ const it=plItems()[+t.dataset.i]; if(it) M.removeProduct(state,it.id); touchList(); save(); renderPlTable(); renderCats(); renderBuilder(); },
   'reset-all'(t){ twoStep(t,'Säker? Tryck igen',()=>{ state=emptyState(); pending=null; pendingUpd=null; ui.upd=false; ui.cat=''; ui.q=''; ui.copyText=''; $('#search').value=''; save(); renderAll(); renderSettings(); }); }
 };
 function runImport(text,name){
@@ -1455,8 +1526,8 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&e.target.id==='search'){
     e.preventDefault();
     const q=keyOf(e.target.value); if(!q) return;
-    const ex=state.priceList.items.find(i=>keyOf(i.namn)===q);
-    if(ex){ act.add({dataset:{key:q}}); ui.q=''; e.target.value=''; renderTiles(); }
+    const ex=plItems().find(i=>keyOf(i.namn)===q);
+    if(ex){ act.add({dataset:{key:ex.id}}); ui.q=''; e.target.value=''; renderTiles(); }
     else addNewFlower(e.target.value);
   }
 });
@@ -1472,7 +1543,7 @@ checkRelay();
 initSample();
 
 /* för test */
-window.buketraknare={relay:()=>ui.relay,read:()=>ui.read,reader:()=>readerKind(),calc:()=>calc(state),state:()=>state,readTable,detectPack,parseNum,matchKey,exampleState};
+window.buketraknare={jobs:()=>jobsCtl,relay:()=>ui.relay,read:()=>ui.read,reader:()=>readerKind(),calc:()=>calc(view()),state:()=>view(),model:()=>state,rollbackV1:()=>M.downgradeV2toV1(state),readTable,detectPack,parseNum,matchKey,exampleState:exampleStateV1};
 })();
 </script>
 </body>

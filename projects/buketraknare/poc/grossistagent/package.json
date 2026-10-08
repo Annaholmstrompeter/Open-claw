@@ -1,0 +1,23 @@
+{
+  "name": "grossistagent-poc",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "MVP 1B: separat, skrivskyddad PoC. Människan loggar in själv i en riktig webbläsare, därefter söker en riktig AI-agent i den inloggade sessionen (påhittad butik eller riktig grossist). Ingen del av Buketträknaren importerar något härifrån.",
+  "scripts": {
+    "setup": "node src/launcher.mjs setup",
+    "start": "node src/launcher.mjs start",
+    "delete-key": "node src/launcher.mjs delete-key",
+    "test": "node --test --test-concurrency=1 --test-reporter=spec \"test/*.test.mjs\""
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.132.0",
+    "playwright-core": "1.56.1"
+  },
+  "devDependencies": {
+    "jsdom": "^29.1.1"
+  }
+}
