@@ -291,3 +291,22 @@ test('webbplatsen måste vara https (utom lokalt), och en sanerad rapport inneh�
     assert.ok(fs.existsSync(f)); assert.ok(!fs.readFileSync(f, 'utf8').includes('Avalanche'));
   } finally { await t.close(); }
 });
+
+test('RIKTIG GROSSIST: efter inloggningen väntar agenten ("Inloggning klar – agenten väntar"): inget modellanrop och ingen aktivitet i butiken förrän en människa skickar första uppgiften, och taket är 20 artiklar', async () => {
+  const client = scripted([toolUse('observe', {}), endTurn('klart')]);
+  const t = await start(client, { mode: 'real' });
+  try {
+    await humanLogin(t.s.page, t.shop.url);
+    await assert.rejects(() => t.s.confirmLogin(), /samtyckt/, 'samtycke krävs i RIKTIG GROSSIST');
+    await t.s.confirmLogin({ consent: true });
+    const shopBefore = t.shop.requests.length;
+    const events = t.s.state().events;
+    assert.match(events.at(-1).message, /^Inloggning klar – agenten väntar på din första uppgift\./);
+    await new Promise(r => setTimeout(r, 1500));                                                              // tid för "automatisk aktivitet" att visa sig om den fanns
+    assert.equal(client.requests.length, 0, 'inget modellanrop före första uppgiften');
+    assert.equal(t.shop.requests.length, shopBefore, 'ingen aktivitet i butiken före första uppgiften');
+    assert.equal(t.s.state().running, false); assert.equal(t.s.state().limits.maxProductsPerTask, 20); assert.equal(t.s.state().phase, 'agent');
+    const res = await t.s.ask('Titta på sidan'); assert.equal(res.stop, 'klar', res.error);
+    assert.equal(client.requests.length, 2);
+  } finally { await t.close(); }
+});

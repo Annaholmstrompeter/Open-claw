@@ -15,7 +15,7 @@ test('slingan skickar rätt parametrar, för tillbaka verktygsresultat i rätt f
   assert.deepEqual([res.stop, res.turns, res.text], ['klar', 2, 'Klart.']);
   assert.deepEqual(res.usage, { input_tokens: 2100, output_tokens: 120, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 });
   const r0 = client.requests[0];
-  assert.deepEqual([r0.model, r0.max_tokens, r0.output_config, r0.system === SYSTEM_PROMPT, r0.tools.length], ['claude-sonnet-5-5', 8000, { effort: 'low' }, true, TOOL_DEFS.length]);
+  assert.deepEqual([r0.model, r0.max_tokens, r0.output_config, r0.system === SYSTEM_PROMPT, r0.tools.length], ['claude-sonnet-5-5', 3000, { effort: 'low' }, true, TOOL_DEFS.length]);
   assert.deepEqual(r0.messages, [{ role: 'user', content: 'Hitta vita rosor' }]);
   const r1 = client.requests[1];
   assert.equal(r1.messages.length, 3);

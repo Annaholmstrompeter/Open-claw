@@ -2,33 +2,51 @@
 // Två profiler: demo (påhittad butik) och real (riktig grossist: smalare och långsammare).
 
 export const PROFILES = {
+  // Första experimentet: små, konservativa tak. En typisk uppgift (6-9 modellanrop) använder ungefär 15 000-40 000 tokens, eftersom hela historiken skickas om vid varje steg.
+  // Taken är därför ungefär 1,5 gånger det, inte 5 gånger. Stoppar något felaktigt står det exakt vilken gräns som nåddes, och Anna kan välja att höja den efter att ha sett riktiga siffror.
   demo: {
     label: 'DEMO',
-    maxTurns: 16,                 // modellanrop per uppdrag
-    maxToolCalls: 40,             // verktygsanrop per uppdrag
-    maxTaskTokens: 150000,        // tokens (in + ut) per uppdrag
-    maxSessionTokens: 600000,     // tokens (in + ut) per session
-    maxTaskSeconds: 300,
-    maxSessionMinutes: 30,
-    maxPageLoads: 60,             // sidhämtningar som agenten själv gör, per session
-    maxRequests: 2500,            // tillåtna webbläsaranrop i agentfasen, per session
-    maxProductsPerTask: 60,       // artiklar som läses ut per uppdrag
+    maxTurns: 12,                 // modellanrop per uppdrag
+    maxToolCalls: 24,             // verktygsanrop per uppdrag
+    maxTaskTokens: 60000,         // tokens (in + ut) per uppdrag
+    maxSessionTokens: 180000,     // tokens (in + ut) per session (självtestet får ett eget, högre tak: SELFTEST_LIMITS)
+    maxCallTokens: 25000,         // en enskild förfrågan (in + ut) får inte vara större än så: skydd mot oväntat stora prompts
+    maxOutputTokens: 3000,        // längsta svar per modellanrop (max_tokens)
+    maxResultChars: 4000,         // längsta verktygsresultat som skickas till modellen (resten kortas av)
+    maxTaskSeconds: 180,
+    maxSessionMinutes: 20,
+    maxPageLoads: 30,             // sidhämtningar som agenten själv gör, per session
+    maxRequests: 800,             // tillåtna webbläsaranrop i agentfasen, per session
+    maxProductsPerTask: 30,       // artiklar som läses ut per uppdrag
     minGapMs: 500
   },
   real: {
     label: 'RIKTIG GROSSIST',
-    maxTurns: 14,
-    maxToolCalls: 30,
-    maxTaskTokens: 120000,
-    maxSessionTokens: 450000,
+    maxTurns: 12,
+    maxToolCalls: 24,
+    maxTaskTokens: 60000,
+    maxSessionTokens: 180000,
+    maxCallTokens: 25000,
+    maxOutputTokens: 3000,
+    maxResultChars: 4000,
     maxTaskSeconds: 240,
     maxSessionMinutes: 30,
-    maxPageLoads: 30,
-    maxRequests: 1500,
+    maxPageLoads: 25,
+    maxRequests: 1200,
     maxProductsPerTask: 20,       // första testet: högst 20 artiklar
     minGapMs: 2000
   }
 };
+
+/**
+ * Självtestet kör fem uppgifter i rad i DEMO och mäter hur mycket en riktig modell faktiskt förbrukar. En riktig modell kan ta fler steg än manuset (uppgift 3 söker två gånger),
+ * så varje uppdrag får lite mer luft än i vanlig DEMO (80 000 i stället för 60 000, fortfarande långt under tidigare 120 000), och sessionen får rymma fem uppdrag.
+ * Taket för hela självtestet är 300 000 tokens (ungefär 1 USD som högst). Förbrukningen per uppdrag visas, så att de vanliga taken kan ställas efter riktiga siffror.
+ */
+export const SELFTEST_LIMITS = { maxTaskTokens: 80000, maxSessionTokens: 300000, maxSessionMinutes: 25 };
+
+/** Rubriken som visas när en säkerhetsgräns har stoppat agenten. Ingen automatisk fortsättning: nästa uppdrag startas bara av en människa. */
+export const STOP_HEADLINE = 'STOPP – testets säkerhetsgräns är nådd.';
 
 export function profileFor(mode, over = {}) {
   const p = PROFILES[mode];
@@ -55,7 +73,11 @@ export function createBudget(limits, { now = () => Date.now(), external = null }
     limits: L,
     startSession() { if (s.startedAt === null) s.startedAt = now(); },
     beginTask() { t.tokens = 0; t.turns = 0; t.toolCalls = 0; t.products = 0; t.startedAt = now(); this.startSession(); tripped = null; return this.check(); },
-    addUsage(u) { const n = (u.input_tokens || 0) + (u.output_tokens || 0) + (u.cache_read_input_tokens || 0) + (u.cache_creation_input_tokens || 0); s.tokens += n; t.tokens += n; s.lastCallTokens = n; t.turns++; },
+    addUsage(u) {
+      const n = (u.input_tokens || 0) + (u.output_tokens || 0) + (u.cache_read_input_tokens || 0) + (u.cache_creation_input_tokens || 0);
+      s.tokens += n; t.tokens += n; s.lastCallTokens = n; t.turns++;
+      if (n > L.maxCallTokens) trip('forfragan', 'En enskild förfrågan blev för stor (' + n.toLocaleString('sv-SE') + ' tokens, gränsen är ' + L.maxCallTokens.toLocaleString('sv-SE') + ').');
+    },
     /** Räknar ett verktygsanrop. Ger null, eller gränsen som nåtts (då ska verktyget inte köras). */
     addToolCall() { t.toolCalls++; return t.toolCalls > L.maxToolCalls ? trip('verktyg', 'Gränsen för antal verktygsanrop (' + L.maxToolCalls + ' per uppdrag) är nådd.') : null; },
     /** Hur många artiklar som får läsas ut till innan taket per uppdrag är nått. */

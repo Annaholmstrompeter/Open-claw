@@ -4,8 +4,11 @@ import { RISKY_TEXT_RE, denyReason, hostMatches } from './guard.mjs';
 import { shapeOf, getPath } from './capture.mjs';
 import { applyJsonMapping, applyDomMapping, normalizeRows, compact } from './extract.mjs';
 import { purchasePlan, kr } from './plan.mjs';
+import { scrubText, scrubTokens, scrubUrl, scrubValue } from './privacy.mjs';
 
 const norm = s => String(s == null ? '' : s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+/** Verktyg vars resultat kommer ur webbplatsens egna sidor eller svar. De sållas (privacy.mjs) innan modellen ser dem. Produktdata som vår kod själv tolkat sållas inte: den ändras aldrig. */
+const PAGE_DERIVED = new Set(['observe', 'goto', 'click', 'search', 'inspect_json', 'dom_outline']);
 const cap = (s, n) => { const t = typeof s === 'string' ? s : JSON.stringify(s); return t.length > n ? t.slice(0, n) + '…[avkortat]' : t; };
 
 export const TOOL_DEFS = [
@@ -36,7 +39,7 @@ const COLLECT = () => {
 };
 
 export function createToolbox({ page, guard, capture, limits = {}, sleep = ms => new Promise(r => setTimeout(r, ms)), now = () => Date.now() }) {
-  const lim = { maxPageLoads: 100, minGapMs: 2000, maxToolCalls: 80, maxProductsPerTask: 1000, ...limits };
+  const lim = { maxPageLoads: 100, minGapMs: 2000, maxToolCalls: 80, maxProductsPerTask: 1000, maxResultChars: 7000, ...limits };
   const st = { catalog: new Map(), refs: [], pageLoads: 0, lastLoadAt: 0, calls: 0, taskAdded: 0, blockedSeen: 0, final: null, lastSource: null };
 
   const hostAllowed = url => { try { return guard.hosts().some(h => hostMatches(new URL(url).hostname, h)); } catch (e) { return false; } };
@@ -67,11 +70,11 @@ export function createToolbox({ page, guard, capture, limits = {}, sleep = ms =>
     const heads = await page.evaluate(() => Array.from(document.querySelectorAll('h1,h2,h3')).map(h => h.innerText.replace(/\s+/g, ' ').trim()).filter(Boolean).slice(0, 10));
     const body = await page.evaluate(() => document.body ? document.body.innerText : '');
     const out = {
-      url: page.url(), title: await page.title(), rubriker: heads, loggaUtSynlig: /logga ut|sign out|log out/i.test(body),
-      element: els.map((d, i) => ({ ref: i, slag: d.tag + (d.type ? ':' + d.type : ''), text: d.text || d.placeholder || d.aria || '', ...(d.href ? { href: d.href.replace(/\?.*$/, '') } : {}), ...(d.name ? { name: d.name } : {}), ...(riskyEl(d) ? { riskabel: true } : {}) })).slice(0, 60),
+      url: scrubUrl(page.url()), title: scrubText(await page.title()), rubriker: heads.map(scrubText), loggaUtSynlig: /logga ut|sign out|log out/i.test(body),
+      element: els.map((d, i) => ({ ref: i, slag: d.tag + (d.type ? ':' + d.type : ''), text: scrubText(d.text || d.placeholder || d.aria || ''), ...(d.href ? { href: scrubTokens(d.href.replace(/\?.*$/, '')) } : {}), ...(d.name ? { name: d.name } : {}), ...(riskyEl(d) ? { riskabel: true } : {}) })).slice(0, 60),
       json_svar: capture.list().slice(-12), ...blockedNote()
     };
-    if (input && input.include_text) out.text = cap(body.replace(/\s+/g, ' '), 1500);
+    if (input && input.include_text) out.text = scrubText(cap(body.replace(/\s+/g, ' '), 1500));
     return out;
   }
 
@@ -82,7 +85,7 @@ export function createToolbox({ page, guard, capture, limits = {}, sleep = ms =>
     if (!hostAllowed(u.href)) throw new Error('Adressen ligger utanför den godkända webbplatsen.');
     const why = denyReason(u.href); if (why) throw new Error('Nekad: ' + why + '.');
     await politeLoad(() => page.goto(u.href, { waitUntil: 'domcontentloaded', timeout: 20000 }));
-    return { url: page.url(), title: await page.title(), ...blockedNote() };
+    return { url: scrubUrl(page.url()), title: scrubText(await page.title()), ...blockedNote() };
   }
 
   async function click(input) {
@@ -96,7 +99,7 @@ export function createToolbox({ page, guard, capture, limits = {}, sleep = ms =>
     const el = (await list.getProperty(String(input.ref))).asElement();
     if (!el) throw new Error('Hittar inte elementet. Kör observe igen.');
     await politeLoad(async () => { await el.click(); });
-    return { url: page.url(), title: await page.title(), ...blockedNote() };
+    return { url: scrubUrl(page.url()), title: scrubText(await page.title()), ...blockedNote() };
   }
 
   async function search(input) {
@@ -115,7 +118,7 @@ export function createToolbox({ page, guard, capture, limits = {}, sleep = ms =>
     const type = await box.evaluate(e => e.type); if (type === 'password') throw new Error('Nekad: lösenordsfält.');
     await box.click({ clickCount: 3 }); await box.fill(text);
     await politeLoad(async () => { await page.keyboard.press('Enter'); });
-    return { url: page.url(), title: await page.title(), json_svar: capture.list().slice(-5), ...blockedNote() };
+    return { url: scrubUrl(page.url()), title: scrubText(await page.title()), json_svar: capture.list().slice(-5), ...blockedNote() };
   }
 
   function inspectJson(input) {
@@ -124,7 +127,8 @@ export function createToolbox({ page, guard, capture, limits = {}, sleep = ms =>
     const v = getPath(e.json, input.path || '');
     if (v === undefined) throw new Error('Sökvägen finns inte i svaret.');
     const arr = Array.isArray(v);
-    return { id: e.id, path: input.path || '', struktur: shapeOf(v), antal: arr ? v.length : undefined, exempel: arr ? v.slice(0, 2) : cap(v, 1500) };
+    // exempelraderna sållas som objekt (nyckelnamnen avgör vad som döljs); en text av JSON skulle gå förbi nyckelreglerna
+    return { id: e.id, path: input.path || '', struktur: shapeOf(v), antal: arr ? v.length : undefined, exempel: arr ? v.slice(0, 2) : cap(scrubValue(v), 1500) };
   }
 
   async function domOutline() {
@@ -211,7 +215,7 @@ export function createToolbox({ page, guard, capture, limits = {}, sleep = ms =>
       st.calls++;
       if (st.calls > lim.maxToolCalls) return { is_error: true, content: 'Gränsen för antal verktygsanrop är nådd. Avsluta med report_candidates.' };
       if (!impl[name]) return { is_error: true, content: 'Okänt verktyg: ' + name };
-      try { return { is_error: false, content: cap(await impl[name](input || {}), 7000) }; }
+      try { const r = await impl[name](input || {}); return { is_error: false, content: cap(PAGE_DERIVED.has(name) ? scrubValue(r) : r, lim.maxResultChars) }; }
       catch (e) { return { is_error: true, content: cap(String(e && e.message || e), 600) }; }
     }
   };

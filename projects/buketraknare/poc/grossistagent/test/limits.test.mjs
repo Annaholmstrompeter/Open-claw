@@ -2,7 +2,7 @@
 // och efter en sessionsgräns kan varken AI:n eller webbläsaren göra något mer. Statusraderna visar aldrig modellens egen text.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createBudget, PROFILES, profileFor, worstCaseUsd } from '../src/limits.mjs';
+import { createBudget, PROFILES, SELFTEST_LIMITS, STOP_HEADLINE, profileFor, worstCaseUsd } from '../src/limits.mjs';
 import { statusBefore, statusAfter } from '../src/status.mjs';
 import { createGuard } from '../src/guard.mjs';
 import { createSession } from '../src/session.mjs';
@@ -23,13 +23,31 @@ async function start(client, over = {}) {
   return { shop, s, close: async () => { await s.end(); await shop.close(); } };
 }
 
-test('profilerna: RIKTIG GROSSIST är smalare än DEMO, första testet läser högst 20 artiklar, och taket i kronor är litet', () => {
+test('profilerna: konservativa tak för första experimentet (långt under tidigare 120 000/150 000 tokens), RIKTIG GROSSIST minst lika snäv, 20 artiklar och lugn takt, och små belopp i kronor', () => {
   const d = PROFILES.demo, r = PROFILES.real;
-  for (const k of ['maxTurns', 'maxToolCalls', 'maxTaskTokens', 'maxSessionTokens', 'maxTaskSeconds', 'maxPageLoads', 'maxRequests', 'maxProductsPerTask']) assert.ok(r[k] <= d[k], k);
+  assert.ok(d.maxTaskTokens <= 60000 && r.maxTaskTokens <= 60000, 'högst hälften av de tidigare 120 000 per uppdrag');
+  assert.ok(d.maxSessionTokens <= 180000 && r.maxSessionTokens <= 180000, 'sessionstak');
+  assert.ok(d.maxTurns <= 12 && r.maxTurns <= 12 && d.maxToolCalls <= 24 && r.maxToolCalls <= 24, 'steg och verktygsanrop');
+  assert.ok(d.maxCallTokens <= 25000 && d.maxOutputTokens <= 3000 && d.maxResultChars <= 4000, 'skydd mot onödigt stora prompts och svar');
   assert.ok(r.minGapMs >= d.minGapMs && r.minGapMs >= 2000, 'lugnare takt mot en riktig grossist');
   assert.equal(r.maxProductsPerTask, 20); assert.equal(r.maxSessionMinutes, 30);
-  assert.ok(worstCaseUsd(r) < 2 && worstCaseUsd(d) < 2.5, 'övre tak för AI-kostnaden per session: ' + worstCaseUsd(r) + ' / ' + worstCaseUsd(d) + ' USD');
+  assert.ok(worstCaseUsd(r) < 1 && worstCaseUsd(d) < 1, 'övre tak för AI-kostnaden per session: ' + worstCaseUsd(r) + ' / ' + worstCaseUsd(d) + ' USD');
+  assert.ok(worstCaseUsd({ ...d, ...SELFTEST_LIMITS }) < 1.5, 'självtestet kostar högst ungefär 1 USD');
+  assert.equal(SELFTEST_LIMITS.maxSessionTokens, 300000);
+  assert.equal(SELFTEST_LIMITS.maxTaskTokens, 80000); assert.ok(SELFTEST_LIMITS.maxTaskTokens < 120000 && SELFTEST_LIMITS.maxTaskTokens > d.maxTaskTokens, 'självtestets uppdrag får lite mer luft än vanlig DEMO, men långt under tidigare 120 000');
+  assert.equal(STOP_HEADLINE, 'STOPP – testets säkerhetsgräns är nådd.');
   assert.throws(() => profileFor('annat'), /Okänt läge/); assert.equal(profileFor('real', { maxTurns: 3 }).maxTurns, 3);
+});
+
+test('en enskild förfrågan som är för stor stoppar uppdraget (skydd mot onödigt stora prompts), och nästa uppdrag börjar om', () => {
+  let clock = 0;
+  const b = createBudget({ ...PROFILES.demo, maxCallTokens: 10000 }, { now: () => clock });
+  b.beginTask(); b.addUsage({ input_tokens: 9000, output_tokens: 500 });
+  assert.equal(b.check({ predictive: true }), null, 'precis under gränsen');
+  b.addUsage({ input_tokens: 10200, output_tokens: 100 });
+  const hit = b.check();
+  assert.equal(hit.kind, 'forfragan'); assert.match(hit.message, /enskild förfrågan blev för stor/);
+  b.beginTask(); assert.equal(b.check(), null, 'ett nytt uppdrag börjar om');
 });
 
 test('budgeten: tokens per uppdrag och per session, steg, tid, verktygsanrop och artiklar; framåtblickande så att nästa anrop inte får spräcka taket', () => {

@@ -120,3 +120,15 @@ const w = new Worker(URL.createObjectURL(new Blob([code], { type: 'text/javascri
 w.onmessage = e => { document.getElementById('s').textContent = e.data; };
 window.runWorker = () => w.postMessage(1);
 </script>`;
+
+/**
+ * Loggar in i DEN PÅHITTADE butiken med dess påhittade uppgifter. Används bara av självtestet i DEMO, så att Anna slipper logga in för hand.
+ * Det är koden som skriver, aldrig agenten, och uppgifterna (testkund / hemligt-123) är inte hemliga: de står i README och på kontrollsidan.
+ * Mot en riktig grossist används aldrig något sådant: där loggar floristen alltid in själv.
+ */
+export async function loginDemo(page, baseUrl) {
+  await page.goto(baseUrl + '/login', { waitUntil: 'domcontentloaded' });
+  await page.fill('#user', USER);
+  await page.fill('#pass', PASS);
+  await Promise.all([page.waitForURL('**/sortiment**', { timeout: 10000 }), page.click('button[type=submit]')]);
+}

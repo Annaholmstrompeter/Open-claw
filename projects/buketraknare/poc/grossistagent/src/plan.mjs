@@ -26,3 +26,9 @@ export function purchasePlan(product, needed) {
   } else out.note = 'Priset saknas, så ingen kostnad räknas.';
   return out;
 }
+
+/** Pris per styck (text, "5,90 kr") räknat av vår kod ur förpackningspris och förpackningsstorlek, eller null om något saknas. */
+export function perStemOf(product) {
+  if (!product.packSize || !product.packPrice) return null;
+  return purchasePlan(product, product.packSize).perStem || null;
+}

@@ -22,13 +22,15 @@ table{border-collapse:collapse;width:100%;font-size:14px}th,td{border-bottom:1px
 <div id="aistatus" role="status" aria-live="polite"><p class="muted">Kontrollerar AI-anslutningen…</p></div>
 <div class="row"><button id="aicheck">Kontrollera AI igen</button><span id="chromemsg" class="muted"></span></div>
 <div class="cards">
-<div class="card"><h2>DEMO</h2><p class="muted">En påhittad butik på den här datorn. Den riktiga AI-modellen söker i den med exakt samma verktyg och samma skydd som mot en riktig grossist. Du skriver dina egna frågor.</p><button class="p big" id="bdemo" disabled>Starta DEMO</button></div>
+<div class="card"><h2>DEMO</h2><p class="muted">En påhittad butik på den här datorn. Den riktiga AI-modellen söker i den med exakt samma verktyg och samma skydd som mot en riktig grossist.</p><button class="p big" id="bsft" disabled>Kör självtest</button><p class="muted" id="sftinfo"></p><button class="big" id="bdemo" disabled>Starta DEMO (egna frågor)</button></div>
 <div class="card"><h2>RIKTIG GROSSIST</h2><p class="muted">Ett begränsat, skrivskyddat test med floristens eget konto. Floristen loggar in själv i Chrome.</p>
 <label class="muted" for="shopurl">Webbutikens adress (kontrollera den i floristens webbläsare)</label><input type="text" id="shopurl" autocomplete="off" spellcheck="false">
 <button class="p big" id="breal" disabled>Starta RIKTIG GROSSIST</button></div>
 </div>
 <p id="startmsg" class="muted" role="status"></p><p id="limitsline" class="muted"></p></section>
 
+<section id="statusrow" hidden aria-label="Status"><div class="row"><span id="st-ai"></span><span id="st-shop"></span><span id="st-ro"></span></div></section>
+<section id="sft" hidden><h2>Självtest</h2><p id="sfthead" role="status" aria-live="polite"></p><div class="cards" id="sftlist"></div><div id="sfterr"></div><p class="muted">Modellen får formulera sig hur den vill. Det som kontrolleras är butikens data, att inget hittats på eller ändrats, att packberäkningen stämmer med en oberoende räkning och att inget muterande anrop nått butiken. ✓ klarad kontroll, ✗ fel, ! anmärkning (urvalet avvek från det väntade).</p></section>
 <section id="s1" hidden><h2>1. Logga in i webbläsarfönstret</h2>
 <div id="logindemo" hidden><p>Ett Chrome-fönster har öppnats på en <strong>påhittad butik</strong>. Logga in där med användarnamn <code>testkund</code> och lösenord <code>hemligt-123</code> (påhittade uppgifter, inget riktigt konto). Klicka sedan på knappen.</p></div>
 <div id="loginreal" hidden><p>Ett Chrome-fönster har öppnats på grossistens inloggning. <strong>Floristen skriver användarnamn och lösenord direkt i det fönstret</strong>, aldrig här och aldrig till någon AI. Hon gör själv eventuell kod eller CAPTCHA. Klicka sedan på knappen. <strong>Agenten är pausad tills du skickar en uppgift.</strong></p>
@@ -57,7 +59,8 @@ $('#chips').innerHTML=EX.map((x,i)=>'<button class="chip" data-i="'+i+'">Exempel
 $('#chips').onclick=e=>{const i=e.target.dataset&&e.target.dataset.i;if(i!==undefined)$('#instr').value=EX[i];};
 $('#aicheck').onclick=async()=>{try{$('#aistatus').innerHTML='<p class="muted">Kontrollerar…</p>';await api('/api/ai-check',{});}catch(e){$('#aistatus').innerHTML='<p class="note bad" role="alert">'+esc(e.message)+'</p>';}};
 async function begin(mode){try{$('#startmsg').textContent='Startar Chrome…';$('#bdemo').disabled=true;$('#breal').disabled=true;await api('/api/begin',{mode,shopUrl:$('#shopurl').value});$('#startmsg').textContent='';$('#endmsg').textContent='';}catch(e){$('#startmsg').innerHTML='<span class="bad" role="alert">'+esc(e.message)+'</span>';}}
-$('#bdemo').onclick=()=>begin('demo');$('#breal').onclick=()=>begin('real');
+$('#bdemo').onclick=()=>begin('demo');
+$('#bsft').onclick=async()=>{try{$('#startmsg').textContent='Startar Chrome och självtestet…';$('#bdemo').disabled=true;$('#bsft').disabled=true;$('#breal').disabled=true;await api('/api/selftest',{});$('#startmsg').textContent='';$('#endmsg').textContent='';}catch(e){$('#startmsg').innerHTML='<span class="bad" role="alert">'+esc(e.message)+'</span>';}};$('#breal').onclick=()=>begin('real');
 $('#loggedin').onclick=async()=>{try{$('#loginmsg').textContent='Kontrollerar…';const r=await api('/api/logged-in',{consent:$('#c1').checked});$('#loginmsg').textContent='Skrivskyddet är på. Godkända värdar: '+r.hosts.join(', ');$('#err').innerHTML='';}catch(e){$('#loginmsg').textContent='';showErr(e);}};
 $('#ask').onclick=async()=>{try{$('#err').innerHTML='';await api('/api/ask',{instruction:$('#instr').value});}catch(e){showErr(e);}};
 $('#stop').onclick=()=>api('/api/stop',{});
@@ -70,6 +73,25 @@ function calcCell(id,needed){return '<label class="muted">Behov <input size="4" 
 const HEAD='<table><thead><tr><th>Art.nr</th><th>Namn</th><th>Sort</th><th>Färg</th><th>Längd cm</th><th>Förp.</th><th>Förpackningspris</th><th>Moms</th><th>Lager</th><th>Erbjudande</th><th>Anmärkningar</th><th>Inköp (räknas av vår kod)</th></tr></thead><tbody>';
 document.addEventListener('click',async e=>{const id=e.target.dataset&&e.target.dataset.calc;if(id===undefined)return;const inp=document.querySelector('[data-need="'+CSS.escape(id)+'"]');const out=document.querySelector('[data-out="'+CSS.escape(id)+'"]');try{const r=await api('/api/calc',{id,needed:parseInt(inp.value,10)});out.textContent=r.status==='ok'?r.needed+' behövs → '+r.packs+' förp. ('+r.bought+' st), '+r.leftover+' över, '+r.cost+' ('+r.costNote+')':(r.note||r.status);}catch(x){out.textContent=x.message;}});
 document.addEventListener('click',async e=>{const i=e.target.dataset&&e.target.dataset.allow;if(i===undefined)return;try{await api('/api/allow-post',{index:Number(i)});}catch(x){showErr(x);}});
+function kr0(x){return x==null?'okänt':esc(x);}
+function pickCard(pk){const p=pk.product,pl=pk.plan,title=esc(String(p.variant||p.name||p.id).toUpperCase());
+ const per=p.perStem?esc(p.perStem)+'/st':'pris per st okänt';
+ const line1=[esc(p.color||'färg okänd'),(p.lengthCm?esc(p.lengthCm)+' cm':'längd okänd'),(p.packSize?esc(p.packSize)+'-pack':'förpackning okänd'),per,(p.packPrice?esc(p.packPrice)+' '+esc(p.currency||'')+'/förp':'förpackningspris okänt'),esc(p.availabilityRaw||p.availability||'lager okänt')].join(' · ');
+ let buy;
+ if(pl&&pl.status==='ok')buy='<strong>Behov:</strong> '+pl.needed+' · <strong>Köp:</strong> '+pl.packs+' pack · <strong>Totalt:</strong> '+pl.bought+' st · <strong>Över:</strong> '+pl.leftover+' st · <strong>Inköpskostnad:</strong> '+esc(pl.cost)+' ('+esc(pl.costNote)+')';
+ else if(pl)buy=esc(pl.note||pl.status);
+ else buy='Antal behov ej angivet. '+calcCell(p.id,'');
+ return '<div class="card"><div><strong>'+title+'</strong> <span class="muted">'+esc(p.id)+' · '+esc(p.name)+'</span></div><div>'+line1+(p.offer?' · <strong class="ok">Erbjudande: '+esc(p.offer)+'</strong>':'')+'</div><div>'+buy+'</div><div class="muted">Agentens skäl: '+esc(pk.reason)+'. Beräkningen görs av vår kod, inte av AI:n.</div></div>';}
+function renderStatusRow(s){const real=s.mode==='real',aiOk=!!(s.ai&&s.ai.ok);
+ $('#st-ai').innerHTML=aiOk?'<strong class="ok">AI ansluten ✓</strong>':'<strong class="bad">AI ej ansluten ✗</strong>';
+ $('#st-shop').innerHTML='<strong class="ok">'+(real?'Grossistens butik öppen ✓ ('+esc(s.shop)+')':'Demo-butik ansluten ✓')+'</strong>';
+ $('#st-ro').innerHTML=s.phase==='agent'?'<strong class="ok">Read-only-skydd aktivt ✓</strong>':'<span class="muted">Read-only-skydd slås på när du bekräftat inloggningen</span>';}
+const SFT_ICON={'väntar':'·','pågår':'…',ok:'✓','anmärkning':'!',fel:'✗',stopp:'STOPP',avbruten:'■'};
+function renderSft(st){show('#sft',!!st);if(!st)return;
+ const v=st.verdict;
+ $('#sfthead').innerHTML=st.status==='running'?'<strong>Självtest pågår: uppgift '+st.current+' av '+st.total+'…</strong> (riktig modell, påhittad butik)':v?'<strong class="'+(v.code==='GODKÄNT'||v.code==='GODKÄNT MED ANMÄRKNINGAR'?'ok':'bad')+'" role="alert">'+esc(v.text)+'</strong>':'';
+ $('#sfterr').innerHTML=st.error?'<p class="note bad" role="alert">'+esc(st.error)+'</p>':'';
+ $('#sftlist').innerHTML=st.tasks.map(t=>'<div class="card"><div><strong>'+(SFT_ICON[t.status]||'')+' '+esc(t.title)+'</strong></div><div class="muted">'+esc(t.instruction)+'</div>'+(t.tokens!=null?'<div class="muted">Förbrukning: '+fmt(t.tokens)+' tokens, '+t.calls+' modellanrop</div>':'')+(t.checks.length?'<ul>'+t.checks.map(c=>'<li class="'+(c.ok?'ok':c.hard?'bad':'')+'">'+(c.ok?'✓':c.hard?'✗':'!')+' '+esc(c.text)+'</li>').join('')+'</ul>':'')+'</div>').join('');}
 let shownFinal=null,allCount=-1,urlInit=false;
 const fmt=n=>Number(n||0).toLocaleString('sv-SE');
 function logLine(e){const m=esc(e.message||'');if(e.type==='status')return '<li>'+m+'</li>';if(e.type==='fråga')return '<li><strong>Uppgift:</strong> '+m+'</li>';if(e.type==='gräns')return '<li class="bad"><strong>Stoppad:</strong> '+m+'</li>';if(e.type==='fel')return '<li class="bad"><strong>Fel:</strong> '+m+'</li>';return '<li class="muted">'+m+'</li>';}
@@ -81,26 +103,30 @@ function renderStart(s){
  const chromeOk=!s.chrome||s.chrome.ok!==false;
  $('#chromemsg').textContent=chromeOk?'':s.chrome.message;
  const ready=!!(ai&&ai.ok)&&chromeOk&&!s.starting;
- $('#bdemo').disabled=!ready;$('#breal').disabled=!ready;
+ $('#bdemo').disabled=!ready;$('#breal').disabled=!ready;$('#bsft').disabled=!ready||!s.selftestInfo;$('#bsft').hidden=!s.selftestInfo;
+ const si=s.selftestInfo;$('#sftinfo').textContent=si?'Kör '+si.tasks+' uppgifter med den riktiga modellen i den påhittade butiken och kontrollerar svaren automatiskt. Uppskattad kostnad ungefär 3 till 6 kr (taket stoppar vid ungefär '+Math.ceil(si.worstUsd*10)+' kr). Kostnaden är en uppskattning, inte mätt.':'';
+ renderSft(s.selftest);
  if(s.starting)$('#startmsg').textContent='Startar Chrome…';
  if(s.lastError)$('#startmsg').innerHTML='<span class="bad" role="alert">'+esc(s.lastError)+'</span>';
  const d=s.modes&&s.modes.demo&&s.modes.demo.limits,r=s.modes&&s.modes.real&&s.modes.real.limits;
- $('#limitsline').textContent=r?'Gränser (stoppar agenten): RIKTIG GROSSIST högst '+r.maxTurns+' steg, '+fmt(r.maxTaskTokens)+' tokens per uppdrag, '+fmt(r.maxSessionTokens)+' per session, '+r.maxSessionMinutes+' min, '+r.maxProductsPerTask+' artiklar per uppdrag, '+fmt(r.maxRequests)+' webbläsaranrop. DEMO: '+d.maxTurns+' steg, '+fmt(d.maxTaskTokens)+' tokens per uppdrag.':'';
+ $('#limitsline').textContent=r?'Gränser (stoppar agenten, ingen automatisk fortsättning): DEMO högst '+d.maxTurns+' steg, '+fmt(d.maxTaskTokens)+' tokens per uppdrag, '+fmt(d.maxSessionTokens)+' per session, '+d.maxSessionMinutes+' min. RIKTIG GROSSIST högst '+r.maxTurns+' steg, '+fmt(r.maxTaskTokens)+' tokens per uppdrag, '+fmt(r.maxSessionTokens)+' per session, '+r.maxSessionMinutes+' min, '+r.maxProductsPerTask+' artiklar per uppdrag, '+fmt(r.maxRequests)+' webbläsaranrop.':'';
 }
 function renderSession(s){
- show('#startsec',false);show('#s2',true);show('#s3',true);show('#s4',true);show('#s5',true);show('#s6',true);
+ show('#startsec',false);show('#statusrow',true);renderStatusRow(s);renderSft(s.selftest);show('#s2',true);show('#s3',true);show('#s4',true);show('#s5',true);show('#s6',true);
  const real=s.mode==='real';
  show('#modebadge',true);$('#modebadge').textContent=real?'RIKTIG GROSSIST':'DEMO – påhittad butik';
- show('#s1',s.phase==='login');show('#logindemo',!real);show('#loginreal',real);
- $('#loggedin').disabled=s.phase!=='login';$('#ask').disabled=s.phase!=='agent'||s.running;$('#stop').disabled=!s.running;
- $('#run').textContent=s.phase==='login'?'Logga in först.':s.running?'Agenten arbetar…':'Redo.';
+ show('#logindemo',!real);show('#loginreal',real);
+ const sftOn=!!(s.selftest&&s.selftest.status==='running');
+ show('#s1',s.phase==='login'&&!sftOn);
+ $('#loggedin').disabled=s.phase!=='login'||sftOn;$('#ask').disabled=s.phase!=='agent'||s.running||sftOn;$('#stop').disabled=!s.running;
+ $('#run').textContent=sftOn?'Självtestet pågår…':s.phase==='login'?'Logga in först.':s.running?'Agenten arbetar…':s.phase==='agent'?'Inloggning klar – agenten väntar.':'Redo.';
  $('#log').innerHTML=s.events.slice(-14).map(logLine).join('');
  if(s.lastError)$('#err').innerHTML='<p class="note bad" role="alert">'+esc(s.lastError)+'</p>';
  if(s.last&&s.last.error)$('#err').innerHTML='<p class="note bad" role="alert">'+esc(s.last.error)+'</p>';
- $('#limitnote').innerHTML=s.last&&s.last.limit?'<p class="note bad" role="alert">Agenten stoppades: '+esc(s.last.limit.message)+' Det som hunnit läsas ut syns nedan.</p>':'';
+ $('#limitnote').innerHTML=s.last&&s.last.limit?'<p class="note bad" role="alert"><strong>STOPP – testets säkerhetsgräns är nådd.</strong> '+esc(s.last.limit.message)+' Ingen automatisk fortsättning: du bestämmer om en ny uppgift ska startas. Det som hunnit läsas ut syns nedan.</p>':'';
  const f=s.last&&s.last.picks;
  if(s.last&&!f)$('#agentnote').textContent=s.last.answer||'';
- if(f&&f!==shownFinal){shownFinal=f;$('#agentnote').innerHTML=esc(f.summary||'');$('#picks').innerHTML=HEAD+f.picks.map(p=>row(p.product,calcCell(p.product.id,p.needed))+'<tr><td></td><td colspan="11" class="muted">Agentens skäl: '+esc(p.reason)+(p.plan&&p.plan.status==='ok'?' · Beräkning: '+p.plan.needed+' behövs → '+p.plan.packs+' förp. ('+p.plan.bought+' st), '+p.plan.leftover+' över, '+esc(p.plan.cost)+' ('+esc(p.plan.costNote)+')':'')+'</td></tr>').join('')+'</tbody></table>'+(f.notFound.length?'<p class="note bad">Agenten nämnde artiklar som inte läst ut: '+esc(f.notFound.join(', '))+'</p>':'');}
+ if(f&&f!==shownFinal){shownFinal=f;$('#agentnote').innerHTML=esc(f.summary||'');$('#picks').innerHTML=f.picks.map(pickCard).join('')+(f.picks.length?'<details><summary>Alla fält som tabell</summary>'+HEAD+f.picks.map(p=>row(p.product,calcCell(p.product.id,p.needed))+'<tr><td></td><td colspan="11" class="muted">Agentens skäl: '+esc(p.reason)+(p.plan&&p.plan.status==='ok'?' · Beräkning: '+p.plan.needed+' behövs → '+p.plan.packs+' förp. ('+p.plan.bought+' st), '+p.plan.leftover+' över, '+esc(p.plan.cost)+' ('+esc(p.plan.costNote)+')':'')+'</td></tr>').join('')+'</tbody></table>'+'</details>':'')+(f.notFound.length?'<p class="note bad">Agenten nämnde artiklar som inte läst ut: '+esc(f.notFound.join(', '))+'</p>':'');}
  if(s.catalogCount!==allCount){allCount=s.catalogCount;$('#cnt').textContent='('+s.catalogCount+')';api('/api/products').then(a=>{$('#all').innerHTML=HEAD+a.artiklar.map(p=>row(p,calcCell(p.id,''))).join('')+'</tbody></table>';}).catch(()=>{});}
  const rq=(s.budget&&s.budget.requests)||{used:0,max:0},L=s.limits||{},B=(s.budget&&s.budget.session)||{tokens:0,minutes:0};
  $('#guard').innerHTML='<p>Anrop tillåtna: <strong>'+s.guard.allowed+'</strong> · nekade: <strong>'+s.guard.blocked+'</strong> · skrivskydd: <strong class="ok">'+(s.phase==='agent'?'PÅ':'på så fort du bekräftat inloggningen')+'</strong></p>'+(L.maxRequests?'<p class="muted">Gränser i den här sessionen: webbläsaranrop '+fmt(rq.used)+' av '+fmt(rq.max)+' · sidhämtningar '+s.pageLoads+' av '+L.maxPageLoads+' · tokens '+fmt(B.tokens)+' av '+fmt(L.maxSessionTokens)+' · tid '+B.minutes+' av '+L.maxSessionMinutes+' min · artiklar per uppdrag högst '+L.maxProductsPerTask+'</p>':'');

@@ -57,19 +57,34 @@ const keyFile = home => path.join(home, '.grossistagent', 'anthropic-key.txt');
 
 test('SETUP i en riktig terminal: nyckeln syns inte när den skrivs, kontrolleras hos (test)servern, sparas med rätt rättigheter utanför repot, och skrivs aldrig ut', { skip: !hasPython && 'python3 saknas' }, async () => {
   const KEY = rnd('SETUP'); const home = tmp('ga-setup-home-');
-  const api = await startFakeAnthropic({ key: KEY, steps: [endTurn('OK')] });
+  const api = await startFakeAnthropic({ key: KEY, steps: [endTurn('OK'), endTurn('OK')] });          // ett svar för nyckelkontrollen, ett för kontrollen av den redan sparade nyckeln
   try {
     const r = await inTerminal(['src/launcher.mjs', 'setup', '--test-api', api.url], baseEnv(home), [['Klistra in nyckeln', 'abc\r'], ['Klistra in nyckeln', KEY + '\r']]);
     assert.equal(r.exit, 0, r.output); assert.equal(r.sent, 2);
     assert.ok(!r.output.includes(KEY) && !r.output.includes('sk-ant-api03'), 'nyckeln syntes i terminalen');
     for (const must of ['GROSSISTAGENT: SETUP', '✓ Node.js', '✓ Google Chrome hittades', 'platform.claude.com', 'Settings → API Keys', 'Det där ser inte ut som en Anthropic-nyckel', 'Kontrollerar nyckeln', '✓ Nyckeln är sparad i', 'AI ansluten ✓', 'KLART', '2-STARTA-GROSSISTAGENT']) assert.ok(r.output.includes(must), 'saknas i utskriften: ' + must + '\n' + r.output);
+    for (const must of ['Kontrollerar att allt som behövs finns', 'Programmappen är komplett', 'Installerade bibliotek', 'Får skriva och radera i den tillfälliga mappen', 'Får skriva och radera i din användarmapp', 'Lokal port ledig', 'Chrome startar och stängs utan rester',
+      'Nu behöver du din Anthropic API-nyckel.', 'Den sparas endast lokalt på den här datorn och skickas inte till GitHub eller grossisten.', 'KLART. Nästa steg: dubbelklicka på  2-STARTA-GROSSISTAGENT']) assert.ok(r.output.includes(must), 'saknas i SETUP: ' + must + '\n' + r.output);
+    assert.match(r.output, /✓ (Linux|Windows|Mac) /); assert.deepEqual(r.output.split('\n').filter(l => l.includes('✗') && !l.includes('Det där ser inte ut som en Anthropic-nyckel')), [], 'inga andra fel i en lyckad SETUP:\n' + r.output);
     assert.equal(fs.readFileSync(keyFile(home), 'utf8'), KEY + '\n');
     if (process.platform !== 'win32') { assert.equal(fs.statSync(keyFile(home)).mode & 0o777, 0o600); assert.equal(fs.statSync(path.dirname(keyFile(home))).mode & 0o777, 0o700); }
     assert.equal(api.requests.length, 1); assert.equal(api.requests[0].headers['x-api-key'], KEY); assert.deepEqual(api.violations, []);
     assert.ok(!keyFile(home).startsWith(pocRoot), 'utanför repot');
     // kör SETUP igen: nyckeln finns, svara nej
     const again = await inTerminal(['src/launcher.mjs', 'setup', '--test-api', api.url], baseEnv(home), [['Vill du byta ut den?', 'n\r']]);
-    assert.equal(again.exit, 0); assert.ok(again.output.includes('En nyckel finns redan') && again.output.includes('KLART')); assert.ok(!again.output.includes(KEY));
+    assert.equal(again.exit, 0); assert.ok(again.output.includes('En nyckel finns redan') && again.output.includes('✓ AI ansluten ✓') && again.output.includes('KLART. Nästa steg')); assert.ok(!again.output.includes(KEY)); assert.equal(api.requests.length, 2, 'den sparade nyckeln kontrollerades också mot AI:n'); assert.deepEqual(api.violations, []);
+    assert.equal(fs.readFileSync(keyFile(home), 'utf8'), KEY + '\n');
+  } finally { await api.close(); fs.rmSync(home, { recursive: true, force: true }); }
+});
+
+test('SETUP när Chrome saknas: förklarar på enkel svenska vad som saknas och hur det fixas, nyckeln sparas ändå, och slutet säger INTE KLART ÄNNU med utgångskod 1', { skip: !hasPython && 'python3 saknas' }, async () => {
+  const KEY = rnd('NOCHROME'); const home = tmp('ga-setup-nochrome-');
+  const api = await startFakeAnthropic({ key: KEY, steps: [] });
+  try {
+    const r = await inTerminal(['src/launcher.mjs', 'setup', '--test-api', api.url], { ...baseEnv(home), CHROME_PATH: '/finns/inte/chrome' }, [['Klistra in nyckeln', KEY + '\r']]);
+    assert.equal(r.exit, 1, r.output);
+    for (const must of ['✗ Google Chrome hittades inte', 'https://www.google.com/chrome/', 'INTE KLART ÄNNU', 'Åtgärda det och dubbelklicka på  1-SETUP  igen', '✓ Nyckeln är sparad i']) assert.ok(r.output.includes(must), must + '\n' + r.output);
+    assert.ok(!r.output.includes('KLART. Nästa steg') && !r.output.includes(KEY));
     assert.equal(fs.readFileSync(keyFile(home), 'utf8'), KEY + '\n');
   } finally { await api.close(); fs.rmSync(home, { recursive: true, force: true }); }
 });
@@ -158,6 +173,15 @@ test('launcher-filerna: finns för Windows och Mac, anropar rätt kommandon, och
     assert.ok(mac.startsWith('#!/bin/bash\n') && !mac.includes('\r'), name + '.command');
     if (process.platform !== 'win32') assert.ok(fs.statSync(path.join(pocRoot, name + '.command')).mode & 0o111, name + '.command ska vara körbar');
     assert.ok(/nodejs\.org/.test(bat) && /nodejs\.org/.test(mac), 'hänvisar till Node.js om det saknas');
+  }
+  // statisk kontroll av .bat-filerna (de går inte att köra här): varje goto har sin etikett, inget kommando saknas, och beroendekontrollen gäller båda biblioteken
+  for (const name of ['1-SETUP', '2-STARTA-GROSSISTAGENT', '3-RADERA-NYCKEL']) {
+    const bat = read(name + '.bat'), labels = new Set([...bat.matchAll(/^:(\w+)/gm)].map(m => m[1])), gotos = [...bat.matchAll(/goto (\w+)/g)].map(m => m[1]);
+    assert.ok(gotos.length > 0 && gotos.every(g => labels.has(g)), name + '.bat: goto utan etikett: ' + gotos.filter(g => !labels.has(g)));
+    assert.ok(bat.includes('playwright-core') && bat.includes('@anthropic-ai\\sdk'), name + '.bat kontrollerar båda biblioteken');
+    assert.ok(/^@echo off/.test(bat) && /\bpause\b/.test(bat), name + '.bat: fönstret stängs inte direkt');
+    const mac = read(name + '.command'); assert.ok(mac.includes('node_modules/playwright-core') && mac.includes('node_modules/@anthropic-ai/sdk'), name + '.command kontrollerar båda biblioteken');
+    assert.equal(spawnSync('bash', ['-n', path.join(pocRoot, name + '.command')]).status, 0, name + '.command: bash-syntax');
   }
   assert.ok(read('1-SETUP.bat').includes('npm install') && read('1-SETUP.command').includes('npm install'));
   for (const f of ['1-SETUP.bat', '1-SETUP.command', '2-STARTA-GROSSISTAGENT.bat', '2-STARTA-GROSSISTAGENT.command', '3-RADERA-NYCKEL.bat', '3-RADERA-NYCKEL.command']) assert.ok(!/sk-ant|ANTHROPIC/.test(read(f)), 'ingen nyckel eller miljövariabel i ' + f);

@@ -7,7 +7,7 @@ if ! command -v node >/dev/null 2>&1; then
   echo "Installera det från https://nodejs.org (välj LTS), starta om datorn och dubbelklicka igen."
   wait_key; exit 1
 fi
-if [ ! -d node_modules/playwright-core ]; then
+if [ ! -d node_modules/playwright-core ] || [ ! -d node_modules/@anthropic-ai/sdk ]; then
   echo
   echo "Det finns inget att radera: 1-SETUP har inte körts här."
   wait_key; exit 1

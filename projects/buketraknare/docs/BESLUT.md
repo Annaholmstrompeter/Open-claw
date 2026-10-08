@@ -170,3 +170,24 @@ Annas beslut:
 - **Ingen session utan fungerande AI:** startknapparna är låsta tills AI-kontrollen lyckats.
 
 **Inte gjort och inte bevisat:** ingen riktig modell har körts (jag har ingen nyckel), inget är provat mot grossistens riktiga butik, dubbelklicksfilerna är bara provade på Linux, och grossistens villkor har inte gått att läsa. RIKTIG GROSSIST är därför **inte redo** förrän DEMO har fungerat hos Anna.
+
+## 2026-10-08 (tredje beslutet): självtest med riktig modell, mycket lägre tak, minimerad data till modellen, enklare setup
+
+Annas beslut:
+1. **Fler av stegen görs av mig, inte av Anna.** Hon ska i princip bara lägga in sin privata nyckel lokalt och starta testet. Setup kontrollerar allt som går (operativsystem, Node, mapp, bibliotek, skrivrättigheter, port, Chrome som startar, nyckel, AI-anslutning) och förklarar på enkel svenska om något saknas.
+2. **Lägre tak för första demon:** 120 000 tokens per uppdrag är för högt. Skydd mot agentloopar, oväntat många modellanrop, onödigt stora prompts och onödigt mycket webbläsararbete. Vid gräns: *"STOPP – testets säkerhetsgräns är nådd."* Ingen automatisk fortsättning.
+3. **Riktig AI i demon** (ingen scriptad modell), och ett **litet acceptanstest ("Kör självtest")** med fem uppgifter där det som går att kontrollera deterministiskt kontrolleras (rätt verktyg, inget påhittat, artikel-ID, förpackning och pris bevarade, packberäkning av vår kod, inga muterande anrop) utan att kräva exakt samma formulering.
+4. **Kontrollsidan visar** AI ansluten ✓, Demo-butik ansluten ✓, Read-only-skydd aktivt ✓, korta handlingar och status (aldrig resonemang) och ett tydligt resultat per artikel (behov, köp, totalt, över, inköpskostnad).
+5. **Förbered RIKTIG GROSSIST men kör den inte.** Efter floristens egen inloggning och CAPTCHA/MFA pausar agenten ("Inloggning klar – agenten väntar"), och Anna skickar första uppgiften (10–20 produkter, bara läsning).
+6. **Grossistens inloggning får inte bli AI-data:** inga lösenord, lösenordsfält, cookies, token, personuppgifter från formulär eller fullständiga rubriker. Minimera vad som skickas till modellen.
+7. **Pausa** offertknappar, favoriter, fler UI-funktioner, fakturering, full grossistconnector och sparad inloggning. Bevisa AI-agenten först.
+8. **Säg exakt vad som är bevisat:** testad med manus, testad mot lokal kompatibel server, testad med riktig modell, testad mot riktig grossist. Säg aldrig "riktig AI testad" förrän det har körts mot Anthropic.
+
+**Mina val (kan ändras):**
+- **Taken:** 60 000 tokens per uppdrag och 180 000 per session i både DEMO och RIKTIG GROSSIST (RIKTIG GROSSIST behåller 20 artiklar, 2 s paus och 30 min), 12 steg, 24 verktygsanrop, högst 25 000 i en enskild förfrågan, 3 000 i ett svar, 4 000 tecken per verktygsresultat. Siffran bygger på en mätning av förfrågningarnas storlek (14 000 till 37 000 tokens per uppgift i den scriptade kedjan) med marginal. Det är **inte** mätt med en riktig modell. Visar sig 60 000 vara för snävt står det vilket tak som nåddes, och Anna väljer om det ska höjas. Självtestet får ett eget sessionstak på 300 000 (fem uppdrag) och 80 000 per uppdrag (en riktig modell kan ta fler steg än manuset jag mätte på), och visar tokens och modellanrop per uppgift så att de vanliga taken kan ställas efter riktiga siffror.
+- **Självtestet kör i DEMO, med inloggning gjord av koden** med de påhittade uppgifterna (aldrig agenten, och aldrig mot en riktig grossist).
+- **Relevans är en anmärkning, integritet och data är fel.** Om modellen väljer en annan vit ros än jag väntade är det en anmärkning. Hittar den på en artikel, ändrar en förpackning eller ett pris, eller om packberäkningen inte stämmer med en oberoende räkning, är det ett fel. Uttryckliga krav i frågan (minst 60 cm, 30 stjälkar) är fel om de bryts.
+- **Integritetssållet är mönsterbaserat** och bäst möjligt (`privacy.mjs`). Det första skyddet är att verktygen aldrig läser sådant. Sållet kan inte garantera att ett kundnamn i klartext utan igenkännbart mönster tas bort, och det står i README.
+- **Kostnaden för självtestet är en uppskattning** (3 till 6 kr, tak ungefär 10 kr), inte mätt.
+
+**Inte gjort och inte bevisat:** ingen riktig modell har körts (ingen nyckel hos mig), inget är provat mot grossistens riktiga butik, dubbelklicksfilerna är bara kontrollerade statiskt och provade på Linux, och grossistens villkor har inte gått att läsa. RIKTIG GROSSIST är därför **inte redo** förrän DEMO och självtestet har fungerat hos Anna.

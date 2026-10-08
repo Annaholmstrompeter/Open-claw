@@ -7,7 +7,7 @@ if ! command -v node >/dev/null 2>&1; then
   echo "Installera det från https://nodejs.org (välj LTS), starta om datorn och dubbelklicka igen."
   wait_key; exit 1
 fi
-if [ ! -d node_modules/playwright-core ]; then
+if [ ! -d node_modules/playwright-core ] || [ ! -d node_modules/@anthropic-ai/sdk ]; then
   echo
   echo "Dubbelklicka först på 1-SETUP (görs bara en gång)."
   wait_key; exit 1

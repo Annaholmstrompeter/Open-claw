@@ -7,6 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { JSDOM } from 'jsdom';
 import { createSession } from '../src/session.mjs';
+import { PROFILES } from '../src/limits.mjs';
 import { startControlServer, PAGE } from '../src/server.mjs';
 import { startMockShop, PASS } from './support/mock-shop.mjs';
 import { CHROME, humanLogin } from './support/browser.mjs';
@@ -129,7 +130,7 @@ function mount(states) {
   } });
   return { dom, d: dom.window.document, sent, set: k => { current = states[k]; }, wait: ms => new Promise(r => setTimeout(r, ms)) };
 }
-const START = { stage: 'start', starting: false, chrome: { ok: true }, defaultShopUrl: 'https://shop.exempel.test/', lastError: null, modes: { demo: { limits: { maxTurns: 16, maxTaskTokens: 150000 } }, real: { limits: { maxTurns: 14, maxTaskTokens: 120000, maxSessionTokens: 450000, maxSessionMinutes: 30, maxProductsPerTask: 20, maxRequests: 1500 } } } };
+const START = { stage: 'start', starting: false, chrome: { ok: true }, defaultShopUrl: 'https://shop.exempel.test/', lastError: null, modes: { demo: { limits: PROFILES.demo }, real: { limits: PROFILES.real } } };
 const SESSION = { stage: 'session', mode: 'real', phase: 'login', running: false, shop: 'shop.exempel.test', hosts: [], model: 'm', guard: { allowed: 0, blocked: 0, total: 0, reasons: {} }, blocked: [], blockedPosts: [], approved: [], pageLoads: 0, jsonResponses: 0, catalogCount: 0, usage: { input_tokens: 0, output_tokens: 0 }, costUsd: 0, events: [], last: null, limits: { maxRequests: 1500, maxPageLoads: 30, maxSessionTokens: 450000, maxSessionMinutes: 30, maxProductsPerTask: 20 }, budget: { requests: { used: 0, max: 1500 }, session: { tokens: 0, minutes: 0 } } };
 
 test('startskärmen: knapparna är låsta tills AI:n är ansluten, felet syns tydligt, och DEMO respektive RIKTIG GROSSIST skickar rätt läge', async () => {
@@ -141,7 +142,7 @@ test('startskärmen: knapparna är låsta tills AI:n är ansluten, felet syns ty
   assert.equal(m.d.querySelector('#bdemo').disabled, true); assert.equal(m.d.querySelector('#breal').disabled, true);
   assert.match(m.d.querySelector('#aistatus').textContent, /ingen API-nyckel.*1-SETUP/); assert.ok(m.d.querySelector('#aistatus .bad'));
   assert.equal(m.d.querySelector('#shopurl').value, 'https://shop.exempel.test/'); assert.equal(m.d.querySelector('#startsec').hidden, false); assert.equal(m.d.querySelector('#s1').hidden, true);
-  assert.match(m.d.querySelector('#limitsline').textContent, /högst 14 steg.*120\u00a0000 tokens per uppdrag.*20 artiklar per uppdrag/s);
+  assert.match(m.d.querySelector('#limitsline').textContent, /DEMO högst 12 steg, 60\u00a0000 tokens per uppdrag, 180\u00a0000 per session, 20 min.*RIKTIG GROSSIST högst 12 steg, 60\u00a0000 tokens per uppdrag.*20 artiklar per uppdrag/s);
   m.set('good'); await m.wait(1500);
   assert.match(m.d.querySelector('#aistatus').textContent, /AI ansluten ✓/); assert.equal(m.d.querySelector('#bdemo').disabled, false); assert.equal(m.d.querySelector('#breal').disabled, false);
   m.d.querySelector('#bdemo').click(); await m.wait(1500);                              // knapparna låses medan Chrome startar och låses upp när sidan ritas om
@@ -179,7 +180,7 @@ test('statusraderna och gränserna visas: korta rader, "Klart ✓", och en tydli
   await m.wait(300);
   const log = m.d.querySelector('#log').textContent;
   assert.ok(log.includes('Söker efter «vita rosor»…') && log.includes('Hittade 5 produkter…') && log.includes('Klart ✓') && log.includes('Uppgift: Hitta vita rosor'));
-  assert.match(m.d.querySelector('#limitnote').textContent, /Agenten stoppades: Gränsen för tokens per uppdrag/);
+  assert.match(m.d.querySelector('#limitnote').textContent, /STOPP – testets säkerhetsgräns är nådd\. Gränsen för tokens per uppdrag.*Ingen automatisk fortsättning/);
   assert.match(m.d.querySelector('#guard').textContent, /webbläsaranrop 40 av 1.?500.*tokens 90.?000 av 450.?000.*tid 3 av 30 min.*artiklar per uppdrag högst 20/s);
   } finally { m.dom.window.close(); }
 });

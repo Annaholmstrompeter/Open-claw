@@ -12,7 +12,10 @@ import { startControlServer } from './server.mjs';
 import { createAiService, createAiClient, checkAi, API_BASE } from './ai.mjs';
 import { loadKey, saveKey, deleteKey, readHidden, looksLikeKey, keyPaths, redact } from './secrets.mjs';
 import { findChrome } from './launch.mjs';
-import { startMockShop } from './demo-shop.mjs';
+import { runBasicChecks } from './checks.mjs';
+import { startMockShop, loginDemo } from './demo-shop.mjs';
+import { runSelfTest } from './selftest.mjs';
+import { SELFTEST_LIMITS } from './limits.mjs';
 
 const args = process.argv.slice(2);
 const cmd = args[0];
@@ -42,45 +45,59 @@ async function tryKey(key) { return checkAi({ client: createAiClient({ apiKey: k
 
 async function setup() {
   say('\n' + line + '\n GROSSISTAGENT: SETUP (görs en gång)\n' + line);
-  const major = Number(process.versions.node.split('.')[0]);
-  if (major < 20) { say('✗ Node.js ' + process.versions.node + ' är för gammal. Installera version 20 eller senare från https://nodejs.org (välj LTS).'); process.exitCode = 1; return; }
-  say('✓ Node.js ' + process.versions.node);
-  const chrome = findChrome();
-  if (chrome) say('✓ Google Chrome hittades'); else say('✗ Google Chrome hittades inte. Installera det från https://www.google.com/chrome/ och kör SETUP igen. (Har du Chrome på ett ovanligt ställe: se README.)');
+  say('Kontrollerar att allt som behövs finns på den här datorn…\n');
+  const results = await runBasicChecks({ say });
+  const stuck = results.find(r => !r.ok && r.blocking && ['os', 'node', 'mapp', 'beroenden'].includes(r.id));
+  if (stuck) { await finish(results, null); process.exitCode = 1; return; }
 
-  const existing = loadKey();
   say('\nAPI-nyckel för AI-modellen:');
+  const existing = loadKey();
+  let aiResult = null;
   if (existing.key) {
     say('✓ En nyckel finns redan (' + existing.source + ').');
     if (existing.source.startsWith('miljö')) say('  (Den kommer från en miljövariabel och byts inte här.)');
-    else if (!(await yesNo('  Vill du byta ut den?'))) { await finish(chrome); return; }
-    else say('');
-  }
-  if (!existing.key || !existing.source.startsWith('miljö')) {
-    say(KEY_HELP + '\n');
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      let typed;
-      try { typed = await readHidden('Klistra in nyckeln här och tryck Enter (den syns inte på skärmen): '); } catch (e) { say('Avbrutet.'); process.exitCode = 1; return; }
-      if (!typed) { say('Inget inklistrat.'); continue; }
-      if (!looksLikeKey(typed)) { say('✗ Det där ser inte ut som en Anthropic-nyckel (den börjar med sk-ant- och är lång). Försök igen.'); continue; }
-      say('  Kontrollerar nyckeln hos Anthropic (kostar ungefär 0,04 kr)…');
-      const r = await tryKey(typed);
-      if (!r.ok && r.kind === 'auth') { say('✗ ' + r.message + '\n'); continue; }
-      const file = saveKey(typed);
-      typed = null;
-      say('✓ Nyckeln är sparad i  ' + file + '  (utanför repot; bara ditt användarkonto har tillgång).');
-      say(r.ok ? r.message : '! Nyckeln är sparad men gick inte att verifiera nu:\n  ' + r.message);
-      await finish(chrome);
-      return;
+    if (existing.source.startsWith('miljö') || !(await yesNo('  Vill du byta ut den?'))) {
+      say('  Kontrollerar AI-anslutningen (kostar ungefär 0,04 kr)…');
+      aiResult = await tryKey(existing.key);
+      say(aiResult.ok ? '✓ ' + aiResult.message : '✗ ' + aiResult.message);
+      await finish(results, aiResult); return;
     }
-    say('✗ Ingen nyckel sparades. Kör SETUP igen när du har nyckeln.'); process.exitCode = 1; return;
+    say('');
   }
-  await finish(chrome);
+  say('Nu behöver du din Anthropic API-nyckel.\nDen sparas endast lokalt på den här datorn och skickas inte till GitHub eller grossisten.\n');
+  say(KEY_HELP + '\n');
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    let typed;
+    try { typed = await readHidden('Klistra in nyckeln här och tryck Enter (den syns inte på skärmen): '); } catch (e) { say('Avbrutet.'); process.exitCode = 1; return; }
+    if (!typed) { say('Inget inklistrat.'); continue; }
+    if (!looksLikeKey(typed)) { say('✗ Det där ser inte ut som en Anthropic-nyckel (den börjar med sk-ant- och är lång). Försök igen.'); continue; }
+    say('  Kontrollerar nyckeln hos Anthropic (kostar ungefär 0,04 kr)…');
+    const r = await tryKey(typed);
+    if (!r.ok && r.kind === 'auth') { say('✗ ' + r.message + '\n'); continue; }
+    const file = saveKey(typed);
+    typed = null;
+    say('✓ Nyckeln är sparad i  ' + file + '  (utanför repot; bara ditt användarkonto har tillgång).');
+    say(r.ok ? '✓ ' + r.message : '✗ Nyckeln är sparad men gick inte att verifiera nu:\n  ' + r.message);
+    await finish(results, r);
+    return;
+  }
+  say('✗ Ingen nyckel sparades. Kör SETUP igen när du har nyckeln.');
+  await finish(results, { ok: false }); process.exitCode = 1;
 }
 
-async function finish(chrome) {
+async function finish(results, ai) {
+  const failed = results.filter(r => !r.ok);
+  const ok = failed.length === 0 && ai && ai.ok;
   say('\n' + line);
-  say(chrome ? ' KLART. Nästa steg: dubbelklicka på  2-STARTA-GROSSISTAGENT.' : ' Nästan klart: installera Chrome (se ovan), sedan dubbelklicka på  2-STARTA-GROSSISTAGENT.');
+  if (ok) say(' KLART. Nästa steg: dubbelklicka på  2-STARTA-GROSSISTAGENT.');
+  else {
+    say(' INTE KLART ÄNNU. Det här återstår:');
+    for (const r of failed) say('  ✗ ' + r.label + (r.hint ? '\n      → ' + r.hint : ''));
+    if (!failed.length && ai && !ai.ok) say('  ✗ AI-anslutningen fungerar inte än. Läs felet ovan, åtgärda det och kör SETUP igen.');
+    if (!ai && !failed.length) say('  ✗ API-nyckeln är inte kontrollerad.');
+    say(' Åtgärda det och dubbelklicka på  1-SETUP  igen.');
+    process.exitCode = 1;
+  }
   say(line + '\n');
 }
 
@@ -108,7 +125,7 @@ export function buildApp({ env = process.env, model = MODEL, baseURL = API, chro
   let demoShop = null;
   const chrome = chromePath ? { ok: true } : { ok: false, message: 'Google Chrome hittades inte. Installera Chrome (https://www.google.com/chrome/) och starta om.' };
   const closeDemo = async () => { if (demoShop) { await demoShop.close().catch(() => {}); demoShop = null; } };
-  const begin = async (mode, { shopUrl }) => {
+  const begin = async (mode, { shopUrl, selftest = false }) => {
     let url;
     if (mode === 'demo') { demoShop = await startMockShop(); url = demoShop.url + '/sortiment'; }
     else {
@@ -117,18 +134,25 @@ export function buildApp({ env = process.env, model = MODEL, baseURL = API, chro
       url = u.href;
     }
     try {
-      const session = await createSession({ shopUrl: url, mode, model, executablePath: chromePath || undefined, headless, extraArgs, makeClient: () => ai.makeClient() });
+      const session = await createSession({ shopUrl: url, mode, model, executablePath: chromePath || undefined, headless, extraArgs, makeClient: () => ai.makeClient(), limits: selftest && mode === 'demo' ? SELFTEST_LIMITS : {} });
       log('  ▶ Session startad (' + (mode === 'demo' ? 'DEMO' : 'RIKTIG GROSSIST') + '). Chrome är öppen.');
       return session;
     } catch (e) { await closeDemo(); throw new Error(redact(e.message)); }
   };
-  return { ai, begin, chrome, closeDemo, demoShop: () => demoShop };
+  /** Självtestet: loggar in i den påhittade butiken (koden, inte agenten), startar agentfasen och kör de fem uppgifterna med den riktiga modellen. */
+  const selftest = async (session, hooks) => {
+    if (!demoShop) throw new Error('Den påhittade butiken är inte startad.');
+    await loginDemo(session.page, demoShop.url);
+    await session.confirmLogin();
+    return runSelfTest({ session, shop: { mutations: () => demoShop.mutations().length }, hooks });
+  };
+  return { ai, begin, chrome, closeDemo, selftest, demoShop: () => demoShop };
 }
 
 async function start() {
   const app = buildApp({ headless: flag('headless'), extraArgs: flag('no-sandbox') ? ['--no-sandbox'] : [], say });
   const server = await startControlServer({
-    ai: app.ai, begin: app.begin, chrome: app.chrome, saveDir: opt('out', './out'),
+    ai: app.ai, begin: app.begin, chrome: app.chrome, selftest: app.selftest, saveDir: opt('out', './out'),
     onEnd: async () => { say('  ■ Sessionen är avslutad och raderad.'); await app.closeDemo(); },
     onQuit: async () => { await app.closeDemo(); say('Programmet är stängt.'); process.exit(0); }
   });

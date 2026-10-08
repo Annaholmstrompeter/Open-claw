@@ -6,7 +6,7 @@ import { createGuard, attachGuard } from './guard.mjs';
 import { createCapture } from './capture.mjs';
 import { createToolbox } from './tools.mjs';
 import { runAgent } from './agent.mjs';
-import { purchasePlan } from './plan.mjs';
+import { purchasePlan, perStemOf } from './plan.mjs';
 import { launchLocal } from './launch.mjs';
 import { profileFor, createBudget } from './limits.mjs';
 import { redact } from './secrets.mjs';
@@ -26,7 +26,7 @@ export function estimateCostUsd(model, usage) {
 const STOP_TEXT = { max_tokens: 'Modellens svar blev för långt och avkortades. Försök igen, gärna med en enklare fråga.', avvisad: 'Modellen avvisade uppgiften.', max_turer: 'Agenten hann inte klart inom stegtaket. Försök med en enklare fråga.' };
 
 const plainProduct = p => ({ id: p.id, name: p.name, variant: p.variant, color: p.color, lengthCm: p.lengthCm, packSize: p.packSize, packSizeSource: p.packSizeSource,
-  packPrice: p.packPrice ? p.packPrice.toDecimalString() : null, currency: p.currency, currencyAssumed: p.currencyAssumed, priceUnit: p.priceUnit, priceDerived: p.priceDerived, priceIncludesVat: p.priceIncludesVat,
+  packPrice: p.packPrice ? p.packPrice.toDecimalString() : null, perStem: perStemOf(p), currency: p.currency, currencyAssumed: p.currencyAssumed, priceUnit: p.priceUnit, priceDerived: p.priceDerived, priceIncludesVat: p.priceIncludesVat,
   availability: p.availability, availabilityRaw: p.availabilityRaw, offer: p.offer, extras: p.extras, issues: p.issues, källa: p.source || null });
 
 /**
@@ -47,6 +47,7 @@ export async function createSession({ shopUrl, mode = 'real', launch = launchLoc
   await attachGuard(context, guard);                         // på hela kontexten från start. I inloggningsfasen släpper skyddet igenom allt, men det finns redan på plats
   capture.attach(page);
   let toolbox = createToolbox({ page, guard, capture, limits: L, sleep });
+  const clearCatalog = () => { toolbox.state.catalog.clear(); toolbox.state.refs = []; toolbox.state.final = null; };
   const events = [], startedAt = now().toISOString();
   let consentGiven = null, sessionLimit = null, phase = 'login', running = false, abort = null, last = null, usage = { input_tokens: 0, output_tokens: 0, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 }, popupCheck = null;
   const push = e => { events.push({ t: now().toISOString(), ...e }); if (events.length > 200) events.shift(); };
@@ -85,7 +86,7 @@ export async function createSession({ shopUrl, mode = 'real', launch = launchLoc
       phase = 'agent';
       budget.startSession();
       capture.clear(); toolbox.state.blockedSeen = guard.summary().blocked;      // självkontrollens nekade anrop ska inte rapporteras till agenten
-      push({ type: 'inloggad', message: 'Agenten är pausad tills du skickar en uppgift. Skrivskydd på, popup-skydd kontrollerat.' });
+      push({ type: 'inloggad', message: 'Inloggning klar – agenten väntar på din första uppgift. Skrivskydd på, popup-skydd kontrollerat.' });
       return { ok: true, host: cur.hostname, hosts: guard.hosts(), popupCheck };
     },
 
@@ -104,7 +105,7 @@ export async function createSession({ shopUrl, mode = 'real', launch = launchLoc
       running = true; abort = new AbortController(); toolbox.beginTask(); budget.beginTask();
       push({ type: 'fråga', message: text });
       try {
-        const res = await runAgent({ client: c, model, instruction: text, toolbox, effort, budget, signal: abort.signal,
+        const res = await runAgent({ client: c, model, instruction: text, toolbox, effort, budget, maxTokens: L.maxOutputTokens, signal: abort.signal,
           onEvent: e => {
             if (e.type === 'usage') usage = e.usage;
             if (e.type === 'status') push({ type: 'status', message: e.text });
@@ -123,6 +124,9 @@ export async function createSession({ shopUrl, mode = 'real', launch = launchLoc
       } finally { running = false; abort = null; }
     },
     stop() { if (abort) abort.abort(); },
+
+    /** Tömmer de utlästa artiklarna (självtestet gör det mellan uppgifterna, så att varje uppgift visar vad just den läste ut). */
+    clearCatalog,
 
     /** Deterministisk inköpsberäkning för en utläst artikel. Ingen AI. */
     calc(id, needed) {

@@ -120,7 +120,7 @@ test('DEMO med riktig AI-koppling från start till slut: AI ansluten ✓, Starta
     assert.equal(vendela.plan, null); assert.equal(st.last.picks.summary, 'Två passande sorter.');
     // korta statusrader, aldrig modellens text
     const lines = st.events.filter(e => e.type === 'status').map(e => e.message);
-    assert.deepEqual(lines, ['Tittar på sidan…', 'Söker efter «vit ros»…', 'Sökningen är gjord…', 'Läser produktinformation…', 'Läser ut produkterna på sidan…', 'Läste ut 5 produkter…', 'Filtrerar produkterna…', 'Hittade 5 produkter…', 'Sammanställer förslag…', 'Klart ✓']);
+    assert.deepEqual(lines, ['Tittar på sidan…', 'Söker efter «vit ros»…', 'Sökningen är gjord…', 'Läser produktinformation…', 'Läser ut produkterna på sidan…', 'Läste ut 5 produkter…', 'Filtrerar produkterna…', 'Hittade 5 produkter…', 'Sammanställer förslag…', 'Beräknar inköpsbehov…', 'Klart ✓']);
     assert.ok(!polled.join('\n').includes('MODELLENS RESONEMANG'), 'modellens text får inte visas');
     // gränser och kostnad syns
     assert.ok(st.usage.input_tokens > 5000 && st.costUsd > 0 && st.costUsd < 0.05);

@@ -5,7 +5,7 @@ echo.
 echo === GROSSISTAGENT: SETUP (gors en gang) ===
 where node >nul 2>nul
 if errorlevel 1 goto nonode
-if exist node_modules\playwright-core goto run
+if exist node_modules\playwright-core if exist node_modules\@anthropic-ai\sdk goto run
 echo Installerar det som behovs (kan ta nagra minuter, kraver internet) ...
 call npm install --no-audit --no-fund
 if errorlevel 1 goto fail
