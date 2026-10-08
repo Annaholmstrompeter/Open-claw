@@ -1,0 +1,140 @@
+{
+  "_note": "Snapshot of the five Body Mind Earth products in Shopify, taken 2026-10-08 (text copied as written there). Edit here or re-sync from Shopify, then run: python3 sanctuary/tools/build-content.py. 'color' is the page colour for the ritual, taken from the label colours.",
+  "rituals": [
+    {
+      "id": "balance",
+      "num": "I",
+      "color": "#59672f",
+      "script": "balance",
+      "shopify": {
+        "gid": "gid://shopify/Product/15503970074998",
+        "handle": "hand-wash-bergamot",
+        "image": "https://cdn.shopify.com/s/files/1/0961/8377/9702/files/aa.png?v=1767611695"
+      },
+      "title": "Gentle Hand Wash — Bergamot",
+      "kind": "Hand Wash",
+      "scent": "Bergamot",
+      "with": ["Olive Oil", "Soapwort"],
+      "tone": "Softening",
+      "lede": "A gentle botanical hand wash with olive oil & soapwort.",
+      "rows": {
+        "scent": "Let bright bergamot bring clarity to the moment.",
+        "touch": "Let the rhythm steady you.",
+        "feel": "Let your shoulders soften. Return to center."
+      },
+      "affirmation": "I am rooted, centered, and aligned.",
+      "formula": "A gentle botanical hand wash with olive oil & soapwort.",
+      "essentials": "Vegan Collagen · Allantoin · Vitamin E",
+      "badges": ["Vegan Formula", "Made in EU", "6M PAO"],
+      "inci": "Aqua, Olea Europaea Oil, Coco-Communis Oil, Saponaria Officinalis Extract, Cetearyl Olivate, Sorbitan Olivate, Lactobacillus Ferment, Tocopherol, Citric Acid, Allantoin, Lactic Acid, sh-Polypeptide-121 (vegan collagen), Parfum."
+    },
+    {
+      "id": "luminance",
+      "num": "II",
+      "color": "#a4522e",
+      "script": "luminance",
+      "shopify": {
+        "gid": "gid://shopify/Product/15503974826358",
+        "handle": "hand-cream-apricot",
+        "image": "https://cdn.shopify.com/s/files/1/0961/8377/9702/files/snyggritualblaarch.png?v=1770199464"
+      },
+      "title": "Nourishing Hand Cream – Apricot",
+      "kind": "Hand Cream",
+      "scent": "Apricot",
+      "with": ["Shea Butter", "Avocado"],
+      "tone": "Smoothing",
+      "lede": "A rich botanical hand cream with shea butter, avocado & apricot.",
+      "rows": {
+        "scent": "Let sun-warmed apricot illuminate the moment.",
+        "touch": "Let the warmth of your touch lift the moment.",
+        "feel": "Let your hands rest. A quiet lightness returns."
+      },
+      "affirmation": "I am radiant, open, and light.",
+      "formula": "A rich botanical hand cream with shea butter, avocado & apricot.",
+      "essentials": null,
+      "badges": ["Vegan Formula", "Made in EU", "6M PAO"],
+      "inci": "Aqua, Butyrospermum Parkii Butter, Sesamum Indicum Seed Oil, Simmondsia Chinensis Seed Oil, Aloe Barbadensis Leaf Extract, Persea Gratissima Butter, Cetearyl Olivate, Sorbitan Olivate, Chamomilla Recutita Flower Extract, Cotinus Coggygria Leaf Extract, Vanilla Planifolia Extract, Prunus Armeniaca Kernel Oil, Prunus Armeniaca Extract, Parfum, Euphorbia Cerifera Wax, Lactobacillus Ferment."
+    },
+    {
+      "id": "kindness",
+      "num": "III",
+      "color": "#68395a",
+      "script": "kindness",
+      "shopify": {
+        "gid": "gid://shopify/Product/15503979544950",
+        "handle": "body-wash-cherry",
+        "image": "https://cdn.shopify.com/s/files/1/0961/8377/9702/files/reklam.png?v=1770199413"
+      },
+      "title": "Refreshing Body Wash – Cherry",
+      "kind": "Body Wash",
+      "scent": "Cherry",
+      "with": ["Jojoba"],
+      "tone": "Nurturing",
+      "lede": "A gentle botanical body wash with jojoba & cherry.",
+      "rows": {
+        "scent": "Let rich cherry surround you with warmth.",
+        "touch": "Let each touch become an act of kindness.",
+        "feel": "Let the day fall away. Rest in your own warmth."
+      },
+      "affirmation": "I am gentle, worthy, and whole.",
+      "formula": "A gentle botanical body wash with jojoba & cherry.",
+      "essentials": "Niacinamide · Allantoin · Vitamin E",
+      "badges": ["Vegan Formula", "Made in EU", "6M PAO"],
+      "inci": "Aqua, Simmondsia Chinensis Seed Oil, Coco-Glucoside, Ricinus Communis Oil, Xanthan Gum, Cetearyl Olivate, Sorbitan Olivate, Lactobacillus Ferment, Prunus Avium Fruit Extract, Tocopherol, Parfum, Allantoin, Niacinamide."
+    },
+    {
+      "id": "serenity",
+      "num": "IV",
+      "color": "#5f6549",
+      "script": "serenity",
+      "shopify": {
+        "gid": "gid://shopify/Product/15503983935862",
+        "handle": "shampoo-macadamia",
+        "image": "https://cdn.shopify.com/s/files/1/0961/8377/9702/files/frontsend.jpg?v=1770199206"
+      },
+      "title": "Nourishing Shampoo – Macadamia",
+      "kind": "Shampoo",
+      "scent": "Macadamia",
+      "with": ["Rosemary", "Avocado"],
+      "tone": "Vitalizing",
+      "lede": "A botanical hair cleanse with macadamia, rosemary & avocado.",
+      "rows": {
+        "scent": "Let warm macadamia soften the moment.",
+        "touch": "Let the slow rhythm soften the moment.",
+        "feel": "Let the world grow quiet. Settle into stillness."
+      },
+      "affirmation": "I am settled, steady, and still.",
+      "formula": "A botanical hair cleanse with macadamia, rosemary & avocado.",
+      "essentials": "Biotin · Caffeine · Niacinamide",
+      "badges": ["Vegan Formula", "Made in EU", "6M PAO"],
+      "inci": "Aqua, Macadamia Ternifolia Oil, Sesamum Indicum Seed Oil, Coco-Glucoside, Cocos Nucifera Seed Butter, Persea Gratissima Oil, Simmondsia Chinensis Seed Oil, Aloe Barbadensis Extract, Urtica Dioica Extract, Echinacea Purpurea Extract, Saponaria Officinalis Extract, Chamomilla Recutita Flower Extract, Humulus Lupulus Extract, Cetearyl Olivate, Sorbitan Olivate, Lactobacillus Ferment, Niacinamide, Tocopherol, Biotin, Caffeine, Rosmarinus Officinalis Leaf Extract, Parfum."
+    },
+    {
+      "id": "presence",
+      "num": "V",
+      "color": "#9c3f63",
+      "script": "presence",
+      "shopify": {
+        "gid": "gid://shopify/Product/15503994683766",
+        "handle": "body-lotion-raspberry",
+        "image": "https://cdn.shopify.com/s/files/1/0961/8377/9702/files/square.png?v=1767611334"
+      },
+      "title": "Moisture Support Body Lotion – Raspberry",
+      "kind": "Body Lotion",
+      "scent": "Raspberry",
+      "with": ["Shea Butter", "Jojoba"],
+      "tone": "Nourishing",
+      "lede": "A nourishing botanical lotion with shea butter, jojoba & raspberry.",
+      "rows": {
+        "scent": "Let wild raspberry awaken the senses.",
+        "touch": "Let each stroke bring you back to yourself.",
+        "feel": "Let your body settle. Arrive in the moment."
+      },
+      "affirmation": "I am present, grounded, and awake.",
+      "formula": "A nourishing botanical lotion with shea butter, jojoba & raspberry.",
+      "essentials": "Bakuchiol · Vegan Elastin · Allantoin",
+      "badges": ["Vegan Formula", "Made in EU", "6M PAO"],
+      "inci": "Aqua, Butyrospermum Parkii Butter, Simmondsia Chinensis Seed Oil, Euphorbia Cerifera Wax, Ricinus Communis Oil, Xanthan Gum, Cetearyl Olivate, Sorbitan Olivate, Lactobacillus Ferment, Rubus Idaeus Fruit Extract, Tocopherol, Parfum, Allantoin, sh-Polypeptide-50 (vegan elastin), Bakuchiol."
+    }
+  ]
+}
