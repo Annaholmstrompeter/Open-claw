@@ -210,8 +210,9 @@
     const rename = (arrId, name) => { const n = String(name || '').trim(); if (n) W.updateArrangement(ws, ctx, arrId, { name: n }); };
     const addOwn = (arrId, name, cost) => W.addItem(ws, ctx, arrId, { source: 'OWN_STOCK', name: String(name).trim(), quantity: 1, pricing: { mode: 'STANDARD_MARKUP', unitCostBasis: Money.fromDecimal(String(cost)).toJSON() } });
     const removeArrangement = arrId => W.removeArrangement(ws, ctx, arrId);
+    const removeJob = evId => W.removeEvent(ws, ctx, evId);
     const addArrangement = (evId, name) => W.addArrangement(ws, ctx, evId, { name: name || 'Nytt arrangemang', quantity: 1 }).id;
-    return { jobs, job, arrangement, flowers, flower, categories, inCategory, search, fold, foldRaw, purchase, unitInfo: f => unitInfo(D.FLOWERS.find(x => x.id === f)), priceListStatus, draft, addFlower, restoreFlower, setQty, removeItem, setCount, setLabor, rename, removeArrangement, addArrangement, addOwn, kr, TODAY };
+    return { jobs, job, arrangement, flowers, flower, categories, inCategory, search, fold, foldRaw, purchase, unitInfo: f => unitInfo(D.FLOWERS.find(x => x.id === f)), priceListStatus, draft, addFlower, restoreFlower, setQty, removeItem, setCount, setLabor, rename, removeArrangement, removeJob, addArrangement, addOwn, kr, TODAY };
   }
   return { create, kr };
 });
