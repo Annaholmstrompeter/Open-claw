@@ -133,3 +133,19 @@ Annas besked om egna material, prisnivåer och prisgrund, och vilka val jag gjor
 - **Vägen tillbaka:** arbetsytan har en egen lagringsnyckel. Tar man bort den (eller bara slutar använda fliken Jobb) är appen exakt som förut. Det finns också en funktion som gör ett jobb till en order i den gamla formen och säger vad som inte kan uttryckas där. Ingen knapp som skriver till den gamla ordern finns (det vore en risk för tyst överskrivning).
 
 **Regressionsskydd:** alla 348 tidigare tester finns kvar och är gröna. Två av dem fick en medveten ändring av en enda förväntan (listan över tillåtna prissättningssätt har ett tredje värde), och ett statiskt test som sa att appen inte laddar de nya modulerna ersattes av ett som kontrollerar att de laddas i rätt ordning och att den gamla appens lagring är orörd.
+
+## 2026-10-08: MVP 1B delas i A (teknisk läs-PoC) och B (persistent/kommersiell), och byggs som ett lokalt försök
+
+Annas beslut och korrigering:
+1. **Grossistkontakt är inte längre ett blockerande krav för en begränsad, skrivskyddad teknisk PoC.** Tidigare formulering "MVP 1B väntar på pilotflorist, åtkomst och grossistens villkor" är ersatt. För **B** (persistent inloggning, schemalagd synk, katalogimport, varukorg, produktion) gäller villkor och tillstånd som förut.
+2. **Villkor för A:** floristen samtycker och använder sitt eget konto och loggar själv in. Ingen kringgång av CAPTCHA, MFA eller åtkomstkontroll. Inga köp eller kontoändringar. Ingen aggressiv genomsökning. Stopp om de publika villkoren uttryckligen förbjuder testet. Inget lösenord i chatt, formulär, repo, loggar eller prompts.
+3. **Ingen session sparas** i första testet. Floristen loggar in igen nästa gång.
+4. **Skrivskyddet är tekniskt, inte en uppmaning till AI:n:** allt nekas som kan ändra något (varukorg, kassa, beställning, kontoändring, utloggning, alla skrivande metoder) med en allowlist-liknande undantagsregel som bara operatören kan ge, efter att ha sett exakt vad som nekades.
+5. **AI förstår och navigerar, kod läser och räknar:** AI:n väljer var data finns och vilka artiklar som passar. Läsning, tolkning av pris och förpackning och all inköpsberäkning görs av deterministisk kod. Strukturerad data först (sidans egna JSON-anrop), därefter DOM. Visuell AI ingår inte i första försöket.
+
+**Mina val (kan ändras):**
+- **Lokal webbläsare i stället för Cloudflare Browser Run.** Cloudflare har enligt paketets typer Live View, överlämning till människa (`Cloudflare.handoff`), `keep_alive` upp till 10 minuter och en domänlista för utgående trafik, men jag kan inte nå deras dokumentation, grossistens sida eller något Cloudflare-konto härifrån, så det går inte att bevisa att det räcker. Dessutom kräver 30 minuter betalplan (gratisnivån uppges vara 10 minuter per dag), webbläsaren har icke-borttagbara signaturrubriker och körs från ett datacenter (risk för spärr eller att kontot flaggas), och Cloudflare-bygget för det här repot är sedan tidigare trasigt. Den lokala vägen går att bevisa härifrån, kostar ingenting för webbläsaren och använder floristens egen dator och adress. Kärnan är oberoende av webbläsarleverantör.
+- **Playwright i stället för Puppeteer.** Testerna visade att Puppeteer inte kan garantera att skyddet sitter på ett popup-fönster innan dess första anrop (ett skrivande anrop nådde servern). Playwright lägger skyddet på hela webbläsarkontexten, och 12 popupförsök släppte igenom noll.
+- **Kryssrutor i programmet** för floristens samtycke och för att villkoren är lästa. Agenten startar inte utan dem.
+- **Operatören, inte AI:n, godkänner en nekad POST-sökning,** med exakt värd och sökväg. Mönster som liknar varukorg eller beställning kan aldrig godkännas.
+- **WebSockets nekas** i agentfasen.

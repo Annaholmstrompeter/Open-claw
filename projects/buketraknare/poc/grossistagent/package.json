@@ -1,0 +1,22 @@
+{
+  "name": "grossistagent-poc",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "MVP 1B: separat, skrivskyddad PoC. Människan loggar in själv i en riktig webbläsare, därefter söker en AI-agent i den inloggade sessionen. Ingen del av Buketträknaren importerar något härifrån.",
+  "scripts": {
+    "start": "node src/cli.mjs",
+    "demo": "node src/cli.mjs --demo",
+    "test": "node --test --test-concurrency=1 --test-reporter=spec \"test/*.test.mjs\""
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.132.0",
+    "playwright-core": "1.56.1"
+  },
+  "devDependencies": {
+    "jsdom": "^29.1.1"
+  }
+}

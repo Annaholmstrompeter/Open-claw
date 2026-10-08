@@ -1,6 +1,6 @@
 # MASTER-PLAN: Buketträknaren
 
-**Status:** plan, **version 2.3** (justerad efter Annas preciseringar 2026-10-07: uttryckligt "ingår / 0 kr", tre prisnivåer, prisgrund inkl./exkl. moms, bryggan till den nuvarande appen och den minimala jobbskärmen). Ekonomikoden, bryggan, offert/kundorder och en minimal Jobb-flik är byggda och testade (se avsnitt 13). Den gamla räknemotorn `calc()` är orörd. PR #9 är orörd. PR #10 mergas inte utan godkännande.
+**Status:** plan, **version 2.4** (2026-10-08: MVP 1B delas i två slags test, se avsnitt 7.7; den tekniska läs-PoC:n är byggd i `poc/grossistagent/`). Tidigare version 2.3 (justerad efter Annas preciseringar 2026-10-07: uttryckligt "ingår / 0 kr", tre prisnivåer, prisgrund inkl./exkl. moms, bryggan till den nuvarande appen och den minimala jobbskärmen). Ekonomikoden, bryggan, offert/kundorder och en minimal Jobb-flik är byggda och testade (se avsnitt 13). Den gamla räknemotorn `calc()` är orörd. PR #9 är orörd. PR #10 mergas inte utan godkännande.
 **Ersätter delvis:** `PLAN-grossistanslutning.md` (se avsnitt 2). `KONSEKVENSANALYS-FLORISTVISION.md`, `BESLUT.md`, `CHECKLISTA-PILOTGROSSIST.md` och `CLOUDFLARE-DEPLOYMENT.md` gäller fortfarande där de inte säger emot den här planen. Där de säger emot (moms, webbläsaragentens plats) gäller den här planen, och de två berörda raderna är rättade.
 
 Markeringen **(ej verifierat)** betyder att jag inte har kunnat kontrollera uppgiften mot själva källan. Det gäller särskilt allt om Blomstergrossistens webbplats (nätverket i min miljö blockerar den), aktuella molnpriser (hämtade ur sökträffar, kan ha ändrats) och juridik, moms och fakturakrav (Skatteverkets sidor är också blockerade härifrån, så jag har bara sökträffar, och jag är ingen jurist).
@@ -9,7 +9,7 @@ Markeringen **(ej verifierat)** betyder att jag inte har kunnat kontrollera uppg
 
 | # | Ändring | Var |
 |---|---------|-----|
-| 1 | **Grossistagenten är en kärnfunktion.** En liten teknisk proof-of-concept (**MVP 1B**) körs parallellt med floristens kärna (**MVP 1A**) så snart legitim pilotåtkomst finns | 0, 7.7, 13 |
+| 1 | **Grossistagenten är en kärnfunktion.** En liten teknisk proof-of-concept (**MVP 1B**) körs parallellt med floristens kärna (**MVP 1A**) så snart floristen samtycker och använder sitt eget konto (ingen kontakt med grossisten krävs för den tekniska läs-PoC:n, se 7.7) | 0, 7.7, 13 |
 | 2 | Grind A innehåller nu också en **teknisk undersökning** av hur webbutiken fungerar efter inloggning. Vi är inte beroende av att grossisten ger oss API | 7.4 |
 | 3 | Skärmdumpar och CSV är **reservväg**, aldrig arkitekturens grund. Målet är ANSLUT → LOGGA IN → KLART | 7.4, 15 |
 | 4 | **Moms in i modellen nu** (beslut 5 är ändrat för moms. Euro och omräkning väntar fortfarande) | 3.5, 4, 6 |
@@ -752,7 +752,7 @@ Allt nedan kommer från sökträffar och är **ej verifierat mot sidorna**.
 |-----|----------|----------|
 | **A1: floristens svar** | `CHECKLISTA-PILOTGROSSIST.md`. Skärmdumpar (2–3) är *hjälp* för oss att förstå butiken, inte något arkitekturen eller slutprodukten beror på | Pilotflorist |
 | **A2: fråga grossisten** | Mejl till grossisten om prisfil, feed, API, EDI, annan integration **och tillstånd** att läsa artiklar och priser automatiskt med kundens eget konto (avsnitt 18.3). Finns något bra används det | Annas (eller floristens) ja |
-| **A3: teknisk undersökning (PoC, avsnitt 7.7)** | Hur fungerar inloggningen, sessionen och produktlistorna *i praktiken* med en legitim kund, inklusive vilka strukturerade anrop sidan själv gör | Legitim pilotåtkomst och att grossistens villkor är lästa |
+| **A3: teknisk undersökning (PoC, avsnitt 7.7)** | Hur fungerar inloggningen, sessionen och produktlistorna *i praktiken* med en legitim kund, inklusive vilka strukturerade anrop sidan själv gör | Floristens samtycke och eget konto (teknisk läs-PoC, se 7.7). Grossistens tillstånd krävs först för persistent automatisering (B) |
 
 **Vi är inte beroende av att grossisten ger oss API.** Visionen är att fungera även mot grossister som saknar det, genom en autentiserad webbläsaragent, *där kunden har legitim åtkomst och automatiseringen är tillåten*. Tillåtelsen är ett villkor, inte en formalitet (avsnitt 7.7 och 9).
 
@@ -807,10 +807,22 @@ Varje anslutning har ett `ConnectorHealth`-värde som en intern vy visar. Floris
 
 **Syfte.** Prova den viktigaste tekniska hypotesen tidigt, utan att vänta på att kund-, jobb- och fakturasystemet är klart: *en florist loggar själv in hos sin riktiga grossist i en säker molnwebbläsare, och Buketträknarens agent kan sedan läsa verkliga artiklar och priser i den inloggade sessionen.* Det är ett **experiment, inte en produktionsfunktion.** Det byggs inte som en plattform.
 
-**Startvillkor (alla ska vara uppfyllda).**
-1. En pilotflorist med ett riktigt kundkonto har sagt ja till att prova, och vet att inloggningen sker i ett molnfönster (avsnitt 9 och 18.3).
-2. Grossistens villkor är lästa. Om de förbjuder automatiserad åtkomst **stannar vi** (eller får ett skriftligt tillstånd). Min rekommendation är att *alltid* fråga grossisten före PoC:n (avsnitt 18.3), eftersom det är floristens affärsrelation och konto som står på spel.
-3. Ett Cloudflare-konto där ett separat test-Worker får köra en webbläsare (gratisnivå räcker, avsnitt 10).
+**Två slags test, med olika villkor (Annas beslut 2026-10-08).**
+
+| | A. Teknisk läs-PoC med floristens eget konto | B. Kommersiell eller persistent automatisering |
+|---|---|---|
+| Vad | Ett begränsat, skrivskyddat försök: floristen loggar själv in, agenten läser artiklar och priser, sessionen raderas efteråt | Sparad inloggning, schemalagd synk, katalogimport, varukorg, produktion |
+| Kontakt med grossisten | **Krävs inte.** Ett blockerande krav vore att fråga om lov innan vi ens vet om tekniken fungerar | **Krävs.** Villkor och tillstånd utreds ordentligt (avsnitt 18.3, mejlutkastet) |
+| Villkor för att starta | Se listan nedan | Grossistens tillstånd eller en teknisk väg grossisten själv erbjuder |
+
+**Villkor för A (alla ska vara uppfyllda, och de är inbyggda i programmet).**
+1. Floristen har själv sagt ja, använder sitt eget legitima konto och loggar själv in (kryssruta som krävs innan agenten startar).
+2. Webbplatsens publika villkor har lästs och förbjuder inte uttryckligen den här sortens test (kryssruta som krävs). Förbjuder de det: **stoppa**.
+3. Ingen kringgång av CAPTCHA, MFA eller annan åtkomstkontroll. Inga köp och inga kontoändringar (tekniskt spärrat, se `poc/grossistagent/README.md`). Ingen aggressiv genomsökning (högst 100 sidhämtningar, minst 2 s mellan dem).
+4. Lösenordet skrivs bara direkt på grossistens egen inloggningssida i webbläsarfönstret: aldrig i chatt, i Buketträknaren, i repot, i loggar eller i en prompt.
+5. Ingen session sparas. Floristen får logga in igen nästa gång.
+
+Det som tidigare stod som startvillkor (pilotflorist, grossistens villkor lästa före första testet, ett Cloudflare-konto) gäller nu **B**, inte A. Min rekommendation om att ändå fråga grossisten tidigt står kvar som en rekommendation, men den blockerar inte A.
 
 **De nio frågor PoC:n ska besvara.**
 
@@ -1203,8 +1215,8 @@ Storlek: **S** (dagar), **M** (en till två veckor), **L** (flera veckor) för e
 ### Ordning (Annas, version 2)
 
 ```
-MVP 1A  Floristens kärna  ─────────────┐   parallellt. 1B startar när legitim åtkomst finns
-MVP 1B  Grossistagent-PoC ─────────────┘   och grossistens villkor är lästa
+MVP 1A  Floristens kärna  ─────────────┐   parallellt. 1B (läs-PoC, A) startar med floristens samtycke
+MVP 1B  Grossistagent-PoC ─────────────┘   och eget konto. Grossistens tillstånd krävs först för B
                                          ▼
 MVP 2   Riktig grossistkoppling   (strategin avgörs av 1B och Grind A)
    ▼
@@ -1242,7 +1254,8 @@ MVP 6   Intelligens
 ### MVP 1B: Grossistagent-PoC (parallellt)
 
 Se avsnitt 7.7 för nio frågor, spelregler, konstruktion och utfall. **Mål:** bevisa eller motbevisa att en florist kan logga in själv i en säker molnwebbläsare, och att vår agent sedan kan läsa verkliga artiklar och priser i den inloggade sessionen, utan att något köp sker.
-**Start:** legitim pilotåtkomst, floristens samtycke, grossistens villkor lästa (helst grossistens ja).
+**Start (A, teknisk läs-PoC):** floristens samtycke och eget konto, webbplatsens publika villkor lästa och inte uttryckligen förbjudande. Grossistens ja krävs inte. **B (persistent eller kommersiell)** kräver grossistens tillstånd.
+**Status 2026-10-08:** den lokala läs-PoC:n är byggd och testad mot en påhittad butik (`poc/grossistagent/`, 47 tester). Den har **inte** körts mot den riktiga webbutiken eller med en riktig AI-modell än.
 **Ingår inte:** något produktionskod, katalogkörning, favoriter, varukorg, konton, AI, valv i produktionskvalitet.
 **Klart när:** de nio frågorna är besvarade i en kort rapport och ett beslut är taget om MVP 2:s strategi.
 **Storlek:** S–M.
