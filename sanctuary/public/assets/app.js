@@ -1,16 +1,17 @@
 /*
  * Body Mind Earth — Sensory Ritual
- * A deliberately small router. No dependencies, no network calls, no tracking, nothing stored.
- * All words come from content.js (generated from the labels and Anna's own manuscripts,
- * see tools/build-content.py); all pictures come from the labels (tools/extract-label-art.py).
+ * A deliberately small router and player. No dependencies, no network calls except the recording
+ * itself, no tracking, nothing stored. The rituals are heard, never read: a ritual opens on a
+ * picture and one line from the meditation, and starts to play.
+ * All words come from content.js (see tools/build-content.py); all pictures come from the labels.
  *
  * Routes (hash based, so the browser's back button always works):
  *   #/                      welcome
  *   #/rituals               choose your ritual
  *   #/r/<id>                a ritual: the product, its affirmation, ingredients
- *   #/r/<id>/s/<n>          short meditation, screen n      (/e/<n> = extended)
- *   #/r/<id>/s/<N+1>        the quiet ending
- *   #/about                 Sensory Enrichment
+ *   #/r/<id>/s              the short ritual, playing      (/e = the extended ritual)
+ *   #/r/<id>/done           the quiet ending
+ *   #/about                 Sensory Enrichment (with the spoken introduction)
  *   #/close                 closing: back to the sanctuary
  */
 (function () {
@@ -24,7 +25,7 @@
   var PAPER = '#fff7e9';
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // Interface words only. Everything the guest reads about the products or the rituals is in content.js.
+  // Interface words only. Everything the guest reads about the products is in content.js.
   var UI = {
     brand: 'Body Mind Earth',
     sub: 'Sensory Ritual',
@@ -37,20 +38,22 @@
     closeLink: 'Close your visit',
     shortRitual: 'Short ritual',
     extended: 'Extended ritual',
-    cont: 'Continue',
-    back: 'Back',
+    theRitual: 'The ritual',
     formulaTitle: 'Formula',
     activesTitle: 'Actives',
     vegan: 'Vegan formula',
     ingredientsTitle: 'Ingredients',
     ingredientsSummary: 'Formula & ingredients',
     reminder: 'A reminder of the world we share',
-    breathBegin: 'Begin breathing',
-    breathPause: 'Pause',
-    breathAgain: 'Breathe again',
-    breathIn: 'Breathe in',
-    breathOut: 'Breathe out',
-    breathRest: 'Rest here.',
+    play: 'Play',
+    pause: 'Pause',
+    beginAgain: 'Begin again',
+    back15: 'Back 15 seconds',
+    back15Cap: '15 s back',
+    position: 'Position',
+    listenIntro: 'Listen to the introduction',
+    missing: 'This recording is not available yet.',
+    listenAgain: 'Listen again',
     nextRitual: 'Next ritual',
     returnRituals: 'Return to the rituals',
     closeTitle: 'Return to your sanctuary,|whenever you wish.',
@@ -77,66 +80,166 @@
   }
   // "Body Mind Earth" with the three gold letters of the label wordmark.
   function wordmark() { return 'B<i>O</i>DY MI<i>N</i>D <i>E</i>ARTH'; }
+  function fmt(s) {
+    if (!isFinite(s) || s < 0) return '–:––';
+    var m = Math.floor(s / 60), r = Math.floor(s % 60);
+    return m + ':' + (r < 10 ? '0' : '') + r;
+  }
 
   function ritualById(id) {
     for (var i = 0; i < DATA.rituals.length; i++) if (DATA.rituals[i].id === id) return DATA.rituals[i];
     return null;
   }
 
-  /* ——— breathing (three slow breaths; in 4s, out 6s) ——— */
-  var breath = { timer: null, running: false, count: 0 };
+  /* ——— the recording: one audio element for the whole visit ———
+     It is started inside the guest's tap (so phones allow it), then the screen follows it. */
+  var audio = new Audio();
+  audio.preload = 'metadata';
+  var session = null; // { kind: 'ritual' | 'intro', id, mode, src, failed }
+  var view = null;    // the player controls on the screen right now
 
-  function stopBreath() {
-    clearTimeout(breath.timer);
-    breath.running = false;
-    breath.count = 0;
+  var ICON = {
+    play: '<svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.2l11 6.8-11 6.8z"/></svg>',
+    pause: '<svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.4v14H7zM13.6 5H17v14h-3.4z"/></svg>',
+    restart: '<svg viewBox="0 0 24 24" aria-hidden="true" class="i-line"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5M4.5 4.5v4.4h4.4"/></svg>'
+  };
+
+  function target(spec) {
+    if (spec === 'intro') return { kind: 'intro', id: 'intro', mode: 'intro', src: DATA.introAudio };
+    var p = spec.split(':');
+    var r = ritualById(p[0]);
+    if (!r || !r.audio[p[1]]) return null;
+    return { kind: 'ritual', id: p[0], mode: p[1], src: r.audio[p[1]].src };
   }
 
-  function bindBreath() {
-    var orb = stage.querySelector('.orb');
-    var label = stage.querySelector('.breath-label');
-    var btn = stage.querySelector('[data-breath]');
-    if (!orb || !btn) return;
+  function select(t) {
+    if (session && session.src === t.src) return false;
+    session = t;
+    session.failed = false;
+    audio.src = t.src;
+    return true;
+  }
 
-    function reset(text, btnText) {
-      orb.className = 'orb';
-      label.textContent = text || '';
-      btn.textContent = btnText;
-      btn.setAttribute('aria-pressed', 'false');
+  function startListening(spec, keepPlace) {
+    var t = target(spec);
+    if (!t) return;
+    var changed = select(t);
+    if (!changed && !keepPlace) { try { audio.currentTime = 0; } catch (e) { /* not ready yet */ } }
+    var p = audio.play();
+    if (p && p.catch) p.catch(refresh);
+    setMediaSession();
+    refresh();
+  }
+
+  function stopListening() {
+    audio.pause();
+    if (session) { audio.removeAttribute('src'); audio.load(); }
+    session = null;
+    view = null;
+    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none';
+  }
+
+  function togglePlay() {
+    if (!session) return;
+    if (audio.paused) {
+      var p = audio.play();
+      if (p && p.catch) p.catch(refresh);
+    } else {
+      audio.pause();
     }
+  }
 
-    function cycle() {
-      if (!breath.running) return;
-      if (breath.count >= 3) {
-        stopBreath();
-        reset(UI.breathRest, UI.breathAgain);
-        return;
-      }
-      label.textContent = UI.breathIn;
-      orb.className = 'orb in';
-      breath.timer = setTimeout(function () {
-        if (!breath.running) return;
-        label.textContent = UI.breathOut;
-        orb.className = 'orb out';
-        breath.timer = setTimeout(function () {
-          breath.count += 1;
-          cycle();
-        }, 6000);
-      }, 4000);
+  function seekTo(seconds) {
+    if (!isFinite(audio.duration)) return;
+    audio.currentTime = Math.max(0, Math.min(audio.duration, seconds));
+  }
+
+  function refresh() {
+    if (!view) return;
+    var playing = !!session && !session.failed && !audio.paused && !audio.ended;
+    var state = playing ? 'playing' : 'paused';
+    if (view.root) view.root.setAttribute('data-state', state);
+    if (view.toggle) {
+      view.toggle.setAttribute('data-state', state);
+      view.toggle.setAttribute('aria-label', playing ? UI.pause : UI.play);
     }
+    var dur = audio.duration;
+    if (view.now) view.now.textContent = fmt(audio.currentTime || 0);
+    if (view.total) view.total.textContent = fmt(dur);
+    if (view.range && !view.dragging && isFinite(dur) && dur > 0) {
+      var v = Math.round((audio.currentTime / dur) * 1000);
+      view.range.value = v;
+      view.range.style.setProperty('--p', (v / 10) + '%');
+    }
+    if (view.notice) view.notice.hidden = !(session && session.failed);
+  }
 
-    btn.addEventListener('click', function () {
-      if (breath.running) {
-        stopBreath();
-        reset('', UI.breathBegin);
-      } else {
-        breath.running = true;
-        breath.count = 0;
-        btn.textContent = UI.breathPause;
-        btn.setAttribute('aria-pressed', 'true');
-        cycle();
-      }
+  ['play', 'pause', 'timeupdate', 'loadedmetadata', 'durationchange', 'seeked', 'playing', 'waiting'].forEach(function (ev) {
+    audio.addEventListener(ev, refresh);
+  });
+  audio.addEventListener('error', function () {
+    if (session) session.failed = true;
+    refresh();
+  });
+  audio.addEventListener('ended', function () {
+    if (session && session.kind === 'ritual') {
+      navigate('#/r/' + session.id + '/done');
+    } else {
+      refresh();
+    }
+  });
+
+  function setMediaSession() {
+    if (!('mediaSession' in navigator) || !session || typeof MediaMetadata === 'undefined') return;
+    var title = session.kind === 'intro'
+      ? UI.aboutEyebrow + ' — Introduction'
+      : cap(session.id) + ' — ' + (session.mode === 'extended' ? UI.extended : UI.shortRitual);
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: title,
+      artist: UI.brand,
+      album: UI.sub,
+      artwork: [{ src: DATA.logo, sizes: '239x237', type: 'image/webp' }]
     });
+    var set = function (a, fn) { try { navigator.mediaSession.setActionHandler(a, fn); } catch (e) { /* unsupported */ } };
+    set('play', togglePlay);
+    set('pause', togglePlay);
+    set('seekbackward', function () { seekTo(audio.currentTime - 15); });
+    set('seekforward', function () { seekTo(audio.currentTime + 15); });
+    set('seekto', function (d) { if (d && typeof d.seekTime === 'number') seekTo(d.seekTime); });
+  }
+
+  // Connect the buttons on the screen to the recording.
+  function bindPlayer() {
+    var root = stage.querySelector('[data-player]');
+    if (!root) { view = null; return; }
+    view = {
+      root: root,
+      toggle: root.querySelector('[data-toggle]'),
+      now: root.querySelector('[data-now]'),
+      total: root.querySelector('[data-total]'),
+      range: root.querySelector('[data-range]'),
+      notice: root.querySelector('[data-notice]'),
+      dragging: false
+    };
+    if (view.toggle && !view.toggle.hasAttribute('data-listen')) view.toggle.addEventListener('click', togglePlay);
+    var again = root.querySelector('[data-restart]');
+    if (again) again.addEventListener('click', function () { seekTo(0); if (audio.paused) togglePlay(); });
+    var back = root.querySelector('[data-back15]');
+    if (back) back.addEventListener('click', function () { seekTo(audio.currentTime - 15); });
+    if (view.range) {
+      view.range.addEventListener('input', function () {
+        view.dragging = true;
+        if (isFinite(audio.duration)) seekTo((view.range.value / 1000) * audio.duration);
+        view.range.style.setProperty('--p', (view.range.value / 10) + '%');
+        if (view.now) view.now.textContent = fmt(audio.currentTime);
+      });
+      view.range.addEventListener('change', function () { view.dragging = false; });
+    }
+    // reached by address (a reload): get the recording ready, ask for a tap to begin
+    var spec = root.getAttribute('data-player');
+    var t = target(spec);
+    if (t && (!session || session.src !== t.src)) { select(t); setMediaSession(); }
+    refresh();
   }
 
   /* ——— install to home screen (Android prompt, iOS hint) ——— */
@@ -185,8 +288,8 @@
   });
 
   /* ——— screens ———
-     Each returns { title, kind, html, theme?, ... }. 'kind' drives the look (see style.css):
-     welcome, list, intro (colour hero on cream), med and end (full colour ground), about, close. */
+     Each returns { title, kind, html, theme? }. 'kind' drives the look (see style.css):
+     welcome, list, intro (colour hero on cream), player and end (full colour ground), about, close. */
 
   function photo() { return '<div class="photo" aria-hidden="true"></div>'; }
 
@@ -285,55 +388,53 @@
         '<p class="prose">' + prose + '</p>' +
         '<p class="with">' + esc(r.tone) + ' · with ' + r.with.map(esc).join(' · ') + '</p>' +
         '<div class="actions">' +
-        '<a class="btn primary" href="#/r/' + r.id + '/s/1"><span>' + UI.shortRitual + '</span>' + arrow() + '</a>' +
-        '<a class="btn ghost" href="#/r/' + r.id + '/e/1"><span>' + UI.extended + '</span></a>' +
+        '<a class="btn primary" data-listen="' + r.id + ':short" href="#/r/' + r.id + '/s"><span>' + UI.shortRitual + '</span>' + arrow() + '</a>' +
+        '<a class="btn ghost" data-listen="' + r.id + ':extended" href="#/r/' + r.id + '/e"><span>' + UI.extended + '</span></a>' +
         '</div>' +
         '<details class="formula"><summary>' + UI.ingredientsSummary + '</summary>' + labelCard(r) + '</details>' +
         '</div></section>'
     };
   }
 
-  function meditation(r, mode, n) {
-    var screens = mode === 'e' ? r.extended : r.short;
-    var total = screens.length;
-    var s = screens[n - 1];
-    var base = '#/r/' + r.id + '/' + mode + '/';
-    var prev = n === 1 ? '#/r/' + r.id : base + (n - 1);
-    var seenAff = false;
-    var lines = s.l.map(function (l) {
-      if (l.indexOf('§ ') !== 0) return '<p class="line">' + esc(l) + '</p>';
-      var mark = seenAff ? '' : logo('mark small aff-mark');
-      seenAff = true;
-      return mark + '<p class="line aff">' + esc(l.slice(2)) + '</p>';
-    }).join('');
-    var breathHtml = s.b
-      ? '<div class="breath"><div class="orb-ring"><div class="orb"></div></div>' +
-        '<p class="breath-label" aria-live="polite"></p>' +
-        '<button class="btn ghost" type="button" data-breath aria-pressed="false">' + UI.breathBegin + '</button></div>'
-      : '';
+  // The ritual, heard: a picture, one line from the meditation, and the controls.
+  function player(r, mode) {
+    var key = mode === 'e' ? 'extended' : 'short';
+    var otherKey = mode === 'e' ? 'short' : 'extended';
+    var a = r.audio[key];
     return {
       title: cap(r.id) + ' — ' + UI.brand,
-      kind: 'med',
+      kind: 'player',
       theme: r,
       html:
-        '<section class="screen med">' +
-        '<p class="eyebrow">' + r.id + ' · ' + (mode === 'e' ? UI.extended : UI.shortRitual) + '</p>' +
-        '<progress class="prog" max="' + total + '" value="' + n + '" aria-label="' + n + ' / ' + total + '"></progress>' +
-        '<div class="lines">' + lines + '</div>' +
-        breathHtml +
-        '<nav class="steps-nav">' +
-        '<a class="btn primary" data-next href="' + base + (n + 1) + '"><span>' + UI.cont + '</span>' + arrow() + '</a>' +
-        '<a class="linkish" data-prev href="' + prev + '"><span>' + UI.back + '</span></a>' +
+        '<section class="screen player" data-player="' + r.id + ':' + key + '" data-state="paused">' +
+        '<div class="art-card" aria-hidden="true">' +
+        '<div class="art-photo"></div>' +
+        img(r.img.botanical, 'art-botanical') +
+        logo('art-logo') +
+        '</div>' +
+        '<p class="eyebrow">' + r.id + ' · ' + (key === 'extended' ? UI.extended : UI.shortRitual) + '</p>' +
+        '<blockquote class="quote"><p>“' + esc(a.quote) + '”</p></blockquote>' +
+        '<div class="deck">' +
+        '<div class="seek"><span class="t" data-now>0:00</span>' +
+        '<input class="range" type="range" min="0" max="1000" step="1" value="0" data-range aria-label="' + UI.position + '">' +
+        '<span class="t" data-total>–:––</span></div>' +
+        '<div class="controls">' +
+        '<button class="ctl" type="button" data-restart aria-label="' + UI.beginAgain + '">' + ICON.restart + '<span class="cap">' + UI.beginAgain + '</span></button>' +
+        '<button class="ctl play" type="button" data-toggle data-state="paused" aria-label="' + UI.play + '">' + ICON.play + ICON.pause + '</button>' +
+        '<button class="ctl" type="button" data-back15 aria-label="' + UI.back15 + '"><span class="ctl-text">−15</span><span class="cap">' + UI.back15Cap + '</span></button>' +
+        '</div>' +
+        '<p class="notice" data-notice hidden>' + UI.missing + '</p>' +
+        '</div>' +
+        '<nav class="quiet">' +
+        '<a href="#/r/' + r.id + '"><span>' + UI.theRitual + '</span></a>' +
+        '<a data-listen="' + r.id + ':' + otherKey + '" href="#/r/' + r.id + '/' + (otherKey === 'extended' ? 'e' : 's') + '"><span>' + (otherKey === 'extended' ? UI.extended : UI.shortRitual) + '</span></a>' +
         '</nav></section>'
     };
   }
 
-  function ritualEnd(r, mode) {
+  function ritualEnd(r) {
     var idx = DATA.rituals.indexOf(r);
     var next = DATA.rituals[(idx + 1) % DATA.rituals.length];
-    var other = mode === 's'
-      ? '<a href="#/r/' + r.id + '/e/1"><span>' + UI.extended + '</span></a>'
-      : '';
     return {
       title: cap(r.id) + ' — ' + UI.brand,
       kind: 'end',
@@ -346,7 +447,8 @@
         speciesCard(r) +
         '<div class="actions">' +
         '<a class="btn primary" href="#/rituals"><span>' + UI.returnRituals + '</span>' + arrow() + '</a>' +
-        '<nav class="quiet"><a href="#/r/' + next.id + '"><span>' + UI.nextRitual + ': ' + cap(next.id) + '</span></a>' + other + '</nav>' +
+        '<nav class="quiet"><a href="#/r/' + next.id + '"><span>' + UI.nextRitual + ': ' + cap(next.id) + '</span></a>' +
+        '<a data-listen="' + r.id + ':short" href="#/r/' + r.id + '/s"><span>' + UI.listenAgain + '</span></a></nav>' +
         '</div>' +
         '</section>'
     };
@@ -366,6 +468,12 @@
         '<section class="screen about top-aligned">' +
         '<p class="eyebrow">' + UI.aboutEyebrow + '</p>' +
         '<h1 class="title caps">' + esc(DATA.intro[0]) + '</h1>' +
+        '<div class="listen" data-player="intro" data-state="paused">' +
+        '<button class="ctl play small" type="button" data-listen="intro" data-toggle data-state="paused" aria-label="' + UI.listenIntro + '">' + ICON.play + ICON.pause + '</button>' +
+        '<div class="listen-text"><p class="listen-title">' + UI.listenIntro + '</p>' +
+        '<p class="listen-time"><span data-now>0:00</span> / <span data-total>1:22</span></p>' +
+        '<input class="range" type="range" min="0" max="1000" step="1" value="0" data-range aria-label="' + UI.position + '">' +
+        '<p class="notice" data-notice hidden>' + UI.missing + '</p></div></div>' +
         '<div class="rule" aria-hidden="true"></div>' +
         paras +
         '<div class="reminder-row" role="group" aria-label="' + UI.reminder + '">' +
@@ -413,21 +521,21 @@
       var r = ritualById(parts[1]);
       if (!r) return rituals();
       if (!parts[2]) return ritualIntro(r);
-      var mode = parts[2] === 'e' ? 'e' : 's';
-      var total = (mode === 'e' ? r.extended : r.short).length;
-      var n = parseInt(parts[3], 10);
-      if (isNaN(n) || n < 1) n = 1;
-      if (n > total) return ritualEnd(r, mode);
-      return meditation(r, mode, n);
+      if (parts[2] === 'done') return ritualEnd(r);
+      return player(r, parts[2] === 'e' ? 'e' : 's');
     }
     return welcome();
   }
 
   function draw() {
-    stopBreath();
     var page = resolve();
     var root = document.documentElement;
-    var coloured = page.kind === 'med' || page.kind === 'end';
+    // the recording only plays on its own screen (and on the introduction's)
+    if (page.kind !== 'player' && !(page.kind === 'about' && session && session.kind === 'intro' && !audio.paused)) {
+      stopListening();
+    }
+    view = null;
+    var coloured = page.kind === 'player' || page.kind === 'end';
     if (page.theme) {
       root.setAttribute('data-c', page.theme.id);
       if (themeMeta) themeMeta.setAttribute('content', page.kind === 'intro' || coloured ? page.theme.color : PAPER);
@@ -442,7 +550,7 @@
     setMenuClosed();
     window.scrollTo(0, 0);
     try { stage.focus({ preventScroll: true }); } catch (e) { stage.focus(); }
-    bindBreath();
+    bindPlayer();
     bindInstall();
   }
 
@@ -481,18 +589,22 @@
   }
 
   document.addEventListener('click', function (e) {
+    var el = e.target.closest ? e.target.closest('[data-listen]') : null;
+    if (el) {
+      // the tap that starts the recording: the browser only allows sound that starts here
+      var spec = el.getAttribute('data-listen');
+      if (spec === 'intro' && session && session.kind === 'intro') {
+        togglePlay();           // the introduction's own play button
+        e.preventDefault();
+        return;
+      }
+      startListening(spec);
+      if (spec === 'intro') { e.preventDefault(); return; }
+    }
     var a = e.target.closest ? e.target.closest('a[href^="#/"]') : null;
     if (!a || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey) return;
     e.preventDefault();
     navigate(a.getAttribute('href'));
-  });
-
-  // Arrow keys move through a meditation on larger screens.
-  window.addEventListener('keydown', function (e) {
-    if (e.altKey || e.ctrlKey || e.metaKey) return;
-    var sel = e.key === 'ArrowRight' ? '[data-next]' : e.key === 'ArrowLeft' ? '[data-prev]' : null;
-    var a = sel && stage.querySelector(sel);
-    if (a) navigate(a.getAttribute('href'));
   });
 
   // The browser's own back and forward buttons.
@@ -502,7 +614,7 @@
   });
   show();
 
-  /* ——— offline support: the whole sanctuary is cached after the first visit ——— */
+  /* ——— offline support: the pages and pictures are cached after the first visit ——— */
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('sw.js').catch(function () { /* optional */ });
