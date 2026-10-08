@@ -66,6 +66,9 @@ em{font-style:italic}
 body[data-screen="bygg"] .tabbar{display:none}
 .toast{position:fixed;left:50%;bottom:calc(var(--tab) + 18px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;max-width:calc(100vw - 32px);padding:12px 18px;background:var(--ink);color:var(--paper);font:500 14px/1.35 var(--sans);text-align:center}
 .toast[hidden]{display:none}
+.toast{display:flex;align-items:center;gap:16px}
+.toast button{min-height:44px;padding:0 6px;font:600 14px/1 var(--sans);color:#E0C592;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px}
+body.locked .toast{bottom:calc(128px + env(safe-area-inset-bottom))}
 body[data-screen="bygg"] .toast{bottom:112px}
 
 /* ---------- gemensamt: sammansättning ---------- */
@@ -187,7 +190,11 @@ body[data-screen="bygg"] .toast{bottom:112px}
 .ownform .btn{min-height:46px;padding:0 18px}
 .empty{padding:26px 0 8px;font:400 16px/1.5 var(--sans);color:var(--ink-2)}
 .empty b{display:block;font:500 26px/1.15 var(--serif);color:var(--ink);margin-bottom:6px;letter-spacing:-.01em}
-.addflowers{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:52px;margin-top:16px;box-shadow:inset 0 0 0 1px var(--ink);font:600 13px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase}
+.addflowers{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:52px;box-shadow:inset 0 0 0 1px var(--ink);font:600 13px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase}
+.row--flowers{display:block;padding:12px 0}
+.row.fresh{animation:fresh 2.4s ease-out}
+@keyframes fresh{0%,45%{background-color:#EBDDB8}100%{background-color:transparent}}
+.ledger > .addflowers{margin-top:16px}
 .addflowers:hover{background:var(--paper-3)}
 .a-foot{margin-top:28px;padding-bottom:8px}
 .danger{font:600 13px/1.2 var(--sans);color:var(--claret);min-height:44px;display:inline-flex;align-items:center;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px}
@@ -215,36 +222,122 @@ body[data-screen="bygg"] .toast{bottom:112px}
 .rcp.total{margin-top:6px;padding-top:12px;border-top:1px solid var(--ink);font:500 24px/1.1 var(--serif)}
 .rcp.total i{border-bottom-color:transparent}
 
-/* blomval: egen skärm på mobil, egen kolumn på dator */
-.picker{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;background:var(--paper);transform:translateY(102%);visibility:hidden;transition:transform .22s ease,visibility 0s .22s}
-.picker.open{transform:none;visibility:visible;transition:transform .22s ease}
-.pk-head{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:60px;padding:0 8px 0 var(--pad);border-bottom:1px solid var(--rule)}
+/* ---------- blomvalet ----------
+ * Mobil: egen skärm i fast höjd. Rubrik, sök och undergrupper ligger utanför rullningsytan och prisfältet under den, så inget kan överlappa eller klippas.
+ * Dator: kategorier i en spalt till vänster och listan i två eller tre spalter (se längre ned). */
+.picker{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;background:var(--paper);animation:sheet .22s ease}
+.picker[hidden]{display:none!important}
+@keyframes sheet{from{transform:translateY(28px);opacity:0}to{transform:none;opacity:1}}
+.pk-in{display:flex;flex-direction:column;flex:1;min-height:0;width:100%;max-width:720px;margin:0 auto}
+.pk-head{flex:none;display:flex;align-items:center;gap:6px;min-height:56px;padding:0 4px 0 var(--pad)}
+.pk-back{margin-left:-16px}
+.pk-back,.pk-x,.pk-clear{width:44px;height:44px;display:grid;place-items:center;flex:none}
+.pk-titles{flex:1;min-width:0;padding:6px 0}
 .pk-head h2{font:400 26px/1.1 var(--serif);letter-spacing:-.01em}
-.pk-close{min-width:44px;justify-content:center;padding:0 12px}
-.pk-body{flex:1;min-height:0;overflow:auto;padding:0 var(--pad) 24px;-webkit-overflow-scrolling:touch}
-.pk-search{position:sticky;top:0;z-index:2;background:var(--paper);padding:14px 0 10px}
-.pk-field{display:flex;align-items:center;gap:10px;height:50px;padding:0 14px;box-shadow:inset 0 0 0 1px var(--field);background:var(--paper-2)}
-.pk-field input{flex:1;min-width:0;height:48px;border:0;background:transparent;font:500 16px/1 var(--sans);outline:0;padding:0}
+.pk-head h2:focus,.pk-head h2:focus-visible{outline:none}
+.pk-head h2 .ct{margin-left:10px;font:500 15px/1 var(--sans);letter-spacing:0;color:var(--mut)}
+.pk-to{margin-top:3px;font:400 14px/1.3 var(--sans);color:var(--ink-2)}
+.pk-search{position:relative;flex:none;padding:4px var(--pad) 10px}
+.pk-field{display:flex;align-items:center;gap:10px;height:50px;padding:0 48px 0 14px;box-shadow:inset 0 0 0 1px var(--field);background:var(--paper-2)}
+.pk-field input{flex:1;min-width:0;height:48px;border:0;background:transparent;font:500 16px/1 var(--sans);outline:0;padding:0;border-radius:0;-webkit-appearance:none;appearance:none}
+.pk-field input::-webkit-search-cancel-button,.pk-field input::-webkit-search-decoration{-webkit-appearance:none;display:none}
 .pk-field input::placeholder{color:#6F6556;opacity:1}
 .pk-field:focus-within{outline:3px solid var(--bronze);outline-offset:2px}
-.pk-tabs{display:flex;gap:0;margin:2px 0 4px -12px;border-bottom:1px solid var(--rule)}
-.pk-tabs button{position:relative;min-width:44px;min-height:44px;padding:0 12px;margin-right:2px;font:600 14px/1 var(--sans);color:var(--mut);text-align:center}
+.pk-clear{position:absolute;right:calc(var(--pad) + 2px);top:7px;color:var(--ink-2)}
+.pk-clear[hidden]{display:none}
+.pk-rail{display:none}
+.pk-main{display:flex;flex-direction:column;flex:1;min-height:0}
+.pk-sub{flex:none;padding:0 var(--pad)}
+.pk-vt{display:none}
+.pk-scroll{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:0 var(--pad) 20px}
+.pk-tabs{display:flex;flex-wrap:wrap;margin:0 -12px;border-bottom:1px solid var(--rule)}
+.pk-tabs button{position:relative;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 12px;font:600 14px/1 var(--sans);color:var(--mut);text-align:center}
+.pk-tabs button span{font-weight:500}
 .pk-tabs button[aria-pressed="true"]{color:var(--ink)}
 .pk-tabs button[aria-pressed="true"]::after{content:'';position:absolute;left:12px;right:12px;bottom:-1px;height:3px;background:var(--bronze)}
-.pk-row{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--rule)}
-.pk-row .nm{display:flex;align-items:center;gap:10px;font:600 17px/1.25 var(--sans)}
-.pk-row .sub{grid-column:1;margin-top:2px;padding-left:22px;font:400 14px/1.35 var(--sans);color:var(--ink-2)}
-.pk-row .sub .u,.pk-row .sub .warn{display:inline}
-.pk-row .sub .warn{color:var(--warn);font-weight:600}
-.pk-row .stp,.pk-row .addbtn{grid-column:2;grid-row:1 / span 2;align-self:center}
-.pk-row.on::before{content:'';position:absolute;left:-12px;top:10px;bottom:10px;width:3px;background:var(--bronze)}
-.addbtn{width:44px;height:44px;display:grid;place-items:center;box-shadow:inset 0 0 0 1px var(--ink)}
-.addbtn:hover{background:var(--paper-3)}
-.pk-none{padding:24px 0;color:var(--ink-2)}
-.pk-note{margin-top:18px;font:400 14px/1.45 var(--sans);color:var(--ink-2)}
-.pk-note .warn{color:var(--warn);font-weight:600}
-.pk-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 16px calc(10px + env(safe-area-inset-bottom)) var(--pad);border-top:1px solid var(--ink);background:var(--paper)}
-.pk-bar .pb-price{font-size:30px}
+.pk-cap{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;font:400 14px/1.3 var(--sans);color:var(--ink-2)}
+.pk-cap b{font-weight:600;color:var(--ink)}
+.pk-cap .link{gap:6px;font-size:14px}
+.pk-cap--q{justify-content:flex-start;min-height:32px}
+/* översikt (mobil) */
+.pk-sec{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;margin-top:2px}
+.pk-sec h3{display:flex;align-items:center;gap:10px;font:400 24px/1.1 var(--serif);letter-spacing:-.01em}
+.pk-sec .hrt{display:inline-flex;color:var(--claret)}
+.pk-sec .n,.pk-vt span{font:500 15px/1 var(--sans);color:var(--mut);letter-spacing:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 2px}
+.chip{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 14px;box-shadow:inset 0 0 0 1px var(--ink);font:600 15px/1.1 var(--sans);text-align:center}
+.chip.on:hover{background:var(--ink)}
+@media (hover:hover){.chip:hover{background:var(--paper-3)}.chip.on:hover{background:#38332A}}
+.chip.on{background:var(--ink);color:var(--paper)}
+.chip--more{box-shadow:inset 0 0 0 1px var(--rule-2);color:var(--ink-2)}
+.pk-note{margin:16px 0 4px;max-width:62ch;font:400 14px/1.45 var(--sans);color:var(--ink-2)}
+.pk-empty,.pk-none{padding:14px 0 10px;font:400 15px/1.5 var(--sans);color:var(--ink-2);max-width:54ch}
+.pk-empty svg,.pk-none svg{display:inline-block;vertical-align:-4px;color:var(--claret)}
+.pk-cats{display:grid;grid-template-columns:1fr;margin-top:14px;border-top:1px solid var(--ink)}
+.pk-cats li{border-bottom:1px solid var(--rule)}
+.pk-cat{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:56px;padding:0 4px}
+.pk-cat .nm{font:400 22px/1.15 var(--serif);letter-spacing:-.01em}
+.pk-cat--all .nm{font-style:italic}
+.pk-cat .ct{font:500 14px/1.2 var(--sans);color:var(--mut)}
+@media (min-width:360px){
+  .pk-cats{grid-template-columns:1fr 1fr}
+  .pk-cats li:nth-child(odd){border-right:1px solid var(--rule)}
+  .pk-cats li:nth-child(even) .pk-cat{padding-left:16px}
+  .pk-cat{flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;min-height:66px;padding:8px 4px}
+  .pk-cat .nm{font-size:21px}
+}
+/* rader: hela raden väljer blomman, hjärtat är en egen knapp */
+.pk-list{margin:0 calc(var(--pad) * -1)}
+.pk-row{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 46px;padding-left:var(--pad);background-image:linear-gradient(var(--rule),var(--rule));background-repeat:no-repeat;background-size:calc(100% - var(--pad) * 2) 1px;background-position:var(--pad) 100%}
+.pk-row.on{background-color:var(--paper-2)}
+.pk-row.on::before{content:'';position:absolute;left:0;top:0;bottom:1px;width:3px;background:var(--bronze)}
+.pk-pick{display:flex;align-items:center;gap:12px;min-width:0;min-height:48px;padding:5px 0}
+@media (hover:hover){.pk-pick:hover .pk-nm{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}}
+.pk-chk{flex:none;display:grid;place-items:center;width:24px;height:24px;background:var(--paper-2);box-shadow:inset 0 0 0 1.5px var(--field);color:var(--paper)}
+.pk-row.on .pk-chk{background:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ink)}
+.pk-txt{display:block;min-width:0;flex:1}
+.pk-l1{display:flex;align-items:baseline;gap:0 8px;flex-wrap:wrap;font:600 16px/1.25 var(--sans)}
+.pk-l1 .sw{align-self:center;flex:none;width:12px;height:12px;box-shadow:inset 0 0 0 1px rgba(30,27,22,.28)}
+.pk-nm mark{background:#EBDDB8;color:var(--ink);padding:0 1px}
+.pk-old{margin-left:auto;font:600 13px/1.25 var(--sans);color:var(--warn);white-space:nowrap}
+.pk-stems{margin-left:auto;font:600 13px/1.25 var(--sans);color:var(--bronze);white-space:nowrap}
+.pk-crumb{margin-left:auto;font:600 12px/1.25 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut);white-space:nowrap}
+.pk-old + .pk-stems,.pk-old + .pk-crumb,.pk-stems + .pk-crumb{margin-left:10px}
+.pk-l2{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 7px;padding-left:20px}
+.pk-l2 .u{font:600 15px/1.3 var(--sans);color:var(--ink)}
+.pk-l2 .d{font:400 14px/1.3 var(--sans);color:var(--ink-2)}
+.pk-fav{display:grid;place-items:center;width:46px;min-height:48px;color:var(--mut)}
+.pk-fav[aria-pressed="true"]:hover{color:var(--claret)}
+@media (hover:hover){.pk-fav:hover{color:var(--claret)}}
+.pk-fav[aria-pressed="true"]{color:var(--claret)}
+.pk-grp{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:18px var(--pad) 6px;font:600 12px/1.2 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+.pk-grp .n{font-weight:500;letter-spacing:0}
+.pk-list .pk-grp:first-child{padding-top:12px}
+/* så sparas favoriter */
+.pk-about{margin:6px 0 4px;padding:16px 0 14px;border-top:1px solid var(--ink);border-bottom:1px solid var(--rule)}
+.pk-about > *{max-width:66ch}
+.pk-about h4{font:400 22px/1.15 var(--serif);letter-spacing:-.01em;margin-bottom:10px}
+.pk-about h4:focus-visible{outline-offset:4px}
+.pk-about ul{display:grid;gap:8px}
+.pk-about li{font:400 15px/1.45 var(--sans);color:var(--ink-2)}
+.pk-about li b{font-weight:600;color:var(--ink)}
+.pk-demo-h,.pk-code-h{margin-top:16px;font:600 12px/1.2 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+.pk-demo{display:flex;flex-wrap:wrap;align-items:center;gap:0 16px;margin-top:4px}
+.pk-demo .lbl{font:400 14px/1 var(--sans);color:var(--ink-2)}
+.seg{display:inline-flex;box-shadow:inset 0 0 0 1px var(--ink)}
+.seg button{min-height:44px;min-width:64px;padding:0 18px;font:600 14px/1 var(--sans);text-align:center}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.pk-code{margin-top:6px;padding:12px 14px;background:var(--paper-3);color:var(--ink);font:400 12.5px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre;overflow:auto}
+/* prisfält med knappen "Visa mina valda blommor" */
+.pk-bar{flex:none;display:grid;gap:8px;padding:10px var(--pad) calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--ink);background:var(--paper)}
+.pk-sum{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 10px;min-height:30px}
+.pk-price{font:500 26px/1.15 var(--serif);letter-spacing:-.01em;white-space:nowrap;font-variant-numeric:lining-nums}
+.pk-price .mk{font-size:.5em;vertical-align:.5em}
+.pk-basis{font:400 14px/1.2 var(--sans);color:var(--ink-2)}
+.pk-n{margin-left:auto;font:600 14px/1.2 var(--sans);color:var(--ink)}
+.pk-go{width:100%;min-height:52px}
+.pk-go:disabled{opacity:.35;cursor:default}
+.pk-go:disabled:hover{background:var(--ink)}
 /* inköpsöversikt */
 .ik-title{font:400 40px/1.05 var(--serif);letter-spacing:-.015em;margin-top:12px}
 .ik-lede{margin-top:10px;font:400 16px/1.45 var(--sans);color:var(--ink-2);max-width:46ch}
@@ -263,8 +356,10 @@ body[data-screen="bygg"] .toast{bottom:112px}
 .ik-note{margin-top:10px;max-width:60ch;font:400 14px/1.45 var(--sans);color:var(--ink-2)}
 body.locked{overflow:hidden}
 
-@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 @media (forced-colors:active){.compo i,.legend i,.sw{forced-color-adjust:none}.act--primary,.btn{border:1px solid ButtonText}}
+
+@media (max-width:374px){.picker{--pad:16px}}
 
 /* ---------- liten dator och platta (mobilvy med smalare kolumn) ---------- */
 @media (min-width:640px) and (max-width:999px){
@@ -276,7 +371,7 @@ body.locked{overflow:hidden}
 
 /* ---------- DATOR ---------- */
 @media (min-width:1000px){
-  :root{--pad:56px;--top:72px;--w1:clamp(256px,21vw,312px);--w3:clamp(344px,28vw,412px)}
+  :root{--pad:56px;--top:72px;--w1:clamp(256px,21vw,312px);--rail:clamp(224px,17vw,264px)}
   .top{padding:0 40px}
   .saved .t{display:inline}
   .mono{display:grid}
@@ -320,7 +415,7 @@ body.locked{overflow:hidden}
   .hem.has-photo .job{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) 190px 24px;column-gap:24px}
 
   .bygg{padding:0;height:calc(100vh - var(--top));overflow:hidden}
-  .ws{display:grid;grid-template-columns:var(--w1) minmax(0,1fr) var(--w3);grid-template-rows:minmax(0,1fr);height:100%}
+  .ws{display:grid;grid-template-columns:var(--w1) minmax(0,1fr);grid-template-rows:minmax(0,1fr);height:100%}
   .p-job{display:flex;flex-direction:column;min-height:0;padding:28px 28px 24px;border-right:1px solid var(--rule);overflow:auto}
   .p-job .jobhead{display:block}
   .jobhead .back2{display:inline-flex;align-items:center;gap:6px;min-height:44px;margin-left:-4px;font:600 12px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
@@ -338,7 +433,6 @@ body.locked{overflow:hidden}
   .arr[aria-current]::after{left:0;right:auto;top:0;bottom:0;width:3px;height:auto}
   .arr-add{width:100%;min-height:52px;padding:0 4px 0 16px;border-bottom:1px solid var(--rule)}
   .jobline{display:none}
-  .ws--inkop{grid-template-columns:var(--w1) minmax(0,1fr)}
   .ik-title{font-size:60px;margin-top:10px}
   .ik-row{grid-template-columns:minmax(0,1.5fr) minmax(0,1.1fr) 120px;align-items:start;gap:4px 28px;padding:16px 0}
   .ik-num{grid-column:2;grid-row:1;flex-direction:column;gap:2px;padding-left:0}
@@ -360,7 +454,9 @@ body.locked{overflow:hidden}
   .a-title{align-items:center}
   .compo-block{margin-top:26px}
   .row{padding:13px 0}
-  .addflowers{display:none}
+  .a-scroll > *{max-width:960px}
+  .row--flowers{padding:14px 0}
+  .addflowers{width:auto;padding:0 28px}
   .pricebar{position:relative;flex:none;padding:14px 44px;grid-template-columns:auto 1fr;column-gap:36px}
   .pb-price{font-size:46px}
   .pb-main{grid-template-areas:"label label" "price how";column-gap:22px}
@@ -368,16 +464,49 @@ body.locked{overflow:hidden}
   .pb-done{justify-self:end}
   .receipt{padding:20px 44px 12px}
   .receipt .rcp-wrap{max-width:520px}
-  .p-pick{display:flex;flex-direction:column;min-width:0;border-left:1px solid var(--rule);background:var(--paper)}
-
-  .picker{position:static;z-index:auto;transform:none;visibility:visible;transition:none;border-left:1px solid var(--rule);min-width:0;min-height:0}
-  .picker.open{transform:none}
-  .pk-head{min-height:auto;padding:28px 28px 8px;border-bottom:0}
-  .pk-head .link,.pk-close{display:none}
-  .pk-body{padding:0 28px 20px;min-height:0}
-  .pk-bar{display:none}
+  /* blomvalet på dator: ersätter bukettytan medan man väljer. Kategorier till vänster, lista i spalter, prisfält och knapp längst ned. */
+  .picker{display:none;position:static;z-index:auto;animation:none;min-width:0;min-height:0;border-left:1px solid var(--rule)}
+  .ws.is-picking .picker{display:block}
+  .ws.is-picking .p-active{display:none}
+  .pk-in{display:grid;max-width:none;margin:0;height:100%;grid-template-columns:var(--rail) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"head search" "rail main" "bar bar"}
+  .pk-head{grid-area:head;align-items:flex-start;min-height:0;padding:28px 16px 14px 28px}
+  .pk-head .pk-x,.pk-head .pk-back{display:none}
+  .pk-titles{padding:0}
+  .pk-head h2{font-size:28px;line-height:1.08}
+  .pk-to{margin-top:8px}
+  .pk-search{grid-area:search;align-self:end;width:100%;max-width:620px;padding:0 44px 14px 28px}
+  .pk-clear{top:3px;right:46px}
+  .pk-rail{grid-area:rail;display:block;min-height:0;overflow:auto;padding:6px 12px 20px 16px}
+  .rail-i{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:44px;padding:0 12px;font:600 15px/1.2 var(--sans);color:var(--ink-2)}
+  .rail-i .nm{display:inline-flex;align-items:center;gap:10px}
+  .rail-i .ct{font:500 14px/1 var(--sans);color:var(--mut)}
+  .rail-i:hover{background:var(--paper-2);color:var(--ink)}
+  .rail-i[aria-current]{background:var(--paper-2);color:var(--ink)}
+  .rail-i[aria-current]::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--bronze)}
+  .rail-i--fav .i{color:var(--claret)}
+  .rail-sep{height:1px;margin:8px 12px;background:var(--rule)}
+  .pk-main{grid-area:main;min-height:0;padding:0 44px 0 28px}
+  .pk-sub{padding:0}
+  .pk-vt{display:flex;align-items:baseline;gap:12px;margin:0 0 4px;font:400 34px/1.1 var(--serif);letter-spacing:-.015em}
+  .pk-tabs{margin:0 -12px}
+  .pk-cap{padding:0}
+  .pk-scroll{padding:0 0 24px}
+  .pk-list{display:block;columns:322px 3;column-gap:36px;margin:0}
+  .pk-row{break-inside:avoid}
+  .pk-row{padding-left:10px;background-size:100% 1px;background-position:0 100%}
+  .pk-grp{column-span:all;padding:22px 0 8px}
+  .pk-list .pk-grp:first-child{padding-top:14px}
+  .pk-bar{grid-area:bar;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:24px;padding:14px 44px 14px 28px}
+  .pk-price{font-size:34px}
+  .pk-go{width:auto;padding:0 32px}
 }
-@media (min-width:1000px){.pk-head h2{font-size:30px}}
+
+/* smal dator (1000 till 1099 px): menyn och logotypen får inte krocka i toppfältet */
+@media (min-width:1000px) and (max-width:1099px){
+  .gnav{gap:22px}
+  .top .mono{display:none}
+  .brand{letter-spacing:.2em}
+}
 
 </style>
 </head>
@@ -2569,7 +2698,9 @@ body.locked{overflow:hidden}
 </script>
 <script>
 /* Maison Studio: testdata. Allt är påhittat men rimligt (samma data som i granskningsbilderna). Priser i kronor exkl. moms per förpackning.
- * Datumet är fast (2026-10-08) så att prototypen ser likadan ut vilken dag den öppnas. */
+ * Datumet är fast (2026-10-08) så att prototypen ser likadan ut vilken dag den öppnas.
+ * Sortimentet är påhittat och inte en riktig grossists prislista. De 13 första artiklarna (p01 till p13) är oförändrade från förra granskningen,
+ * så alla jobbpriser är desamma som förut. De övriga finns för att visa hur kategorierna fungerar i ett stort sortiment. */
 (function (root, factory) {
   var api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api; else root.StudioData = api;
@@ -2577,13 +2708,80 @@ body.locked{overflow:hidden}
   'use strict';
   const TODAY = '2026-10-08';
   const iso = (daysAgo) => { const d = new Date(Date.UTC(2026, 9, 8 - daysAgo)); return d.toISOString().slice(0, 10); };
-  // [id, namn, kategori, enhet, stjälkar per förpackning, pris per förpackning, färg, dagar sedan priset uppdaterades]
+
+  /* ---------- kategorier ----------
+   * Varje artikel har exakt ett hem: en kategori och en undergrupp. Ingen artikel ligger i två kategorier.
+   * Hemmet avgörs av första raden som stämmer (prioritetsordning, se README):
+   *   1 torkad eller konserverad            → Torkat
+   *   2 en rosblomma                         → Rosor
+   *   3 gröna blad, gräs eller ormbunke      → Grönt
+   *   4 gren, kvist, bär eller barr          → Kvistar & bär
+   *   5 växer från lök eller knöl            → Lökblommor
+   *   6 liten, grenad, luftig eller spirform → Utfyllnad
+   *   7 övriga stora blommor                 → Huvudblommor
+   * Färg och säsong är inga kategorier. De hittas med sök. */
+  const CATEGORIES = [
+    ['rosor', 'Rosor', [['stor', 'Storblommiga'], ['gren', 'Grenrosor'], ['tradgard', 'Trädgårdsrosor']]],
+    ['huvud', 'Huvudblommor', [['runda', 'Runda och fylliga'], ['tallrik', 'Tallriksformade'], ['exotiska', 'Exotiska']]],
+    ['lok', 'Lökblommor', [['var', 'Vårblommor'], ['liljor', 'Liljor och kalla'], ['sommar', 'Sommarknölar']]],
+    ['utfyllnad', 'Utfyllnad', [['spray', 'Spray och grenade'], ['luftig', 'Luftiga'], ['struktur', 'Spirer och struktur']]],
+    ['gront', 'Grönt', [['eukalyptus', 'Eukalyptus'], ['blad', 'Bladgrönt'], ['gras', 'Gräs och ormbunke']]],
+    ['kvist', 'Kvistar & bär', [['blommande', 'Blommande kvistar'], ['bar', 'Bär och frukt'], ['barr', 'Barr och julgrönt']]],
+    ['torkat', 'Torkat', [['torkat', 'Torkat'], ['konserverat', 'Konserverat']]]
+  ].map(([id, name, groups]) => ({ id, name, groups: groups.map(([gid, gname]) => ({ id: gid, name: gname })) }));
+
+  // [id, namn, kategori, undergrupp, enhet, stjälkar per förpackning, pris per förpackning, färg, dagar sedan priset uppdaterades, sökord]
   const FLOWERS = [
-    ['p01', 'Rosa ros 50 cm', 'Blommor', 'pack', 10, 99, '#E58FA8', 0], ['p02', 'Vit ros 60 cm', 'Blommor', 'pack', 10, 109, '#E9E3D3', 0], ['p03', 'Röd ros 60 cm', 'Blommor', 'pack', 10, 119, '#B8243B', 0],
-    ['p04', 'Pion', 'Blommor', 'bunt', 5, 165, '#EDB2C2', 0], ['p05', 'Lisianthus', 'Blommor', 'bunt', 10, 125, '#9C86CE', 0], ['p06', 'Ranunkel', 'Blommor', 'bunt', 10, 119, '#E8935A', 2],
-    ['p07', 'Tulpan', 'Blommor', 'bunt', 10, 59, '#D9553F', 0], ['p08', 'Alstroemeria', 'Blommor', 'bunt', 10, 79, '#E39AC4', 3], ['p09', 'Hortensia', 'Blommor', 'styck', 1, 39, '#8AA9D8', 0],
-    ['p10', 'Solros', 'Blommor', 'bunt', 10, 95, '#E3B02A', 5], ['p11', 'Eukalyptus', 'Grönt', 'bunt', 10, 79, '#8BA796', 0], ['p12', 'Gipsört', 'Grönt', 'bunt', 5, 69, '#CFD6CF', 0], ['p13', 'Ruscus', 'Grönt', 'bunt', 10, 59, '#4B7A5C', 0]
-  ].map(([id, namn, kategori, enhet, paket, pris, farg, ago]) => ({ id, namn, kategori, enhet, paket, pris, farg, uppd: iso(ago) }));
+    // Rosor
+    ['p01', 'Rosa ros 50 cm', 'rosor', 'stor', 'pack', 10, 99, '#E58FA8', 0, ['rose']], ['p02', 'Vit ros 60 cm', 'rosor', 'stor', 'pack', 10, 109, '#E9E3D3', 0, ['rose']], ['p03', 'Röd ros 60 cm', 'rosor', 'stor', 'pack', 10, 119, '#B8243B', 0, ['rose']],
+    ['p14', 'Gul ros 50 cm', 'rosor', 'stor', 'pack', 10, 95, '#E8C547', 0, ['rose']], ['p15', 'Persika ros 60 cm', 'rosor', 'stor', 'pack', 10, 115, '#F0A981', 0, ['rose']], ['p16', 'Cerise ros 50 cm', 'rosor', 'stor', 'pack', 10, 99, '#C93A78', 0, ['rose']],
+    ['p17', 'Krämvit ros 70 cm', 'rosor', 'stor', 'pack', 10, 139, '#F1E8CF', 0, ['rose']],
+    ['p18', 'Grenros vit', 'rosor', 'gren', 'bunt', 10, 119, '#EFEAE0', 0, ['sprayros', 'rose']], ['p19', 'Grenros rosa', 'rosor', 'gren', 'bunt', 10, 115, '#F0B6C6', 0, ['sprayros', 'rose']], ['p20', 'Grenros persika', 'rosor', 'gren', 'bunt', 10, 115, '#F2B591', 0, ['sprayros', 'rose']],
+    ['p21', 'Trädgårdsros persika', 'rosor', 'tradgard', 'bunt', 10, 195, '#F2A98C', 0, ['rose', 'engelsk ros']], ['p22', 'Trädgårdsros rosa', 'rosor', 'tradgard', 'bunt', 10, 199, '#EBA0B8', 0, ['rose', 'engelsk ros']], ['p23', 'Trädgårdsros krämvit', 'rosor', 'tradgard', 'bunt', 10, 189, '#F3EBD8', 0, ['rose', 'engelsk ros']],
+    // Huvudblommor
+    ['p04', 'Pion', 'huvud', 'runda', 'bunt', 5, 165, '#EDB2C2', 0, ['pioner', 'peony']], ['p09', 'Hortensia', 'huvud', 'runda', 'styck', 1, 39, '#8AA9D8', 0, ['hydrangea']],
+    ['p24', 'Krysantemum stor', 'huvud', 'runda', 'bunt', 10, 129, '#F5F1E4', 0, ['chrysanthemum', 'disbud']], ['p25', 'Nejlika', 'huvud', 'runda', 'bunt', 20, 79, '#D8587A', 0, ['carnation', 'dianthus']],
+    ['p10', 'Solros', 'huvud', 'tallrik', 'bunt', 10, 95, '#E3B02A', 5, ['sunflower']], ['p26', 'Gerbera', 'huvud', 'tallrik', 'bunt', 10, 99, '#F28C4B', 0, []], ['p27', 'Zinnia', 'huvud', 'tallrik', 'bunt', 10, 89, '#E3664F', 0, []],
+    ['p28', 'Protea', 'huvud', 'exotiska', 'styck', 1, 75, '#D77A8A', 0, []], ['p29', 'Anthurium', 'huvud', 'exotiska', 'styck', 1, 35, '#C42E3A', 0, ['flamingoblomma']], ['p30', 'Orkidé Cymbidium', 'huvud', 'exotiska', 'styck', 1, 49, '#C98BB9', 0, ['orkide', 'cymbidium']],
+    ['p31', 'Strelitzia', 'huvud', 'exotiska', 'styck', 1, 39, '#E8861F', 0, ['paradisfågel']],
+    // Lökblommor
+    ['p07', 'Tulpan', 'lok', 'var', 'bunt', 10, 59, '#D9553F', 0, ['tulip', 'tulpaner']], ['p32', 'Tulpan vit', 'lok', 'var', 'bunt', 10, 59, '#EFEBDD', 0, ['tulip', 'tulpaner']], ['p33', 'Tulpan rosa', 'lok', 'var', 'bunt', 10, 59, '#EDA0B6', 0, ['tulip', 'tulpaner']],
+    ['p34', 'Narciss', 'lok', 'var', 'bunt', 10, 49, '#F2D24A', 0, ['påsklilja', 'narcissus']], ['p35', 'Hyacint', 'lok', 'var', 'bunt', 10, 99, '#7F8FD1', 0, ['hyacinth']], ['p36', 'Anemon', 'lok', 'var', 'bunt', 10, 89, '#6E4A8E', 0, ['anemone']],
+    ['p06', 'Ranunkel', 'lok', 'var', 'bunt', 10, 119, '#E8935A', 2, ['ranunculus', 'smörblomma']], ['p37', 'Freesia', 'lok', 'var', 'bunt', 10, 79, '#F2E3A0', 0, ['fresia']], ['p38', 'Iris', 'lok', 'var', 'bunt', 10, 79, '#4B58B8', 0, []],
+    ['p39', 'Lilja rosa', 'lok', 'liljor', 'bunt', 5, 129, '#F2C4D4', 0, ['lily', 'liljor']], ['p40', 'Lilja vit', 'lok', 'liljor', 'bunt', 5, 139, '#F4F0E6', 0, ['lily', 'liljor']], ['p41', 'Kalla', 'lok', 'liljor', 'bunt', 10, 129, '#F5F0DC', 0, ['calla', 'zantedeschia']],
+    ['p42', 'Amaryllis', 'lok', 'liljor', 'styck', 1, 29, '#C0262F', 0, []],
+    ['p43', 'Dahlia', 'lok', 'sommar', 'bunt', 5, 99, '#E36A5A', 0, ['dahlior']], ['p44', 'Gladiolus', 'lok', 'sommar', 'bunt', 10, 99, '#E2548C', 0, ['gladiol']], ['p45', 'Allium', 'lok', 'sommar', 'bunt', 5, 95, '#B896D1', 0, ['prydnadslök']],
+    // Utfyllnad
+    ['p05', 'Lisianthus', 'utfyllnad', 'spray', 'bunt', 10, 125, '#9C86CE', 0, ['eustoma']], ['p08', 'Alstroemeria', 'utfyllnad', 'spray', 'bunt', 10, 79, '#E39AC4', 3, ['alstromeria', 'inkalilja']],
+    ['p46', 'Spraynejlika', 'utfyllnad', 'spray', 'bunt', 10, 69, '#E98AA8', 0, ['grennejlika']], ['p47', 'Santini', 'utfyllnad', 'spray', 'bunt', 10, 69, '#F0EFD8', 0, ['spraykrysantemum']],
+    ['p12', 'Gipsört', 'utfyllnad', 'luftig', 'bunt', 5, 69, '#CFD6CF', 0, ['brudslöja', 'gypsophila']], ['p48', 'Vaxblomma', 'utfyllnad', 'luftig', 'bunt', 10, 99, '#F3C8D6', 0, ['waxflower']],
+    ['p49', 'Limonium', 'utfyllnad', 'luftig', 'bunt', 10, 59, '#8D7EC8', 0, ['statice']], ['p50', 'Veronica', 'utfyllnad', 'luftig', 'bunt', 10, 79, '#8E7CC3', 0, []], ['p51', 'Astilbe', 'utfyllnad', 'luftig', 'bunt', 10, 89, '#F0B9D0', 0, []],
+    ['p52', 'Solidago', 'utfyllnad', 'luftig', 'bunt', 10, 59, '#E8C93A', 0, ['gullris']],
+    ['p53', 'Delphinium', 'utfyllnad', 'struktur', 'bunt', 10, 139, '#5A6FC4', 0, ['riddarsporre']], ['p54', 'Lejongap', 'utfyllnad', 'struktur', 'bunt', 10, 109, '#E6A0B0', 0, ['snapdragon']], ['p55', 'Lupin', 'utfyllnad', 'struktur', 'bunt', 10, 99, '#8E6FB5', 0, ['lupiner']],
+    ['p56', 'Bupleurum', 'utfyllnad', 'struktur', 'bunt', 10, 69, '#B8CC6A', 0, []], ['p57', 'Craspedia', 'utfyllnad', 'struktur', 'bunt', 10, 79, '#F0C419', 0, ['billy buttons', 'trumpinne']], ['p58', 'Eryngium', 'utfyllnad', 'struktur', 'bunt', 10, 89, '#7FA6B4', 0, ['martorn']],
+    ['p59', 'Astrantia', 'utfyllnad', 'struktur', 'bunt', 10, 109, '#E8D6DC', 0, ['stjärnflocka']],
+    // Grönt
+    ['p11', 'Eukalyptus', 'gront', 'eukalyptus', 'bunt', 10, 79, '#8BA796', 0, ['eucalyptus']], ['p60', 'Eukalyptus parvifolia', 'gront', 'eukalyptus', 'bunt', 10, 85, '#98AE9B', 0, ['eucalyptus']], ['p61', 'Eukalyptus silverdollar', 'gront', 'eukalyptus', 'bunt', 10, 89, '#A9BFB0', 0, ['eucalyptus']],
+    ['p13', 'Ruscus', 'gront', 'blad', 'bunt', 10, 59, '#4B7A5C', 0, []], ['p62', 'Salal', 'gront', 'blad', 'bunt', 10, 69, '#3F6B49', 0, []], ['p63', 'Pittosporum', 'gront', 'blad', 'bunt', 10, 69, '#5B8A5A', 0, []],
+    ['p64', 'Murgröna', 'gront', 'blad', 'bunt', 10, 59, '#3E6A3A', 0, ['hedera']], ['p65', 'Monsterablad', 'gront', 'blad', 'styck', 1, 19, '#2F6B45', 0, ['monstera']],
+    ['p66', 'Ormbunke', 'gront', 'gras', 'bunt', 10, 59, '#4E7F4F', 0, []], ['p67', 'Prydnadsgräs', 'gront', 'gras', 'bunt', 10, 59, '#B9C07A', 0, ['gräs']],
+    // Kvistar och bär
+    ['p68', 'Körsbärsblom', 'kvist', 'blommande', 'bunt', 5, 129, '#F5D3DC', 0, ['prunus', 'körsbär']], ['p69', 'Magnolia', 'kvist', 'blommande', 'bunt', 3, 119, '#F0E6EA', 0, []], ['p70', 'Pil', 'kvist', 'blommande', 'bunt', 10, 69, '#A59B7A', 0, ['salix', 'sälg', 'kattungar']],
+    ['p71', 'Hypericum', 'kvist', 'bar', 'bunt', 10, 79, '#C8473A', 0, ['johannesört']], ['p72', 'Snöbär', 'kvist', 'bar', 'bunt', 5, 69, '#F2EEF0', 0, []], ['p73', 'Rosenhips', 'kvist', 'bar', 'bunt', 10, 79, '#D2552F', 0, ['hips']],
+    ['p74', 'Gran', 'kvist', 'barr', 'bunt', 5, 59, '#2D5A3F', 0, ['julgran', 'barr']], ['p75', 'Nobilisgran', 'kvist', 'barr', 'bunt', 5, 89, '#3A6B52', 0, ['barr']],
+    // Torkat
+    ['p76', 'Torkad gipsört', 'torkat', 'torkat', 'bunt', 5, 79, '#F1ECE0', 0, ['brudslöja']], ['p77', 'Pampasgräs', 'torkat', 'torkat', 'bunt', 5, 99, '#E7D8BF', 0, []], ['p78', 'Harsvans', 'torkat', 'torkat', 'bunt', 10, 59, '#EFE3D0', 0, ['bunny tails', 'lagurus']],
+    ['p79', 'Torkad lavendel', 'torkat', 'torkat', 'bunt', 10, 69, '#9C86B8', 0, []], ['p80', 'Torkad hortensia', 'torkat', 'torkat', 'styck', 1, 29, '#B8A0A8', 0, []],
+    ['p81', 'Konserverad eukalyptus', 'torkat', 'konserverat', 'bunt', 10, 99, '#9CA89A', 0, []], ['p82', 'Konserverad ruscus', 'torkat', 'konserverat', 'bunt', 10, 79, '#6B7F5F', 0, []]
+  ].map(([id, namn, kategori, grupp, enhet, paket, pris, farg, ago, sok]) => ({ id, namn, kategori, grupp, enhet, paket, pris, farg, uppd: iso(ago), sok }));
+
+  /* ---------- florister och deras favoriter ----------
+   * Prototypen kan inte logga in. Två påhittade florister visar att favoriter hör till floristen och inte till butiken.
+   * Startlistorna är påhittade och används bara första gången. Därefter sparas ändringar i webbläsaren (se studio-favorites.js). */
+  const FLORISTS = [
+    { id: 'elsa', name: 'Elsa', favorites: ['p01', 'p04', 'p05', 'p07', 'p06', 'p11', 'p12', 'p13'] },
+    { id: 'mia', name: 'Mia', favorites: ['p02', 'p09', 'p34', 'p36', 'p32', 'p11', 'p12'] }
+  ];
 
   const SETTINGS = { mode: 'whole', markupPct: 50, hourly: 250, vatPct: 25, roundStep: 5, shipFee: 0, freeFrom: 0 };
 
@@ -2601,7 +2799,71 @@ body.locked{overflow:hidden}
         { name: 'Bordsdekoration', qty: 8, labor: 110, parts: [['Ranunkel', 3], ['Tulpan', 4], ['Gipsört', 2]] },
         { name: 'Corsage', qty: 4, labor: 90, parts: [['Vit ros 60 cm', 1], ['Eukalyptus', 1]] }] }
   ];
-  return { TODAY, FLOWERS, SETTINGS, JOBS };
+  return { TODAY, CATEGORIES, FLOWERS, FLORISTS, SETTINGS, JOBS };
+});
+
+</script>
+<script>
+/* Maison Studio: favoriter per florist.
+ *
+ * Prototypen kan inte logga in, så favoriterna sparas lokalt i webbläsaren (localStorage), en lista per florist.
+ * Om lagring är blockerad (privat läge, inbäddad sida) används minnet i stället och listan försvinner vid omladdning. Inget kraschar.
+ *
+ * I den riktiga appen hör listan till floristens konto och inte till butiken eller enheten. Då är detta samma gränssnitt, men
+ * lagringen byts mot en lista på kontot som synkas mellan telefon och dator. En favorit pekar på artikeln (grossist och artikelnummer)
+ * och aldrig på en kopia av priset: priser, enheter och förpackningar hämtas alltid ur prislistan. Se "Så sparas favoriter" i blomvalet. */
+(function (root, factory) {
+  var api = factory();
+  if (typeof module === 'object' && module.exports) module.exports = api; else root.StudioFavorites = api;
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+  const PREFIX = 'maison-studio.favoriter.v1.';
+  const CURRENT = 'maison-studio.florist.v1';
+
+  /** storage: något med getItem/setItem (localStorage) eller null. florists: [{ id, name, favorites: [artikel-id] }]. valid: Set med artikel-id som finns i prislistan. */
+  function create(storage, florists, valid) {
+    const mem = {};                                   // reserv när lagring saknas eller kastar fel
+    let persisted = !!storage;
+    const read = k => { if (storage) { try { const v = storage.getItem(k); if (v !== null) return v; } catch (e) { persisted = false; } } return Object.prototype.hasOwnProperty.call(mem, k) ? mem[k] : null; };
+    const write = (k, v) => { mem[k] = v; if (storage) { try { storage.setItem(k, v); } catch (e) { persisted = false; } } };
+    const known = id => !valid || valid.has(id);
+    const byId = id => florists.find(f => f.id === id) || null;
+    const seed = id => (byId(id) ? byId(id).favorites : []).filter(known);
+
+    let current = (() => { const c = read(CURRENT); return byId(c) ? c : florists[0].id; })();
+    const cache = {};                                 // florist-id → array av artikel-id i den ordning de lades till
+    function load(id) {
+      if (cache[id]) return cache[id];
+      let list = null;
+      const raw = read(PREFIX + id);
+      if (raw !== null) { try { const j = JSON.parse(raw); if (j && j.v === 1 && Array.isArray(j.items)) list = j.items.filter(x => typeof x === 'string' && known(x)); } catch (e) { list = null; } }
+      return (cache[id] = list || seed(id).slice());
+    }
+    const save = id => write(PREFIX + id, JSON.stringify({ v: 1, items: cache[id] }));
+
+    return {
+      florists: () => florists.map(f => ({ id: f.id, name: f.name })),
+      current: () => current,
+      currentName: () => byId(current).name,
+      /** Byter florist. Varje florist har sin egen lista. */
+      setCurrent(id) { if (!byId(id)) return false; current = id; write(CURRENT, id); return true; },
+      list: () => load(current).slice(),
+      has: id => load(current).includes(id),
+      count: () => load(current).length,
+      /** Lägger till eller tar bort. Ger true om artikeln nu är en favorit. */
+      toggle(id) {
+        if (!known(id)) return false;
+        const l = load(current), i = l.indexOf(id);
+        if (i >= 0) l.splice(i, 1); else l.push(id);
+        save(current); return i < 0;
+      },
+      clear() { cache[current] = []; save(current); },
+      /** Tillbaka till påhittade startlistan för den valda floristen. */
+      reset() { cache[current] = seed(current).slice(); save(current); },
+      isPersisted: () => persisted
+    };
+  }
+  return { create, PREFIX, CURRENT };
 });
 
 </script>
@@ -2741,8 +3003,47 @@ body.locked{overflow:hidden}
       } else if (r && r.status === 'INCOMPLETE') out.state = 'missing';
       return out;
     }
-    function flowers() {
-      return D.FLOWERS.map(f => ({ id: f.id, name: f.namn, category: f.kategori, color: f.farg, unit: unitInfo(f).unit, desc: unitInfo(f).desc, old: !fresh(f).ok, days: fresh(f).days }));
+    // ---------- sortiment: kategorier, undergrupper och sök ----------
+    // Varje artikel har exakt ett hem (en kategori och en undergrupp). Sök täcker hela sortimentet oavsett kategori.
+    const baseChar = ch => ch.toLowerCase().normalize('NFD')[0];
+    const foldRaw = s => String(s == null ? '' : s).replace(/[\s\S]/g, baseChar);       // gemener utan diakriter, samma längd som originalet (för markering)
+    const fold = s => foldRaw(s).replace(/\s+/g, ' ').trim();
+    const collator = new Intl.Collator('sv');
+    const catIx = new Map(D.CATEGORIES.map((c, i) => [c.id, i]));
+    const grpIx = new Map(D.CATEGORIES.flatMap(c => c.groups.map((g, i) => [c.id + '/' + g.id, i])));
+    const catName = new Map(D.CATEGORIES.map(c => [c.id, c.name]));
+    const grpName = new Map(D.CATEGORIES.flatMap(c => c.groups.map(g => [c.id + '/' + g.id, g.name])));
+    const FL = D.FLOWERS.map(f => {
+      const u = unitInfo(f), fr = fresh(f), gk = f.kategori + '/' + f.grupp;
+      return { id: f.id, name: f.namn, cat: f.kategori, grp: f.grupp, catName: catName.get(f.kategori), grpName: grpName.get(gk), color: f.farg, unit: u.unit, desc: u.desc, old: !fr.ok, days: fr.days,
+        nameKey: fold(f.namn), words: fold(f.namn).split(' '), aliasKeys: (f.sok || []).map(fold),
+        catWords: fold(catName.get(f.kategori) + ' ' + grpName.get(gk)).split(' '), order: 0 };
+    }).sort((a, b) => (catIx.get(a.cat) - catIx.get(b.cat)) || (grpIx.get(a.cat + '/' + a.grp) - grpIx.get(b.cat + '/' + b.grp)) || collator.compare(a.name, b.name));
+    FL.forEach((f, i) => { f.order = i; });
+    const flowerById = new Map(FL.map(f => [f.id, f]));
+    const flowers = () => FL;
+    const flower = id => flowerById.get(id) || null;
+    function categories() {
+      return D.CATEGORIES.map(c => ({ id: c.id, name: c.name, count: FL.filter(f => f.cat === c.id).length,
+        groups: c.groups.map(g => ({ id: g.id, name: g.name, count: FL.filter(f => f.cat === c.id && f.grp === g.id).length })) }));
+    }
+    const inCategory = (catId, grpId) => FL.filter(f => f.cat === catId && (!grpId || grpId === 'alla' || f.grp === grpId));
+    /** 10 namnet börjar med ordet, 8 ett ord i namnet börjar med det, 5 del av namnet, 4 och 3 synonym, 1 kategori eller undergrupp. 0 = ingen träff. */
+    function scoreToken(f, t) {
+      if (f.nameKey.startsWith(t)) return 10;
+      if (f.words.some(w => w.startsWith(t))) return 8;
+      if (t.length > 1 && f.nameKey.includes(t)) return 5;
+      if (f.aliasKeys.some(a => a.startsWith(t) || a.split(' ').some(w => w.startsWith(t)))) return 4;
+      if (t.length > 1 && f.aliasKeys.some(a => a.includes(t))) return 3;
+      if (f.catWords.some(w => w.startsWith(t))) return 1;
+      return 0;
+    }
+    /** Hela sortimentet, oberoende av kategori. Alla ord måste träffa. Bäst träff först, därefter A till Ö. */
+    function search(q) {
+      const toks = fold(q).split(' ').filter(Boolean); if (!toks.length) return [];
+      const hits = [];
+      for (const f of FL) { let sum = 0; for (const t of toks) { const s = scoreToken(f, t); if (!s) { sum = 0; break; } sum += s; } if (sum) hits.push([sum, f]); }
+      return hits.sort((a, b) => (b[0] - a[0]) || collator.compare(a[1].name, b[1].name)).map(h => h[1]);
     }
     /** Inköpsöversikt för ett jobb, rakt ur arbetsytans inköpsplan (hela förpackningar, det som blir över ingår i kundpriset). */
     function purchase(evId) {
@@ -2761,6 +3062,12 @@ body.locked{overflow:hidden}
       const f = D.FLOWERS.find(x => x.id === flowerId), same = itemsOf(arrId).find(i => i.source === 'SUPPLIER' && i.articleRef.supplierProductId === flowerId);
       if (same) W.updateItem(ws, ctx, same.id, { quantity: Number(same.quantity) + 1 }); else W.addItem(ws, ctx, arrId, { source: 'SUPPLIER', name: f.namn, articleRef: art(f.id), quantity: 1 });
     }
+    /** Lägger tillbaka en borttagen blomma med det antal stjälkar den hade (för "Ångra"). */
+    function restoreFlower(arrId, flowerId, qty) {
+      addFlower(arrId, flowerId);
+      const it = itemsOf(arrId).find(i => i.source === 'SUPPLIER' && i.articleRef.supplierProductId === flowerId);
+      if (it && qty > 1) W.updateItem(ws, ctx, it.id, { quantity: Math.max(1, Math.round(qty)) });
+    }
     const setQty = (itemId, q) => W.updateItem(ws, ctx, itemId, { quantity: Math.max(1, Math.round(q)) });
     const removeItem = itemId => W.removeItem(ws, ctx, itemId);
     const setCount = (arrId, n) => W.updateArrangement(ws, ctx, arrId, { quantity: Math.max(1, Math.round(n)) });
@@ -2774,7 +3081,7 @@ body.locked{overflow:hidden}
     const addOwn = (arrId, name, cost) => W.addItem(ws, ctx, arrId, { source: 'OWN_STOCK', name: String(name).trim(), quantity: 1, pricing: { mode: 'STANDARD_MARKUP', unitCostBasis: Money.fromDecimal(String(cost)).toJSON() } });
     const removeArrangement = arrId => W.removeArrangement(ws, ctx, arrId);
     const addArrangement = (evId, name) => W.addArrangement(ws, ctx, evId, { name: name || 'Nytt arrangemang', quantity: 1 }).id;
-    return { jobs, job, arrangement, flowers, purchase, unitInfo: f => unitInfo(D.FLOWERS.find(x => x.id === f)), priceListStatus, draft, addFlower, setQty, removeItem, setCount, setLabor, rename, removeArrangement, addArrangement, addOwn, kr, TODAY };
+    return { jobs, job, arrangement, flowers, flower, categories, inCategory, search, fold, foldRaw, purchase, unitInfo: f => unitInfo(D.FLOWERS.find(x => x.id === f)), priceListStatus, draft, addFlower, restoreFlower, setQty, removeItem, setCount, setLabor, rename, removeArrangement, addArrangement, addOwn, kr, TODAY };
   }
   return { create, kr };
 });
@@ -2786,6 +3093,9 @@ body.locked{overflow:hidden}
 (function () {
   'use strict';
   const E = window.StudioEngine.create();
+  const D = window.StudioData;
+  const safeStorage = () => { try { const st = window.localStorage, k = '__maison_test'; st.setItem(k, '1'); st.removeItem(k); return st; } catch (e) { return null; } };
+  const F = window.StudioFavorites.create(safeStorage(), D.FLORISTS, new Set(D.FLOWERS.map(f => f.id)));   // favoriter per florist, lokalt i prototypen
   const NB = ' ';
   const $ = (s, r) => (r || document).querySelector(s);
   const $$ = (s, r) => [...(r || document).querySelectorAll(s)];
@@ -2797,11 +3107,15 @@ body.locked{overflow:hidden}
   const P = { arrow: 'M4 12h16M14 6l6 6-6 6', next: 'M9 5l7 7-7 7', back: 'M15 5l-7 7 7 7', plus: 'M12 5v14M5 12h14', minus: 'M5 12h14', check: 'M5 12.5l4.5 4.5L19 7', search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4',
     chevd: 'M6 9l6 6 6-6', trash: 'M5 7h14M9 7V4.5h6V7M7 7l1 13h8l1-13', sliders: 'M4 7h9M17 7h3M4 17h3M11 17h9M15 4.5v5M9 14.5v5', home: 'M4 11l8-7 8 7v8.5a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z',
     clip: 'M9 4h6l1 2h2a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h2zM9 4v2h6V4M8.5 11h7M8.5 14.5h7', flower: 'M12 21v-8M12 13c-3.2 0-5-2-5-5 3 0 5 2 5 5zm0 0c3.2 0 5-2 5-5-3 0-5 2-5 5zM9 18c1.5-.2 2.5-1 3-2M15 18c-1.5-.2-2.5-1-3-2',
+    heart: 'M12 20.4s-7.4-4.5-7.4-10.1A4.2 4.2 0 0 1 12 7.8a4.2 4.2 0 0 1 7.4 2.5c0 5.6-7.4 10.1-7.4 10.1z', close: 'M6 6l12 12M18 6L6 18', info: 'M12 11v5.5M12 7.6h.01M12 3.5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17z',
     calc: 'M7 3h10a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM8.5 6.5h7v3h-7zM9 13h.01M12 13h.01M15 13h.01M9 16.5h.01M12 16.5h.01M15 16.5h.01' };
-  const ic = (n, s, w) => '<svg class="i" width="' + (s || 22) + '" height="' + (s || 22) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (w || 1.6) + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="' + P[n] + '"/></svg>';
+  const ic = (n, s, w, fill) => '<svg class="i" width="' + (s || 22) + '" height="' + (s || 22) + '" viewBox="0 0 24 24" fill="' + (fill ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="' + (w || 1.6) + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="' + P[n] + '"/></svg>';
 
   // ---------- tillstånd ----------
-  const S = { route: { name: 'hem' }, filter: 'Alla', q: '', receipt: false, picker: false, own: false, confirm: false, photo: params.has('foto') ? 'ph' : 'none', invalid: null };
+  // pk = blomvalets tillstånd: vy ('hub' bara på mobil, 'fav', 'cat', 'all'), vald kategori och undergrupp, sökord,
+  // favoriter som just tagits bort (ligger kvar tills man lämnar vyn så att raderna inte hoppar) och om förklaringen visas.
+  const freshPk = () => ({ view: 'hub', cat: 'rosor', grp: 'alla', q: '', ghost: new Set(), about: false });
+  const S = { route: { name: 'hem' }, receipt: false, picker: false, own: false, confirm: false, photo: params.has('foto') ? 'ph' : 'none', invalid: null, pk: freshPk(), fresh: new Set(), before: new Set() };
   function parseHash() {
     const h = (location.hash || '').replace(/^#\/?/, '').split('/');
     if (h[0] === 'inkop' && h[1] && E.job(h[1])) return { name: 'inkop', ev: h[1] };
@@ -2813,13 +3127,27 @@ body.locked{overflow:hidden}
     return { name: 'hem' };
   }
   function hashOf(r) { return r.name === 'hem' ? '#/hem' : r.name === 'inkop' ? '#/inkop/' + r.ev : (r.ev ? '#/jobb/' + r.ev + '/' + (r.arr || '') : '#/jobb/ny'); }
+  const hist = fn => { try { fn(); return true; } catch (e) { return false; } };   // inbäddad sida utan historik (sandlåda): allt fungerar ändå
+  const syncUrl = () => hist(() => history.replaceState(history.state, '', hashOf(S.route)));
+  // Blomvalet får en egen historikpost så att tillbaka-knappen (och svepet på telefonen) stegar tillbaka i blomvalet i stället för att lämna bygget.
+  let sentinel = false, skipPop = 0;
+  const pushSentinel = () => { if (!sentinel) sentinel = hist(() => history.pushState({ pk: 1 }, '')); };   // bara om posten verkligen skapades
+  const popSentinel = () => { if (!sentinel) return; sentinel = false; skipPop++; hist(() => history.back()); };
   function go(route, replace) {
-    S.route = route; S.receipt = false; S.picker = false; S.own = false; S.confirm = false; S.q = ''; S.filter = 'Alla'; S.invalid = null;
-    if (replace) history.replaceState(null, '', hashOf(route)); else history.pushState(null, '', hashOf(route));
+    S.route = route; S.receipt = false; S.picker = false; S.own = false; S.confirm = false; S.pk = freshPk(); S.invalid = null; sentinel = false;
+    hist(() => { if (replace) history.replaceState(null, '', hashOf(route)); else history.pushState(null, '', hashOf(route)); });
     render(); window.scrollTo(0, 0);
     const t = $('#main'); if (t && route.name === 'hem') t.focus({ preventScroll: true });
   }
-  window.addEventListener('popstate', () => { S.route = parseHash(); S.receipt = false; S.picker = false; render(); });
+  window.addEventListener('popstate', () => {
+    if (skipPop > 0) { skipPop--; syncUrl(); return; }
+    if (sentinel) {                                           // tillbaka medan blomvalet är öppet
+      sentinel = false;
+      if (S.picker && mqMobile.matches && pkView() !== 'hub') { S.pk.q = ''; S.pk.view = 'hub'; S.pk.ghost.clear(); pushSentinel(); syncUrl(); render(); const h = $('#pk-h'); if (h) h.focus({ preventScroll: true }); return; }
+      S.picker = false; S.pk = freshPk(); syncUrl(); render(); return;
+    }
+    S.route = parseHash(); S.receipt = false; S.picker = false; S.pk = freshPk(); render();
+  });
 
   // ---------- små byggstenar ----------
   const kr0 = E.kr;
@@ -2889,40 +3217,149 @@ body.locked{overflow:hidden}
       + (J ? '<li><button type="button" class="arr-add" data-act="add-arr" data-fk="add-arr">' + ic('plus', 18, 1.8) + 'Nytt arrangemang</button></li>' : '') + '</ul>' + line + total + '</aside>';
   }
   function ledgerHtml(A) {
-    if (!A) return '<div class="ledger"><div class="ledger-h"><h2>Ingår</h2></div><div class="empty"><b>Börja med en blomma.</b>Välj blommor i listan så räknas kundpriset direkt.</div><button type="button" class="addflowers" data-act="open-picker" data-fk="open-picker">' + ic('plus', 18, 1.8) + 'Lägg till blommor</button></div>';
-    const rows = A.items.map(it => '<li class="row"><span class="nm">' + (it.color ? '<i class="sw" style="background:' + it.color + '"></i>' : '') + esc(it.name) + '<span class="tag' + (it.supplier ? '' : ' tag--own') + '">' + it.tag + '</span></span>'
+    if (!A) return '<div class="ledger"><div class="ledger-h"><h2>Ingår</h2></div><div class="empty"><b>Börja med en blomma.</b>Välj blommor bland dina favoriter eller i kategorierna så räknas kundpriset direkt.</div>' + addFlowersBtn() + '</div>';
+    const rows = A.items.map(it => '<li class="row' + (S.fresh.has(it.id) ? ' fresh' : '') + '"><span class="nm">' + (it.color ? '<i class="sw" style="background:' + it.color + '"></i>' : '') + esc(it.name) + '<span class="tag' + (it.supplier ? '' : ' tag--own') + '">' + it.tag + '</span></span>'
       + (it.supplier ? '<span class="sub"><span class="info"><b class="u">' + esc(it.unit) + '</b>' + (it.old ? ' <span class="warn">≈ äldre pris</span>' : '') + '<span class="d">' + esc(it.desc) + '</span></span>' + (it.buy ? '<span class="buy">' + esc(it.buy) + '</span>' : '') + '</span>' : '<span class="sub">' + esc(it.packText) + '</span>')
       + stepper({ act: 'item', id: it.id, value: it.qty, name: it.name, removeAtOne: true, fk: 'it:' + it.id, stems: it.supplier }) + '</li>').join('');
     const ownForm = S.own ? '<li><form class="ownform" id="ownform" novalidate><label>Namn<input name="n" autocomplete="off" placeholder="till exempel Band" required></label><label>Kalkylkostnad, kr<input name="c" inputmode="decimal" autocomplete="off" placeholder="40" required></label><button class="btn" type="submit">Lägg till</button></form></li>' : '';
     return '<div class="ledger"><div class="ledger-h"><h2>Ingår</h2><span>Antal stjälkar</span></div><ul>' + rows
+      + '<li class="row row--flowers">' + addFlowersBtn() + '</li>'
       + '<li class="row"><span class="nm">Arbete<span class="tag tag--own">Per arrangemang</span></span><span class="sub">kr exkl. moms. Lämna tomt om inget ska tas ut.</span><label class="amt"><input id="labor" inputmode="decimal" autocomplete="off" value="' + esc(A.labor) + '" aria-label="Arbete, kr exkl. moms"' + (S.invalid ? ' aria-invalid="true"' : '') + '><span>kr</span></label></li>'
       + '<li class="row row--add"><button type="button" data-act="own-toggle" data-fk="own-toggle" aria-expanded="' + S.own + '">' + ic(S.own ? 'minus' : 'plus', 18, 1.8) + '<span>Eget material <small>band, vas, kvistar från trädgården …</small></span></button></li>' + ownForm + '</ul>'
-      + '<button type="button" class="addflowers" data-act="open-picker" data-fk="open-picker">' + ic('plus', 18, 1.8) + 'Lägg till blommor</button></div>';
+      + '</div>';
+  }
+  const addFlowersBtn = () => '<button type="button" class="addflowers" data-act="open-picker" data-fk="open-picker" aria-haspopup="dialog">' + ic('plus', 18, 1.8) + 'Lägg till blommor</button>';
+  // ---------- BLOMVALET ----------
+  // Mobil: egen skärm med översikt (sök, favoriter, kategorier) som leder vidare till en lista. Dator: kategorier i en spalt till vänster och listan i två eller tre spalter.
+  // Ett tryck på en rad väljer blomman (1 stjälk, antalet ändras sedan i bukettöversikten). Hjärtat är en egen knapp och ändrar bara favoriter.
+  const pkQ = () => S.pk.q.trim();
+  const pkView = () => (pkQ() ? 'search' : S.pk.view);
+  const pkCounts = A => { const m = {}; if (A) A.items.forEach(i => { if (i.flowerId) m[i.flowerId] = i.qty; }); return m; };
+  const favFlowers = () => F.list().map(E.flower).filter(Boolean).sort((a, b) => a.order - b.order);
+  const showGroups = c => { const cat = E.categories().find(x => x.id === c); return !!cat && cat.count >= 8 && cat.groups.filter(g => g.count).length > 1; };
+  const catOf = id => E.categories().find(c => c.id === id);
+  const plural = (n, one, many) => n + ' ' + (n === 1 ? one : many);
+  function hl(name, q) {   // markerar träffen i namnet (diakritikokänsligt: "gipsort" träffar Gipsört)
+    const raw = E.foldRaw(name), toks = E.fold(q).split(' ').filter(Boolean);
+    if (!toks.length || raw.length !== name.length) return esc(name);
+    const on = new Array(name.length).fill(false);
+    for (const t of toks) { const i = raw.indexOf(t); if (i >= 0) for (let k = i; k < i + t.length; k++) on[k] = true; }
+    let out = '', k = 0;
+    while (k < name.length) { let j = k; while (j < name.length && on[j] === on[k]) j++; const part = esc(name.slice(k, j)); out += on[k] ? '<mark>' + part + '</mark>' : part; k = j; }
+    return out;
+  }
+  function rowHtml(f, o) {   // o: { n (stjälkar i buketten), crumb, q, ghost }
+    const on = o.n > 0, fav = F.has(f.id);
+    return '<li class="pk-row' + (on ? ' on' : '') + '">'
+      + '<button type="button" class="pk-pick" role="checkbox" aria-checked="' + on + '" data-act="pk-toggle" data-id="' + f.id + '" data-fk="pk:' + f.id + '">'
+      + '<span class="pk-chk" aria-hidden="true">' + (on ? ic('check', 16, 2.4) : '') + '</span>'
+      + '<span class="pk-txt"><span class="pk-l1"><i class="sw" style="background:' + f.color + '"></i><span class="pk-nm">' + (o.q ? hl(f.name, o.q) : esc(f.name)) + '</span>'
+      + (f.old ? '<span class="pk-old" title="Priset är ' + f.days + ' dagar gammalt">≈ ' + f.days + ' d sedan</span>' : '') + (on ? '<span class="pk-stems">' + o.n + ' stjälkar</span>' : '') + (o.crumb ? '<span class="pk-crumb">' + esc(f.catName) + '</span>' : '') + '</span>'
+      + '<span class="pk-l2"><b class="u">' + esc(f.unit) + '</b><span class="d">' + esc(f.desc) + '</span></span></span></button>'
+      + '<button type="button" class="pk-fav" aria-pressed="' + fav + '" aria-label="Favorit: ' + esc(f.name) + '" data-act="pk-fav" data-id="' + f.id + '" data-fk="fav:' + f.id + '">' + ic('heart', 22, 1.6, fav) + '</button></li>';
+  }
+  function listBody(list, o) {   // o: { counts, crumb, q, groupBy: 'cat' | 'grp' | null }
+    let out = '', last = null;
+    const keyOf = f => (o.groupBy === 'cat' ? f.cat : f.cat + '/' + f.grp);
+    for (const f of list) {
+      if (o.groupBy && keyOf(f) !== last) { last = keyOf(f); out += '<li class="pk-grp" role="presentation"><span>' + esc(o.groupBy === 'cat' ? f.catName : f.grpName) + '</span><span class="n">' + list.filter(x => keyOf(x) === last).length + '</span></li>'; }
+      out += rowHtml(f, { n: o.counts[f.id] || 0, crumb: o.crumb, q: o.q });
+    }
+    return '<ul class="pk-list">' + out + '</ul>';
+  }
+  const noteHtml = () => '<p class="pk-note">Ett tryck lägger 1 stjälke i buketten. Antal ändrar du i bukettöversikten, där du också ser vad som köps hem i hela förpackningar. Styckpriset i parentes är räknat, inte grossistens pris. ≈ betyder att priset inte är från i dag.</p>';
+  function hubHtml(A) {
+    const counts = pkCounts(A), favs = favFlowers(), shown = favs.slice(0, 8), more = favs.length - shown.length;
+    const chips = shown.map(f => '<button type="button" class="chip' + (counts[f.id] ? ' on' : '') + '" role="checkbox" aria-checked="' + !!counts[f.id] + '" data-act="pk-toggle" data-id="' + f.id + '" data-fk="chip:' + f.id + '">' + (counts[f.id] ? ic('check', 16, 2.4) : '') + esc(f.name) + '</button>').join('')
+      + (more > 0 ? '<button type="button" class="chip chip--more" data-act="pk-open" data-id="fav" data-fk="chip:more">+ ' + more + ' till</button>' : '');
+    const cats = E.categories();
+    return '<section class="pk-favs" aria-labelledby="pk-fav-h"><div class="pk-sec"><h3 id="pk-fav-h"><span class="hrt">' + ic('heart', 20, 1.6, true) + '</span>Mina favoriter <span class="n">' + favs.length + '</span></h3>'
+      + (favs.length ? '<button type="button" class="link" data-act="pk-open" data-id="fav" data-fk="fav-all">Visa alla</button>' : '') + '</div>'
+      + (favs.length ? '<div class="chips" role="group" aria-label="Mina favoriter. Tryck för att välja">' + chips + '</div>'
+        : '<p class="pk-empty">Inga favoriter än. Tryck på ' + ic('heart', 18, 1.6) + ' vid en blomma i listorna, så ligger den här.</p>') + '</section>'
+      + '<section aria-labelledby="pk-cat-h"><h3 class="sr" id="pk-cat-h">Kategorier</h3><ul class="pk-cats">'
+      + cats.map(c => '<li><button type="button" class="pk-cat" data-act="pk-open" data-id="' + c.id + '" data-fk="cat:' + c.id + '"><span class="nm">' + esc(c.name) + '</span><span class="ct">' + plural(c.count, 'sort', 'sorter') + '</span></button></li>').join('')
+      + '<li><button type="button" class="pk-cat pk-cat--all" data-act="pk-open" data-id="all" data-fk="cat:all"><span class="nm">Alla blommor</span><span class="ct">' + plural(E.flowers().length, 'sort', 'sorter') + '</span></button></li></ul></section>' + noteHtml();
+  }
+  function aboutHtml() {
+    const fl = F.florists(), cur = F.current();
+    return '<section class="pk-about" id="pk-about" aria-labelledby="pk-about-h"><h4 id="pk-about-h">Så sparas favoriter i appen</h4><ul>'
+      + '<li><b>En lista per florist.</b> Favoriterna hör till floristens eget konto, inte till butiken. Två florister i samma butik har varsin lista.</li>'
+      + '<li><b>Följer med mellan enheter.</b> Listan ligger på kontot och syns på både telefon och dator. ' + (F.isPersisted() ? 'Här i prototypen sparas den bara i den här webbläsaren.' : 'Här i prototypen finns den bara medan sidan är öppen, eftersom webbläsaren inte tillåter lagring här.') + '</li>'
+      + '<li><b>Pekar på artikeln, inte på en kopia.</b> Pris, enhet och förpackning hämtas alltid ur prislistan, så en favorit blir aldrig fel när priset ändras.</li></ul>'
+      + '<p class="pk-demo-h">Prova i prototypen</p><div class="pk-demo"><span class="lbl" id="pk-fl-l">Visa som</span><div class="seg" role="group" aria-labelledby="pk-fl-l">'
+      + fl.map(f => '<button type="button" data-act="pk-florist" data-id="' + f.id + '" data-fk="florist:' + f.id + '" aria-pressed="' + (f.id === cur) + '">' + esc(f.name) + '</button>').join('') + '</div>'
+      + '<button type="button" class="link" data-act="pk-fav-reset" data-fk="fav-reset">Återställ</button><button type="button" class="link" data-act="pk-fav-clear" data-fk="fav-clear">Töm listan</button></div>'
+      + '<p class="pk-code-h">Så kan en favorit sparas</p><pre class="pk-code" tabindex="0">{ florist: "' + cur + '",\n  favoriter: [\n    { grossist: "conn_manual",\n      artikel: "p04",\n      tillagd: "2026-10-08" } ] }</pre></section>';
+  }
+  function titleOf(v) {
+    if (v === 'fav') return 'Mina favoriter';
+    if (v === 'all') return 'Alla blommor';
+    if (v === 'search') return 'Sökresultat';
+    const c = catOf(S.pk.cat); return c ? c.name : 'Blommor';
+  }
+  const countOf = v => (v === 'fav' ? F.count() : v === 'all' ? E.flowers().length : v === 'search' ? E.search(pkQ()).length : (catOf(S.pk.cat) || { count: 0 }).count);
+  function headHtml(A) {
+    const v = pkView(), mobile = mqMobile.matches, sub = v === 'hub' || !mobile;
+    return (mobile && v !== 'hub' ? '<button type="button" class="pk-back" data-act="pk-back" data-fk="pk-back" aria-label="' + (v === 'search' ? 'Rensa sökningen' : 'Tillbaka till översikten') + '">' + ic('back', 20, 1.8) + '</button>' : '')
+      + '<div class="pk-titles"><h2 id="pk-h" tabindex="-1">' + (sub ? 'Lägg till blommor' : esc(titleOf(v)) + '<span class="ct">' + countOf(v) + '</span>') + '</h2>' + (sub ? '<p class="pk-to">Till ' + esc(A ? A.name : 'ny bukett') + '</p>' : '') + '</div>'
+      + '<button type="button" class="pk-x" data-act="close-picker" data-fk="pk-x" aria-label="Stäng blomvalet och visa mina valda blommor">' + ic('close', 22, 1.6) + '</button>';
+  }
+  function railHtml() {
+    const v = pkView(), cats = E.categories(), cur = (id, on) => (on ? ' aria-current="true"' : '');
+    const item = (id, name, n, on, extra) => '<li><button type="button" class="rail-i' + (extra || '') + '" data-act="pk-open" data-id="' + id + '" data-fk="rail:' + id + '"' + cur(id, on) + '><span class="nm">' + name + '</span><span class="ct">' + n + '</span></button></li>';
+    return '<ul>' + item('fav', ic('heart', 18, 1.6, true) + 'Mina favoriter', F.count(), v === 'fav', ' rail-i--fav') + '<li class="rail-sep" role="presentation"></li>'
+      + cats.map(c => item(c.id, esc(c.name), c.count, v === 'cat' && S.pk.cat === c.id)).join('') + '<li class="rail-sep" role="presentation"></li>'
+      + item('all', 'Alla blommor', E.flowers().length, v === 'all') + '</ul>';
+  }
+  function subHtml() {
+    const v = pkView(), q = pkQ();
+    const vt = n => '<h3 class="pk-vt">' + esc(titleOf(v)) + (n != null ? ' <span>' + n + '</span>' : '') + '</h3>';
+    if (v === 'cat') {
+      const c = catOf(S.pk.cat), tabs = showGroups(c.id)
+        ? '<div class="pk-tabs" role="group" aria-label="Undergrupp i ' + esc(c.name) + '"><button type="button" data-act="pk-grp" data-id="alla" data-fk="g:alla" aria-pressed="' + (S.pk.grp === 'alla') + '">Alla</button>'
+          + c.groups.filter(g => g.count).map(g => '<button type="button" data-act="pk-grp" data-id="' + g.id + '" data-fk="g:' + g.id + '" aria-pressed="' + (S.pk.grp === g.id) + '">' + esc(g.name) + '</button>').join('') + '</div>' : '';
+      return vt(c.count) + tabs;
+    }
+    if (v === 'fav') return vt(F.count()) + '<div class="pk-cap"><span>Sparas för <b>' + esc(F.currentName()) + '</b></span><button type="button" class="link" data-act="pk-about" data-fk="pk-about" aria-expanded="' + S.pk.about + '" aria-controls="pk-about">' + ic('info', 16, 1.6) + 'Så sparas favoriter</button></div>';
+    if (v === 'all') return vt(E.flowers().length);
+    if (v === 'search') return '<h3 class="pk-vt">Sökresultat <span>' + E.search(q).length + '</span></h3><p class="pk-cap pk-cap--q">I hela sortimentet, oavsett kategori.</p>';
+    return '';
+  }
+  function listHtml(A) {
+    const v = pkView(), counts = pkCounts(A), q = pkQ();
+    if (v === 'hub') return hubHtml(A);
+    if (v === 'search') { const r = E.search(q); return r.length ? listBody(r, { counts, crumb: true, q }) + noteHtml() : '<p class="pk-none">Ingen blomma matchar “' + esc(q) + '”. Försök med ett kortare ord, eller sök efter ett annat namn. Sökningen gäller hela sortimentet.</p>'; }
+    if (v === 'fav') {
+      const ids = new Set([...F.list(), ...S.pk.ghost]), list = E.flowers().filter(f => ids.has(f.id));
+      return (S.pk.about ? aboutHtml() : '') + (list.length ? listBody(list, { counts, crumb: true, q: '' }) + noteHtml() : '<p class="pk-none">Du har inga favoriter än. Tryck på ' + ic('heart', 18, 1.6) + ' vid en blomma i en kategori, så sparas den här.</p>');
+    }
+    if (v === 'all') return listBody(E.flowers(), { counts, groupBy: 'cat', q: '' }) + noteHtml();
+    const grouped = S.pk.grp === 'alla' && showGroups(S.pk.cat);
+    return listBody(E.inCategory(S.pk.cat, S.pk.grp), { counts, groupBy: grouped ? 'grp' : null, q: '' }) + noteHtml();
+  }
+  function barHtml(A) {
+    const n = A ? A.sorts : 0, has = !!(A && A.items.length);
+    const price = A && A.state === 'ok' ? '<span class="pk-price num">' + mark(A.mark) + esc(A.price) + '</span><span class="pk-basis">' + A.basis + '</span>'
+      : has ? '<span class="pk-basis">Pris saknas för någon artikel</span>' : '<span class="pk-basis">Välj blommor så räknas priset</span>';
+    return '<div class="pk-sum">' + price + (n ? '<span class="pk-n">' + plural(n, 'sort', 'sorter') + '</span>' : '') + '</div>'
+      + '<button type="button" class="btn pk-go" data-act="close-picker" data-fk="pk-go"' + (has ? '' : ' disabled') + '>Visa mina valda blommor</button>';
   }
   function pickerHtml(A) {
-    const counts = {}; if (A) A.items.forEach(i => { if (i.flowerId) counts[i.flowerId] = { id: i.id, n: i.qty }; });
-    const q = S.q.trim().toLowerCase();
-    const list = E.flowers().filter(f => (S.filter === 'Alla' || f.category === S.filter) && (!q || f.name.toLowerCase().includes(q)));
-    const pl = E.priceListStatus();
-    const rows = list.map(f => {
-      const c = counts[f.id];
-      return '<li class="pk-row' + (c ? ' on' : '') + '"><span class="nm"><i class="sw" style="background:' + f.color + '"></i>' + esc(f.name) + '</span><span class="sub"><b class="u">' + esc(f.unit) + '</b>' + (f.old ? ' <span class="warn" title="Priset är ' + f.days + ' dagar gammalt">≈ ' + f.days + ' d sedan</span>' : '') + '<span class="d">' + esc(f.desc) + '</span></span>'
-        + (c ? stepper({ act: 'pk', id: f.id, value: c.n, name: f.name, removeAtOne: true, fk: 'pk:' + f.id, stems: true }) : '<button type="button" class="addbtn" data-act="pk-inc" data-id="' + f.id + '" data-fk="pk:' + f.id + ':inc" aria-label="Lägg till ' + esc(f.name) + '">' + ic('plus', 20, 1.7) + '</button>') + '</li>';
-    }).join('');
-    const mobile = mqMobile.matches;
-    return '<aside class="picker' + (S.picker ? ' open' : '') + '" id="picker" aria-labelledby="pk-h"' + (mobile && S.picker ? ' role="dialog" aria-modal="true"' : '') + '>'
-      + '<div class="pk-head"><h2 id="pk-h" tabindex="-1">Lägg till blommor</h2><button type="button" class="link pk-close" data-act="close-picker" data-fk="pk-close">Klart</button></div>'
-      + '<div class="pk-body"><div class="pk-search"><label class="pk-field">' + ic('search', 20, 1.6) + '<span class="sr">Sök i dina blommor</span><input id="pk-q" type="search" autocomplete="off" placeholder="Sök blomma" value="' + esc(S.q) + '" data-fk="pk-q"></label></div>'
-      + '<div class="pk-tabs" role="group" aria-label="Visa">' + ['Alla', 'Blommor', 'Grönt'].map(t => '<button type="button" data-act="filter" data-id="' + t + '" data-fk="f:' + t + '" aria-pressed="' + (S.filter === t) + '">' + t + '</button>').join('') + '</div>'
-      + '<ul id="pk-list">' + (rows || '<li class="pk-none">Ingen blomma matchar “' + esc(S.q) + '”.</li>') + '</ul>'
-      + '<p class="pk-note">Siffran är antal stjälkar. Du köper alltid hela förpackningar. Styckpriset i parentes är räknat, inte grossistens pris.</p><p class="pk-note">Prislista: ' + pl.today + ' av ' + pl.total + ' priser är från idag.' + (pl.old.length ? ' <span class="warn">≈ ' + pl.old.length + ' äldre</span> räknas som ungefärliga.' : '') + '</p></div>'
-      + '<div class="pk-bar"><div><div class="pb-label" id="pk-label">' + priceLabel(A) + '</div><div class="pb-price num" id="pk-price">' + pbPrice(A) + '</div></div><button type="button" class="btn" data-act="close-picker" data-fk="pk-done">Klart</button></div></aside>';
+    const open = S.picker, mobile = mqMobile.matches;
+    return '<aside class="picker' + (open ? ' open' : '') + '" id="picker" aria-labelledby="pk-h"' + (mobile && open ? ' role="dialog" aria-modal="true"' : '') + (open ? '' : ' hidden') + '>'
+      + (open ? '<div class="pk-in"><div class="pk-head" id="pk-head">' + headHtml(A) + '</div>'
+        + '<div class="pk-search"><label class="pk-field">' + ic('search', 20, 1.6) + '<span class="sr">Sök i hela sortimentet</span><input id="pk-q" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" placeholder="Sök i hela sortimentet" value="' + esc(S.pk.q) + '" data-fk="pk-q"></label>'
+        + '<button type="button" class="pk-clear" data-act="pk-clear" data-fk="pk-clear" aria-label="Rensa sökningen"' + (pkQ() ? '' : ' hidden') + '>' + ic('close', 18, 1.8) + '</button></div>'
+        + '<nav class="pk-rail" id="pk-rail" aria-label="Kategorier">' + railHtml() + '</nav>'
+        + '<div class="pk-main"><div class="pk-sub" id="pk-sub">' + subHtml() + '</div><div class="pk-scroll" id="pk-scroll">' + listHtml(A) + '</div></div>'
+        + '<div class="pk-bar" id="pk-bar">' + barHtml(A) + '</div></div>' : '') + '</aside>';
   }
   function byggView() {
     const J = S.route.ev ? E.job(S.route.ev) : null, A = arrangementNow();
     const idx = J && A ? J.arrangements.findIndex(a => a.id === A.id) + 1 : 1, n = J ? J.arrangements.length : 1;
     const name = A ? A.name : 'Ny bukett';
-    return '<main id="main" class="bygg" tabindex="-1"><div class="ws">' + jobPanel(J, A)
+    return '<main id="main" class="bygg" tabindex="-1"><div class="ws' + (S.picker && !mqMobile.matches ? ' is-picking' : '') + '">' + jobPanel(J, A)
       + '<section class="p-active" aria-labelledby="arr-h"><div class="a-scroll"><p class="crumbline"><span>' + esc(J ? J.name : 'Ny bukett') + '</span><span aria-hidden="true">/</span><span>Arrangemang ' + idx + ' av ' + n + '</span></p>'
       + '<h1 class="sr" id="arr-h">Bukettbyggare: ' + esc(name) + '</h1>'
       + '<div class="a-title"><input class="title-input" id="arr-name" value="' + esc(name) + '" aria-label="Namn på arrangemanget"' + (A ? '' : ' disabled') + ' data-fk="arr-name">'
@@ -2954,7 +3391,7 @@ body.locked{overflow:hidden}
   }
 
   // ---------- ritning ----------
-  function saveScroll() { const m = {}; ['.a-scroll', '.p-job', '.pk-body'].forEach(s => { const e = $(s); if (e) m[s] = e.scrollTop; }); return m; }
+  function saveScroll() { const m = {}; ['.a-scroll', '.p-job', '.pk-scroll'].forEach(s => { const e = $(s); if (e) m[s] = e.scrollTop; }); return m; }
   function restoreScroll(m) { Object.keys(m).forEach(s => { const e = $(s); if (e) e.scrollTop = m[s]; }); }
   function render(focusKey) {
     const sc = saveScroll(), ae = document.activeElement, fk = focusKey || (ae && ae.dataset ? ae.dataset.fk : null);
@@ -2971,7 +3408,7 @@ body.locked{overflow:hidden}
   function patch() {
     const A = arrangementNow(), J = S.route.ev ? E.job(S.route.ev) : null; if (!A) return render();
     const set = (sel, html) => { const e = $(sel); if (e) e.innerHTML = html; };
-    set('#pb-label', priceLabel(A)); set('#pb-price', pbPrice(A)); set('#pk-label', priceLabel(A)); set('#pk-price', pbPrice(A));
+    set('#pb-label', priceLabel(A)); set('#pb-price', pbPrice(A));
     const rc = $('#receipt'); if (rc) { rc.innerHTML = receiptHtml(A); if (A.state !== 'ok') rc.hidden = true; }
     const how = $('.pb-main'); if (how) { how.disabled = A.state !== 'ok'; if (A.state === 'ok') how.setAttribute('aria-label', 'Kundpris ' + A.price + ' ' + A.basis + '. Visa hur priset räknades'); }
     set('#compo-wrap', A.composition.length ? composeBar(A.composition, true) + legend(A.composition) : ''); set('#compo-sum', esc(A.composition.length ? stemsLine(A.composition) : ''));
@@ -2982,17 +3419,78 @@ body.locked{overflow:hidden}
     announce(A.state === 'ok' ? 'Kundpris ' + A.price + ' ' + A.basis : 'Pris saknas');
   }
   let live; function announce(t) { if (!live) live = $('#live'); if (!live) return; live.textContent = ''; setTimeout(() => { live.textContent = t; }, 30); }
-  let toastT; function toast(t) { const el = $('#toast'); el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 3200); }
+  let toastT, toastFn = null;
+  function toast(t, action) {
+    const el = $('#toast'); toastFn = action ? action.fn : null;
+    el.innerHTML = '<span>' + esc(t) + '</span>' + (action ? '<button type="button" data-act="toast-action">' + esc(action.label) + '</button>' : '');
+    el.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; toastFn = null; }, action ? 6000 : 3200);
+  }
+
+  // ---------- blomvalet: öppna, stäng, uppdatera ----------
+  function openPicker() {
+    const A0 = arrangementNow(); S.before = new Set(A0 ? A0.items.map(i => i.id) : []); S.fresh = new Set();
+    S.picker = true; S.pk = freshPk();
+    if (!mqMobile.matches) { S.pk.view = F.count() ? 'fav' : 'cat'; S.pk.cat = 'rosor'; }   // dator: kategorierna syns alltid till vänster, så listan börjar med favoriterna
+    pushSentinel(); render();
+    const f = mqMobile.matches ? $('#pk-h') : $('#pk-q'); if (f) f.focus({ preventScroll: true });
+  }
+  function closePicker() {
+    if (!S.picker) return;
+    const A1 = arrangementNow(); S.fresh = new Set(A1 ? A1.items.map(i => i.id).filter(id => !S.before.has(id)) : []);
+    S.picker = false; S.pk = freshPk(); popSentinel(); render();
+    const b = $('[data-fk="open-picker"]'); if (b) b.focus({ preventScroll: true });
+    const first = $('.row.fresh');   // de nya blommorna ska synas när man kommer tillbaka, även i en lång bukett
+    if (first) {
+      const r = first.getBoundingClientRect(), top = mqMobile.matches ? 70 : 0, bottom = innerHeight - 120;
+      if (r.top < top || r.bottom > bottom) first.scrollIntoView({ block: 'center' });
+      setTimeout(() => { S.fresh = new Set(); $$('.row.fresh').forEach(e => e.classList.remove('fresh')); }, 2600);
+    }
+  }
+  /** Ritar om bara delarna av blomvalet som ändras. Sökfältet rörs aldrig, så tangentbordet och markören blir kvar medan man skriver. */
+  function refreshPicker(resetScroll, focusHeading) {
+    const p = $('#picker'); if (!p || !S.picker) return render();
+    const A = arrangementNow(), sc = $('#pk-scroll'), top = sc ? sc.scrollTop : 0, ae = document.activeElement, fk = ae && p.contains(ae) ? ae.dataset.fk : null;
+    const set = (sel, html) => { const e = $(sel); if (e) e.innerHTML = html; };
+    set('#pk-head', headHtml(A)); set('#pk-rail', railHtml()); set('#pk-sub', subHtml()); set('#pk-scroll', listHtml(A)); set('#pk-bar', barHtml(A));
+    const input = $('#pk-q'), clear = $('.pk-clear'); if (input && input.value !== S.pk.q) input.value = S.pk.q; if (clear) clear.hidden = !pkQ();
+    const nsc = $('#pk-scroll'); if (nsc) nsc.scrollTop = resetScroll ? 0 : top;
+    if (focusHeading) { const h = $('#pk-h'); if (h) h.focus({ preventScroll: true }); }
+    else if (fk) { const t = $('[data-fk="' + fk.replace(/"/g, '') + '"]', p); if (t && !t.disabled) t.focus({ preventScroll: true }); }
+  }
+  function openView(id) {   // id: 'fav', 'all' eller en kategori
+    S.pk.ghost.clear(); S.pk.q = ''; S.pk.about = false;
+    if (id === 'fav' || id === 'all') S.pk.view = id; else { S.pk.view = 'cat'; S.pk.cat = id; S.pk.grp = 'alla'; }
+    refreshPicker(true, mqMobile.matches);
+    announce(titleOf(S.pk.view));
+  }
+  function toggleFlower(id) {
+    const f = E.flower(id); if (!f) return;
+    let A = arrangementNow(); const item = A && A.items.find(i => i.flowerId === id);
+    if (item) {
+      const arr = A.id, qty = item.qty; E.removeItem(item.id);
+      toast(f.name + ' borttagen', { label: 'Ångra', fn: () => { E.restoreFlower(arr, id, qty); if (S.picker) refreshPicker(false); else render(); announce(f.name + ' tillbaka'); } });
+    } else { E.addFlower(ensureArr(), id); }
+    A = arrangementNow(); refreshPicker(false);
+    announce(f.name + (item ? ' borttagen' : ' vald') + '. ' + plural(A ? A.sorts : 0, 'sort vald', 'sorter valda'));
+  }
+  function toggleFav(id) {
+    const f = E.flower(id); if (!f) return;
+    const was = F.has(id), now = F.toggle(id);
+    if (was && pkView() === 'fav') S.pk.ghost.add(id); else S.pk.ghost.delete(id);
+    refreshPicker(false);
+    announce(f.name + (now ? ' sparad i favoriter' : ' borttagen från favoriter'));
+  }
 
   // ---------- ändringar ----------
   function ensureArr() {
     if (S.route.arr) return S.route.arr;
-    const d = E.draft(); S.route = { name: 'bygg', ev: d.eventId, arr: d.arrId }; history.replaceState(null, '', hashOf(S.route)); return d.arrId;
+    const d = E.draft(); S.route = { name: 'bygg', ev: d.eventId, arr: d.arrId }; syncUrl(); return d.arrId;
   }
   function attempt(fn) { try { fn(); return true; } catch (e) { toast(String(e && e.message || e).replace(/^Error: /, '')); return false; } }
   function onClick(e) {
     const t = e.target.closest('[data-act]'); if (!t || t.disabled) return;
     const act = t.dataset.act, id = t.dataset.id, A = arrangementNow();
+    if (act === 'toast-action') { const fn = toastFn; $('#toast').hidden = true; toastFn = null; if (fn) fn(); return; }
     if (act === 'hem') { e.preventDefault(); return go({ name: 'hem' }); }
     if (act === 'jobb') { const j = E.jobs()[0]; return go({ name: 'bygg', ev: j.id, arr: E.job(j.id).arrangements[0].id }); }
     if (act === 'na') { return toast((t.dataset.na || 'Den här delen') + ' ingår inte i prototypen.'); }
@@ -3005,26 +3503,43 @@ body.locked{overflow:hidden}
     if (act === 'add-arr') { const a = E.addArrangement(S.route.ev, 'Nytt arrangemang'); return go({ name: 'bygg', ev: S.route.ev, arr: a }); }
     if (act === 'done') { toast('Sparat'); return go({ name: 'hem' }); }
     if (act === 'receipt') { S.receipt = !S.receipt; return render(); }
-    if (act === 'open-picker') { S.picker = true; render(); const h = $('#pk-h'); if (h && mqMobile.matches) h.focus({ preventScroll: true }); return; }
-    if (act === 'close-picker') { S.picker = false; render(); const b = $('[data-fk="open-picker"]'); if (b && mqMobile.matches) b.focus({ preventScroll: true }); return; }
-    if (act === 'filter') { S.filter = id; return render(); }
+    if (act === 'open-picker') return openPicker();
+    if (act === 'close-picker') return closePicker();
+    if (act === 'pk-open') return openView(id);
+    if (act === 'pk-back') { if (pkQ()) return clearSearch(true); S.pk.view = 'hub'; S.pk.ghost.clear(); S.pk.about = false; return refreshPicker(true, true); }
+    if (act === 'pk-grp') { S.pk.grp = id; return refreshPicker(true); }
+    if (act === 'pk-toggle') return toggleFlower(id);
+    if (act === 'pk-fav') return toggleFav(id);
+    if (act === 'pk-clear') return clearSearch(false);
+    if (act === 'pk-about') { S.pk.about = !S.pk.about; refreshPicker(true); if (S.pk.about) { const h = $('#pk-about-h'); if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); } } return; }
+    if (act === 'pk-florist') { F.setCurrent(id); S.pk.ghost.clear(); refreshPicker(true); return announce('Visar ' + F.currentName() + 's favoriter'); }
+    if (act === 'pk-fav-clear') { F.clear(); S.pk.ghost.clear(); return refreshPicker(false); }
+    if (act === 'pk-fav-reset') { F.reset(); S.pk.ghost.clear(); return refreshPicker(false); }
     if (act === 'own-toggle') { S.own = !S.own; render(); if (S.own) { const f = $('#ownform input'); if (f) f.focus(); } return; }
     if (act === 'del') { S.confirm = true; return render('del-yes'); }
     if (act === 'del-no') { S.confirm = false; return render('del'); }
     if (act === 'del-yes') { E.removeArrangement(S.route.arr); const j = E.job(S.route.ev); return go(j && j.arrangements.length ? { name: 'bygg', ev: j.id, arr: j.arrangements[0].id } : { name: 'hem' }); }
-    if (act === 'pk-inc') { const arr = ensureArr(); E.addFlower(arr, id); render(); return patchAfter(); }
-    if (act === 'pk-dec' || act === 'item-dec') {
-      const item = act === 'pk-dec' ? A.items.find(i => i.flowerId === id) : A.items.find(i => i.id === id);
+    if (act === 'item-dec') {
+      const item = A.items.find(i => i.id === id);
       if (!item) return; if (item.qty <= 1) E.removeItem(item.id); else E.setQty(item.id, item.qty - 1);
       render(); return patchAfter();
     }
     if (act === 'item-inc') { const item = A.items.find(i => i.id === id); E.setQty(item.id, item.qty + 1); render(); return patchAfter(); }
     if (act === 'cnt-dec' || act === 'cnt-inc') { E.setCount(S.route.arr, A.qty + (act === 'cnt-inc' ? 1 : -1)); render(); return patchAfter(); }
   }
+  function clearSearch(focusHeading) {
+    S.pk.q = ''; refreshPicker(true, focusHeading);
+    if (!focusHeading) { const i = $('#pk-q'); if (i) i.focus({ preventScroll: true }); }
+  }
   const patchAfter = () => { const A = arrangementNow(); announce(A && A.state === 'ok' ? 'Kundpris ' + A.price + ' ' + A.basis : 'Välj blommor så visas priset'); };
+  let searchT;
   function onInput(e) {
     const t = e.target;
-    if (t.id === 'pk-q') { S.q = t.value; const ul = $('#pk-list'); if (ul) { const tmp = document.createElement('div'); tmp.innerHTML = pickerHtml(arrangementNow()); const nu = $('#pk-list', tmp); if (nu) ul.innerHTML = nu.innerHTML; } return; }
+    if (t.id === 'pk-q') {
+      S.pk.q = t.value; S.pk.ghost.clear(); refreshPicker(true);
+      clearTimeout(searchT); searchT = setTimeout(() => { if (pkQ()) announce(plural(E.search(pkQ()).length, 'träff', 'träffar')); }, 400);
+      return;
+    }
     if (t.id === 'labor') {
       const A = arrangementNow(); if (!A) return;
       const ok = attempt(() => E.setLabor(A.id, t.value)); S.invalid = ok ? null : true; t.setAttribute('aria-invalid', ok ? 'false' : 'true'); if (ok) patch();
@@ -3036,27 +3551,32 @@ body.locked{overflow:hidden}
   }
   function onSubmit(e) {
     if (e.target.id !== 'ownform') return; e.preventDefault();
-    const f = e.target, n = f.n.value.trim(), c = f.c.value.replace(/[\s ]/g, '').replace(',', '.');
+    const f = e.target, n = f.n.value.trim(), c = f.c.value.replace(/[\s ]/g, '').replace(',', '.');
     if (!n || !/^\d{1,9}(\.\d{1,2})?$/.test(c)) { toast('Skriv ett namn och en kalkylkostnad i kronor, till exempel 40 eller 62,50.'); return; }
     const arr = ensureArr(); E.addOwn(arr, n, c); S.own = false; render('own-toggle'); patchAfter();
   }
   function onKey(e) {
-    if (e.key === 'Escape') { if (S.receipt) { S.receipt = false; render('receipt'); } else if (S.picker && mqMobile.matches) { S.picker = false; render(); const b = $('[data-fk="open-picker"]'); if (b) b.focus({ preventScroll: true }); } }
+    if (e.key === 'Escape') {
+      if (S.picker) { if (S.pk.about) { S.pk.about = false; refreshPicker(false); const b = $('[data-fk="pk-about"]'); if (b) b.focus({ preventScroll: true }); } else if (pkQ()) clearSearch(false); else closePicker(); return; }
+      if (S.receipt) { S.receipt = false; render('receipt'); }
+    }
+    if (e.key === '/' && S.picker && !e.ctrlKey && !e.metaKey && !e.altKey && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) { const i = $('#pk-q'); if (i) { e.preventDefault(); i.focus(); } return; }
     if (e.key === 'Tab' && S.picker && mqMobile.matches) {   // håller tangentbordsfokus i blomvalet
-      const p = $('#picker'); const f = $$('button:not(:disabled),input', p); if (!f.length) return;
+      const p = $('#picker'); const f = $$('button:not(:disabled),input', p).filter(x => !x.hidden && x.offsetParent !== null); if (!f.length) return;
       if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); } else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
     }
   }
   document.addEventListener('click', onClick); document.addEventListener('input', onInput); document.addEventListener('change', onChange); document.addEventListener('submit', onSubmit); document.addEventListener('keydown', onKey);
-  mqMobile.addEventListener('change', () => { S.picker = false; render(); });
+  mqMobile.addEventListener('change', () => { if (S.picker) { S.picker = false; S.pk = freshPk(); popSentinel(); } render(); });
 
   // ---------- start ----------
   S.route = parseHash();
   if (params.has('bygg') && S.route.name === 'hem') { const j = E.jobs()[0]; S.route = { name: 'bygg', ev: j.id, arr: E.job(j.id).arrangements[0].id }; }
   if (params.has('inkop') && S.route.name === 'hem') { const j0 = E.jobs()[0]; S.route = { name: 'inkop', ev: j0.id }; }
   render();
+  if (params.has('blommor') && S.route.name === 'bygg') openPicker();   // ?bygg=1&blommor=1 öppnar blomvalet direkt (för granskning)
   if (S.photo === 'none') { const im = new Image(); im.onload = () => { S.photo = 'real'; render(); }; im.src = 'media/hem.jpg'; }
-  window.__studio = { E, S, go, render };   // för tester
+  window.__studio = { E, F, S, go, render, openPicker, closePicker };   // för tester
 })();
 
 </script>

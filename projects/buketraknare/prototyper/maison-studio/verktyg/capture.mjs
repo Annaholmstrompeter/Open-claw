@@ -26,14 +26,32 @@ await snap('hem-desktop-1440-med-fotoplats', { ...D, q: '?foto=1' });
 await snap('hem-mobil-390-med-fotoplats', { ...M, q: '?foto=1', fit: true });
 await snap('bygg-mobil-390', { ...M, q: '?bygg=1' });
 await snap('bygg-mobil-390-hela-sidan', { ...M, q: '?bygg=1', fit: true });
-await snap('bygg-desktop-1440', { ...D, q: '?bygg=1' });
+await snap('bygg-desktop-1440', { ...D, q: '?bygg=1' });   // blomvalet ligger nu bakom Lägg till blommor, bukettytan använder hela bredden
 await snap('bygg-mobil-390-kvitto', { ...M, q: '?bygg=1', steps: async p => { await p.click('.pb-how'); } });
 await snap('bygg-desktop-1440-kvitto', { ...D, q: '?bygg=1', steps: async p => { await p.click('.pb-how'); } });
-await snap('bygg-mobil-390-blomval', { ...M, q: '?bygg=1', steps: async p => { await p.click('.addflowers'); await p.waitForTimeout(400); } });
 await snap('bygg-mobil-390-ny-bukett', { ...M, q: '#/jobb/ny', fit: false });
 await snap('inkop-mobil-390', { ...M, q: '?inkop=1', fit: true });
 await snap('inkop-desktop-1440', { ...D, q: '?inkop=1' });
 const elva = async (p) => { for (let i = 0; i < 5; i++) await p.click('.ledger .row:has-text("Rosa ros") [data-act="item-inc"]'); };
 await snap('bygg-desktop-1440-11-rosor', { ...D, q: '?bygg=1', steps: elva });
 await snap('bygg-mobil-390-11-rosor', { ...M, q: '?bygg=1', fit: true, steps: elva });
+
+// ---------- blomvalet ----------
+const open = p => p.waitForTimeout(150);
+const idOf = (p, name) => p.evaluate(n => window.__studio.E.flowers().find(f => f.name === n).id, name);
+await snap('blomval-mobil-390-1-oversikt', { ...M, q: '?bygg=1&blommor=1' });
+await snap('blomval-mobil-390-2-kategori', { ...M, q: '?bygg=1&blommor=1', steps: async p => { await p.click('.pk-cat[data-id="lok"]'); await open(p); } });
+await snap('blomval-mobil-390-3-sok', { ...M, q: '?bygg=1&blommor=1', steps: async p => { await p.click('.pk-cat[data-id="rosor"]'); await p.fill('#pk-q', 'gipsort'); await open(p); } });
+await snap('blomval-mobil-390-4-favoriter', { ...M, q: '?bygg=1&blommor=1', steps: async p => { await p.click('.pk-sec .link'); await open(p); } });
+await snap('blomval-mobil-390-5-hur-favoriter-sparas', { ...M, q: '?bygg=1&blommor=1', steps: async p => { await p.click('.pk-sec .link'); await p.click('[data-act="pk-about"]'); await open(p); } });
+await snap('blomval-mobil-390-6-ny-bukett-fem-valda', { ...M, q: '#/jobb/ny', steps: async p => { await p.click('.addflowers'); await open(p); for (const n of ['Rosa ros 50 cm', 'Pion', 'Lisianthus', 'Eukalyptus', 'Gipsört']) await p.click('.chip[data-id="' + await idOf(p, n) + '"]'); await open(p); } });
+await snap('blomval-mobil-390-7-tillbaka-i-buketten', { ...M, q: '#/jobb/ny', fit: false, steps: async p => { await p.click('.addflowers'); await open(p); for (const n of ['Rosa ros 50 cm', 'Pion', 'Lisianthus', 'Eukalyptus', 'Gipsört']) await p.click('.chip[data-id="' + await idOf(p, n) + '"]'); await p.click('.pk-go'); await p.waitForTimeout(400); } });
+await snap('blomval-desktop-1440-1-favoriter', { ...D, q: '?bygg=1&blommor=1' });
+await snap('blomval-desktop-1440-2-kategori', { ...D, q: '?bygg=1&blommor=1', steps: async p => { await p.click('.rail-i[data-id="lok"]'); await open(p); } });
+await snap('blomval-desktop-1440-3-alla-blommor', { ...D, q: '?bygg=1&blommor=1', steps: async p => { await p.click('.rail-i[data-id="all"]'); await open(p); } });
+await snap('blomval-desktop-1440-4-sok', { ...D, q: '?bygg=1&blommor=1', steps: async p => { await p.click('.rail-i[data-id="gront"]'); await p.fill('#pk-q', 'ros'); await open(p); } });
+await snap('blomval-desktop-1440-5-hur-favoriter-sparas', { ...D, q: '?bygg=1&blommor=1', steps: async p => { await p.click('[data-act="pk-about"]'); await open(p); } });
+await snap('blomval-desktop-1280-kategori', { w: 1280, h: 800, dpr: 1, q: '?bygg=1&blommor=1', steps: async p => { await p.click('.rail-i[data-id="utfyllnad"]'); await open(p); } });
+await snap('blomval-desktop-1920-kategori', { w: 1920, h: 1080, dpr: 1, q: '?bygg=1&blommor=1', steps: async p => { await p.click('.rail-i[data-id="utfyllnad"]'); await open(p); } });
+await snap('blomval-surfplatta-768-kategori', { w: 768, h: 1024, dpr: 1, q: '?bygg=1&blommor=1', steps: async p => { await p.click('.pk-cat[data-id="huvud"]'); await open(p); } });
 await b.close();

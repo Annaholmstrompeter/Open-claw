@@ -10,11 +10,12 @@ let pass = 0, fail = 0; const bad = [];
 const ok = (c, m) => { if (c) pass++; else { fail++; bad.push(m); console.log('  FEL:', m); } };
 const eq = (a, e, m) => ok(a === e, m + ' (fick ' + JSON.stringify(a) + ', väntade ' + JSON.stringify(e) + ')');
 const NB = ' '; const norm = s => String(s).replace(/ /g, ' ').replace(/\s+/g, ' ').trim();
+const N = s => String(s).replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim();
 async function open(w, h, q = '', opts = {}) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1, locale: 'sv-SE', hasTouch: w < 600, isMobile: w < 600, reducedMotion: 'reduce', ...opts });
   const p = await ctx.newPage(); p.errs = [];
   p.on('pageerror', e => p.errs.push(e.message)); p.on('console', m => { if (m.type() === 'error' && !/net::|Failed to load resource/.test(m.text())) p.errs.push(m.text()); });
-  await p.goto('file://' + ROOT + '/index.html' + q); await p.evaluate(() => document.fonts.ready); await p.waitForTimeout(250); return p;
+  await p.goto('file://' + ROOT + '/' + (process.env.SIDA || 'index.html') + q); await p.evaluate(() => document.fonts.ready); await p.waitForTimeout(250); return p;
 }
 const priceText = p => p.evaluate(() => norm(document.querySelector('#pb-price').textContent));
 const normPage = `window.norm = s => String(s).replace(/\\u00A0/g,' ').replace(/\\s+/g,' ').trim();`;
@@ -51,20 +52,20 @@ for (const [label, W, H] of [['MOBIL 390', 390, 844], ['DATOR 1440', 1440, 900]]
   await p.click('.pb-done'); await p.waitForTimeout(250);
   eq(await p.evaluate(() => location.hash), '#/hem', 'Klart går till Hem');
   const first = (await jobsText(p))[0]; ok(norm(first).includes(norm(wantJob)), 'Hem visar jobbets nya pris ' + wantJob + ': ' + first);
-  // ---- 4. Egen sort: lägg till via blomval (mobil: skärm, dator: kolumn)
+  // ---- 4. Lägg till blomma via blomvalet (mobil: egen skärm, dator: ersätter bukettytan), pris = motorn
   await p.click('.job >> nth=0'); await p.waitForTimeout(150);
-  if (mobile) { await p.click('.addflowers'); await p.waitForTimeout(350); eq(await p.evaluate(() => document.querySelector('#picker').classList.contains('open')), true, 'blomvalet öppnas på mobil'); }
+  await p.click('.addflowers'); await p.waitForTimeout(350);
+  eq(await p.evaluate(() => document.querySelector('#picker').classList.contains('open')), true, 'blomvalet öppnas');
   const E3 = SE.create(); const ev3 = E3.jobs()[0]; const a3 = E3.job(ev3.id).arrangements[0]; const flowerId = E3.flowers().find(f => f.name === 'Ranunkel').id; E3.setQty(E3.arrangement(ev3.id, a3.id).items.find(i => i.name === 'Pion').id, 11); E3.addFlower(a3.id, flowerId);
-  await p.click('#picker [data-act="pk-inc"][data-id="' + flowerId + '"]'); await p.waitForTimeout(150);
+  await p.fill('#pk-q', 'ranunk'); await p.waitForTimeout(100);
+  await p.click('#picker [data-act="pk-toggle"][data-id="' + flowerId + '"]'); await p.waitForTimeout(150);
+  eq(await p.getAttribute('#picker [data-act="pk-toggle"][data-id="' + flowerId + '"]', 'aria-checked'), 'true', 'raden markeras som vald');
+  ok(N(await p.evaluate(() => document.querySelector('#picker .pk-price').textContent)).replace(/Bekräftat pris |Ungefärligt pris /g, '').endsWith(N(E3.arrangement(ev3.id, a3.id).price)), 'prisfältet i blomvalet = motorns pris vid val av Ranunkel (' + E3.arrangement(ev3.id, a3.id).price + ')');
+  await p.click('#picker .pk-go'); await p.waitForTimeout(350);
+  eq(await p.evaluate(() => document.querySelector('#picker').hidden), true, 'Visa mina valda blommor stänger blomvalet');
   eq(norm(await priceText(p)).replace(/Bekräftat pris |Ungefärligt pris /g, ''), norm(E3.arrangement(ev3.id, a3.id).price), 'tillägg av Ranunkel: pris = motorn (' + E3.arrangement(ev3.id, a3.id).price + ')');
-  eq(await p.evaluate(() => document.querySelectorAll('#picker .pk-row.on').length), 5, 'raden markeras som vald (5 sorter i buketten nu)');
-  // sök och filter
-  await p.fill('#pk-q', 'ros'); await p.waitForTimeout(100);
-  eq(await p.evaluate(() => document.querySelectorAll('#pk-list .pk-row').length), 4, 'sökning "ros" ger 4 träffar (3 rosor + Ruscus)');
-  await p.fill('#pk-q', ''); await p.click('#picker [data-act="filter"][data-id="Grönt"]'); await p.waitForTimeout(100);
-  eq(await p.evaluate(() => document.querySelectorAll('#pk-list .pk-row').length), 3, 'filter Grönt ger 3');
-  await p.click('#picker [data-act="filter"][data-id="Alla"]');
-  if (mobile) { await p.click('#picker .pk-close'); await p.waitForTimeout(350); eq(await p.evaluate(() => document.querySelector('#picker').classList.contains('open')), false, 'blomvalet stängs'); }
+  eq(await p.evaluate(() => [...document.querySelectorAll('.ledger .row .nm')].filter(e => /Ranunkel/.test(e.textContent)).length), 1, 'Ranunkel finns i bukettöversikten, och de tidigare valen är kvar');
+  eq(await p.evaluate(() => document.querySelectorAll('.ledger [data-act="item-inc"]').length), 6, 'sex rader med plus/minus (fyra tidigare, Ranunkel och eget material)');
   // ---- 5. Arbete: giltigt och ogiltigt värde
   E3.setLabor(a3.id, '400');
   await p.fill('#labor', '400'); await p.waitForTimeout(100);
@@ -87,14 +88,18 @@ for (const [label, W, H] of [['MOBIL 390', 390, 844], ['DATOR 1440', 1440, 900]]
   await p.click('[data-act="new-bouquet"]'); await p.waitForTimeout(150);
   eq(await p.evaluate(() => location.hash), '#/jobb/ny', 'ny bukett öppnas som utkast');
   eq((await p.evaluate(() => window.__studio.E.jobs().length)), nJobs, 'utkastet skapar inget jobb förrän första blomman');
-  if (mobile) { await p.click('.addflowers'); await p.waitForTimeout(350); }
+  await p.click('.addflowers'); await p.waitForTimeout(350);
   const pion2 = SE.create().flowers().find(f => f.name === 'Pion').id;
-  await p.click('#picker [data-act="pk-inc"][data-id="' + pion2 + '"]'); await p.waitForTimeout(150); await p.click('#picker .stp [data-act="pk-inc"]'); await p.waitForTimeout(150);
-  const E4 = SE.create(); const d4 = E4.draft(); E4.addFlower(d4.arrId, pion2); E4.addFlower(d4.arrId, pion2);
+  eq(await p.evaluate(() => document.querySelector('.pk-go').disabled), true, 'knappen Visa mina valda blommor är avstängd innan något är valt');
+  await p.fill('#pk-q', 'pion'); await p.waitForTimeout(100);
+  await p.click('#picker [data-act="pk-toggle"][data-id="' + pion2 + '"]'); await p.waitForTimeout(150);
   eq((await p.evaluate(() => window.__studio.E.jobs().length)), nJobs + 1, 'första blomman skapar jobbet');
+  eq(await p.evaluate(() => location.hash.startsWith('#/jobb/') && location.hash !== '#/jobb/ny'), true, 'adressen följer med till det nya jobbet (blomvalets historikpost bevaras)');
+  await p.click('#picker .pk-go'); await p.waitForTimeout(350);
+  await p.click('.ledger [data-act="item-inc"]'); await p.waitForTimeout(150);
+  const E4 = SE.create(); const d4 = E4.draft(); E4.addFlower(d4.arrId, pion2); E4.addFlower(d4.arrId, pion2);
   ok(norm(await priceText(p)).replace(/Bekräftat pris |Ungefärligt pris /g, '') === norm(E4.arrangement(d4.eventId, d4.arrId).price), 'ny bukett med 2 Pion: pris = motorn (' + E4.arrangement(d4.eventId, d4.arrId).price + ')');
   // ---- 9. Ta bort (två steg)
-  if (mobile) { await p.click('#picker .pk-close'); await p.waitForTimeout(350); }
   await p.click('[data-act="del"]'); await p.waitForTimeout(100);
   eq(await p.evaluate(() => !!document.querySelector('[data-act="del-yes"]')), true, 'bekräftelse visas före borttagning');
   await p.click('[data-act="del-no"]'); await p.waitForTimeout(100);
@@ -105,14 +110,16 @@ for (const [label, W, H] of [['MOBIL 390', 390, 844], ['DATOR 1440', 1440, 900]]
 
   // ---- 10. Inköpsenhet först, styckpris bara som räknat värde i parentes (nytt krav)
   p = await open(W, H, '?bygg=1'); await p.evaluate(normPage);
-  if (mobile) { await p.click('.addflowers'); await p.waitForTimeout(350); }
-  const rowTxt = async name => p.evaluate(n => { const r = [...document.querySelectorAll('#picker .pk-row')].find(x => x.querySelector('.nm').textContent.trim().startsWith(n)); return r ? [r.querySelector('.u').textContent.trim(), (r.querySelector('.d') || {}).textContent.trim()] : null; }, name);
-  eq((await rowTxt('Pion')).join(' | ').replace(/ /g, ' '), '165 kr/bunt | Bunt om 5 st · (33 kr/st)', 'blomlista Pion: 165 kr/bunt, Bunt om 5 st · (33 kr/st)');
-  eq((await rowTxt('Rosa ros')).join(' | ').replace(/ /g, ' '), '99 kr/10-pack | (9,90 kr/st)', 'blomlista Rosa ros: 99 kr/10-pack, (9,90 kr/st)');
-  eq((await rowTxt('Hortensia')).join(' | ').replace(/ /g, ' '), '39 kr/st | Säljs styckvis', 'blomlista Hortensia: 39 kr/st, Säljs styckvis');
-  const offenders = await p.evaluate(() => { const bad = []; for (const e of document.querySelectorAll('#picker .sub, .ledger .sub, .ik .sub')) { const u = window.norm((e.querySelector('.u') || {}).textContent || ''), all = window.norm(e.textContent); const rest = all.replace(/\([^)]*\)/g, '').replace(u, ''); if (/kr\/st/.test(rest)) bad.push(all); if (/kr\/st$/.test(u) && !/Säljs styckvis/.test(all)) bad.push('styckpris utan "Säljs styckvis": ' + all); } return bad; });
-  eq(offenders.length, 0, 'styckpris visas aldrig utanför parentes (utom där varan verkligen säljs styckvis): ' + offenders.slice(0, 2).join(' || '));
-  if (mobile) await p.click('#picker .pk-close');
+  await p.click('.addflowers'); await p.waitForTimeout(350);
+  await p.click(mobile ? '.pk-cat[data-id="all"]' : '.rail-i[data-id="all"]'); await p.waitForTimeout(150);
+  const rowTxt = async name => p.evaluate(n => { const r = [...document.querySelectorAll('#picker .pk-row')].find(x => x.querySelector('.pk-nm').textContent.trim().startsWith(n)); return r ? [r.querySelector('.u').textContent.trim(), (r.querySelector('.d') || {}).textContent.trim()] : null; }, name);
+  eq((await rowTxt('Pion')).join(' | ').replace(/\u00A0/g, ' '), '165 kr/bunt | Bunt om 5 st · (33 kr/st)', 'blomlista Pion: 165 kr/bunt, Bunt om 5 st · (33 kr/st)');
+  eq((await rowTxt('Rosa ros')).join(' | ').replace(/\u00A0/g, ' '), '99 kr/10-pack | (9,90 kr/st)', 'blomlista Rosa ros: 99 kr/10-pack, (9,90 kr/st)');
+  eq((await rowTxt('Hortensia')).join(' | ').replace(/\u00A0/g, ' '), '39 kr/st | Säljs styckvis', 'blomlista Hortensia: 39 kr/st, Säljs styckvis');
+  eq((await rowTxt('Magnolia')).join(' | ').replace(/\u00A0/g, ' '), '119 kr/bunt | Bunt om 3 st · (≈ 39,67 kr/st)', 'blomlista Magnolia: styckpriset som inte går jämnt upp markeras med ≈');
+  const offenders = await p.evaluate(() => { const bad = []; for (const e of document.querySelectorAll('#picker .pk-l2, .ledger .sub, .ik .sub')) { const u = window.norm((e.querySelector('.u') || {}).textContent || ''), all = window.norm(e.textContent); const rest = all.replace(/\([^)]*\)/g, '').replace(u, ''); if (/kr\/st/.test(rest)) bad.push(all); if (/kr\/st$/.test(u) && !/Säljs styckvis/.test(all)) bad.push('styckpris utan "Säljs styckvis": ' + all); } return bad; });
+  eq(offenders.length, 0, 'styckpris visas aldrig utanför parentes, ens i hela sortimentet (utom där varan verkligen säljs styckvis): ' + offenders.slice(0, 2).join(' || '));
+  await p.click('#picker .pk-go');
   await p.waitForTimeout(350);
   const buyOf = async name => p.evaluate(n => { const r = [...document.querySelectorAll('.ledger .row')].find(x => x.querySelector('.nm') && x.querySelector('.nm').textContent.trim().startsWith(n)); return r ? window.norm((r.querySelector('.buy') || {}).textContent || '') : null; }, name);
   const price0 = norm(await priceText(p));
