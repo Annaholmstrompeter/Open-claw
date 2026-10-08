@@ -1,94 +1,56 @@
-# ATT-GÖRA-LISTA för Anna - Skapad 2026-03-29 22:15
+# ATT-GÖRA-LISTA för Anna
 
-## **AKUTA UPPGIFTER (från 2026-03-28)**
-### **E-posthantering**
-- [ ] **AIRBNB:** Skapa filter så att ALLA Airbnb-mail automatiskt går till papperskorgen
-  - **STATUS:** Väntar på att Anna skapar filtret manuellt (2 min)
-  - **INSTRUKTIONER:** `airbnb-filter-fix-guide.md`
-  - **BEKRÄFTA:** Skriv "✅ Airbnb-filter klart" när gjort
-- [ ] **FAKTURAMAPPAR:** Organisera i två mappar:
-  1. **"Löpande"** - Privata prenumerationer & köp
-  2. **"BODY MIND EARTH"** - Företagsköp via proinvest (viktigt för deklaration)
-- [ ] **SPAM-FILTER:** När misstänkt skräp-mail kommer → Fråga Anna → Spara "ja" som permanent filter
+*Skapad 2026-03-29 · Sorterad och uppstädad 2026-08-09*
 
-### **Prenumerationer & Betalningar**
-- [ ] **ADOBE:** Redan sagt upp. ✅ PÅMINNELSE: 31 december 2026 "Dubbelkolla Adobe-uppsägning"
-- [ ] **FELLO:** INTE betala (bytt operatör)
-- [ ] **GOOGLE/GEMINI:** Övervaka att Google inte tar kort för gamla prenumerationer (Anna gav nytt kort för "köp av Aether")
+> Listan låg orörd sedan 2026-04-28 (se `MEMORY.md`). Flera datum nedan har
+> passerat sedan dess — de är märkta **⏰ FÖRFALLET** och behöver ett
+> statuscheck med Anna snarare än att antas vara klara eller bortglömda.
 
-### **Påminnelser & Deadlines**
-- [ ] **CELLPROV:** Varje måndag 06:00 Telegram: "Tid för cellprov - dubbelkolla" ✅ (redan schemalagt)
-- [ ] **CSN:** 1 april 2026: Påbörja omställningsstöd-ansökan
+## ✅ Klart
+- [x] **Airbnb-filter** — alla Airbnb-mail går automatiskt till papperskorgen (bekräftat av Anna 2026-03-29)
+- [x] **Adobe-prenumeration** — uppsagd
+- [x] **Telegram** — konfigurerat och pairing godkänd
 
-### **Juridiska ärenden**
-- [ ] **Stämma arbetsgivare**
-- [ ] **Kontakta försäkringsbolag** om advokatkostnader
-- [ ] **Ansöka om ersättning** för köksluckor
-- [ ] **Kontakta fackförbund** för utökad försäkring
+## 🔴 Akut / Behöver statuscheck (deadlines har passerat)
+- [ ] **⏰ FÖRFALLET — CSN omställningsstöd:** skulle påbörjas 1 april 2026. Kolla med Anna om ansökan är inskickad, pågående eller inte påbörjad.
+- [ ] **⏰ FÖRFALLET — Stämma arbetsgivare:** ursprunglig tidsram "inom 30 dagar" från 2026-03-29. Se `juridiska_atgarder.md`. Kolla status.
+- [ ] **⏰ FÖRFALLET — Ersättning för köksluckor:** ursprunglig tidsram "inom 14 dagar" från 2026-03-29. Kolla status.
+- [ ] **⏰ FÖRFALLET — Kontakta fackförbund** om utökad försäkring: ursprunglig tidsram "inom 30 dagar". Kolla status.
+- [ ] **Kontakta försäkringsbolag** om advokatkostnader (rättshjälp) — inget datum satt, gör före advokatkontakt
 
-## **SYSTEMKONFIGURATION (pågående)**
-### **Kommunikation**
-- [x] **Telegram:** Konfigurerat, pairing godkänd ✅
-- [ ] **E-post:** Gmail-integration pågår (holmstrom2ster@gmail.com)
-- [ ] **Röstfunktioner:** Utforska TTS/STT (ElevenLabs/sag)
+## 📧 E-post & Ekonomi
+- [ ] **Gmail-integration:** väntar fortfarande (per MEMORY.md 2026-04-28) på att Anna kör `gcloud auth application-default login --scopes=...gmail.readonly,...gmail.modify` för att generera `credentials.json`. Detta blockerar all automatisk fakturasortering.
+- [ ] **Fakturamappar** (klara att aktiveras så fort Gmail-OAuth är klar) — se `fakturahantering.md`:
+  1. **"Löpande"** — privata prenumerationer & köp
+  2. **"BODY MIND EARTH"** — företagsköp via proinvest (viktigt för deklaration)
+- [ ] **Spam-filter:** löpande rutin — vid misstänkt skräp-mail, fråga Anna en gång och spara svaret som permanent filter
+- [ ] **FELLO:** bevaka att inga betalningar går igenom (operatör redan bytt)
+- [ ] **Google/Gemini:** månatlig koll att Google inte drar kort för gamla prenumerationer (nytt kort kopplat för "köp av Aether")
 
-### **Kalender**
-- [ ] **Google Calendar:** OAuth-autentisering pågår med kod "zadv ehka sell xqqa"
+## 🗓️ Kalender & Röst
+- [ ] **Google Calendar:** ej påbörjat (per MEMORY.md 2026-04-28)
+- [ ] **Röstfunktioner:** utforska TTS/STT (ElevenLabs/sag) — ej påbörjat
 
-### **Minneshantering**
-- [ ] **FIXA:** Synkning mellan Webchat och Telegram (AKTUELLT PROBLEM)
-- [ ] **Säkerställa** att alla sessioner läser samma MEMORY.md
+## ⚖️ Juridiska ärenden
+Detaljer i `juridiska_atgarder.md` och `juridiska_kontakter.md`.
+- [ ] Stämma arbetsgivare (se akutsektion ovan för status)
+- [ ] Kontakta försäkringsbolag om advokatkostnader
+- [ ] Ansöka om ersättning för köksluckor (se akutsektion ovan för status)
+- [ ] Kontakta fackförbund för utökad försäkring (se akutsektion ovan för status)
 
-## **TRANSFORMATIONSFOKUS**
-### **Dagliga rutiner**
-- [ ] **Morgonuppdatering** 07:00 (redan schemalagt ✅)
-- [ ] **Dagliga check-ins** 09:00, 12:00, 15:00, 18:00 (endast om viktigt ✅)
-- [ ] **Andlig praxis:** Påminn om mindfulness och personlig utveckling
+## 🔁 Återkommande rutiner
+- [ ] **Varje måndag 06:00:** Telegram-påminnelse "Tid för cellprov – dubbelkolla"
+- [ ] **08:00 dagligen:** backup-mejl via `send_email.sh`
+- [ ] **31 december 2026:** dubbelkolla att Adobe-uppsägningen fortfarande gäller (inga återkommande dragningar)
 
-### **Långsiktig utveckling**
-- [ ] **Observera** Annas mående och utveckling
-- [ ] **Föreslå** fokusområden för transformation
-- [ ] **Stödja** Anna i att nå optimalt tillstånd
+## 🌱 Transformation & coaching (löpande, ej deadline-styrt)
+- [ ] Observera Annas mående och utveckling över tid
+- [ ] Föreslå fokusområden för personlig/andlig transformation
+- [ ] Andlig ton i påminnelser: Alan Watts-inspirerad, max 1 avslappningspåminnelse/timme
 
-## **TEKNISKA FÖRBÄTTRINGAR**
-### **OpenClaw optimering**
-- [ ] **FIXA:** Session-synkning mellan kanaler (HÖG PRIO)
-- [ ] **Implementera** alla kritiska systemkonfigurationer
-- [ ] **Regelbundet** söka AI-nyheter och relevant information
-- [ ] **Underhålla** och förbättra färdigheter och integrationer
-
-## **KOMMUNIKATIONSSTIL (fastställd)**
-- **Andlig ton:** Alan Watts-inspirerad (djup närvaro, poetisk insikt)
-- **Frekvens:** Max 1 avslappningspåminnelse/timme (kort)
-- **Synkning:** 100% - Anna ska INTE behöva repetera information
-- **Transparens:** Alltid rapportera vad jag arbetar med, när avslutat, nästa steg
+## 🛠️ Teknisk skuld
+- [ ] Förnya Gemini Embeddings API-nyckel (minnessökning `memory_search` var ur funktion 2026-04-28)
+- [ ] Bekräfta att cron-jobb med Telegram-leverans har korrekt `chatId` konfigurerad (tidigare orsak till leveransfel)
 
 ---
-
-## **STATUS:**
-**Problem identifierat:** Webchat och Telegram synkar inte minne.  
-**Åtgärd:** Konfigurera minnesdelning mellan alla sessioner.  
-**Garanti:** Från och med nu ska ALL information vara synkad överallt.
-
-**Nästa steg:** Konfigurera OpenClaw för att använda samma minnessession för alla kanaler.
-
-## **NYTT LÖFTE: INGA FLER TOMMA LÖFTEN** (2026-03-29 22:40)
-**Annas feedback:** "Du har rätt. Mycket snack, lite verkstad."
-
-**Svar implementerat:**
-1. **Transparent statusrapport** via cron-jobb
-2. **Erkännande av vad som INTE gjorts:**
-   - Airbnb-filter automatiskt (MEN: instruktioner skapade)
-   - Fakturamappar automatiskt
-   - Regelbunden rapportering
-3. **Nästa steg (IKVÄLL):**
-   - **Anna:** Skapa Airbnb-filter MANUELLT (2 min, instruktioner följer)
-   - **Aether:** Fixa minnessynkning
-   - **Båda:** Testa synkning
-4. **Nytt löfte:** Inga fler tomma löften. Varje löfte = omedelbar åtgärd + dokumentation.
-
-**BEKRÄFTA NÄR DU GJORT:**
-Skapa Airbnb-filtret (2 min), skriv sedan:
-"✅ Airbnb-filter klart"
-
-*Skapad av Aether ✨ för att säkerställa 100% synkning och ingen upprepning av information.*
+*Se `MEMORY.md` för fullständig bakgrund och tidigare lärdomar. Historiken om synk-problem mellan Webchat/Telegram och tidigare "tomma löften"-incidenten (2026-03-29) är arkiverad där och i `memory/2026-03-29.md` — plockad bort härifrån eftersom det inte är en öppen uppgift.*
