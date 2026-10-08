@@ -3,12 +3,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { createSession } from '../src/session.mjs';
+import { createSession, CONSENT_TEXT } from '../src/session.mjs';
 import { startMockShop, PASS } from './support/mock-shop.mjs';
 import { CHROME, humanLogin } from './support/browser.mjs';
 import { scripted, toolUse, endTurn, parse } from './support/fake-client.mjs';
 
-const OK = { consent: true, termsChecked: true };
+const OK = { consent: true };
 const FIELDS = { id: 'artikelnr', name: 'benamning', variant: 'sort', color: 'farg', lengthCm: 'langd_cm', packSize: 'forpackning.antal', price: 'pris.belopp', priceUnit: 'pris.per', priceIncludesVat: 'pris.inklmoms', currency: 'pris.valuta', availability: 'lager.status', offer: 'kampanj' };
 
 async function start(client, over = {}) {
@@ -59,6 +59,8 @@ test('hela flödet: människan loggar in, agenten söker och läser verkliga (p�
     // skrivskyddet
     assert.deepEqual(t.shop.mutations(), [], 'servern fick muterande anrop');
     const st = t.s.state();
+    assert.ok(!JSON.stringify(st.events).includes('Jag tittar på sidan'), 'modellens löpande text ska inte visas');
+    assert.ok(st.events.some(e => e.type === 'status' && e.message === 'Söker efter «vit ros»…') && st.events.some(e => e.type === 'status' && e.message === 'Klart ✓'), JSON.stringify(st.events.map(e => e.message)));
     assert.ok(st.guard.blocked > 0 && st.guard.allowed > 0); assert.equal(st.pageLoads, 1); assert.ok(st.usage.input_tokens > 5000);
     assert.ok(st.costUsd > 0 && st.costUsd < 0.05, 'kostnad: ' + st.costUsd);
     // popup-självkontrollen nådde aldrig servern
@@ -74,17 +76,25 @@ test('hela flödet: människan loggar in, agenten söker och läser verkliga (p�
   } finally { await t.close(); }
 });
 
-test('agenten startar inte utan floristens samtycke och utan att villkoren är lästa, och samtycket står i rapporten', async () => {
+test('RIKTIG GROSSIST kräver kontoinnehavarens samtycke (en ruta, Annas ordalydelse), inget annat; samtycket står i rapporten; DEMO kräver inget', async () => {
+  assert.equal(CONSENT_TEXT, 'Kontoinnehavaren samtycker till detta begränsade read-only-test med sitt eget konto. Testet får inte genomföra köp eller ändra konto/order.');
   const t = await start(scripted([]));
   try {
     await humanLogin(t.s.page, t.shop.url);
-    for (const bad of [undefined, {}, { consent: true }, { termsChecked: true }, { consent: 'ja', termsChecked: 'ja' }, { consent: false, termsChecked: true }, { consent: true, termsChecked: false }])
-      await assert.rejects(() => t.s.confirmLogin(bad), /samtyckt|villkor/, JSON.stringify(bad));
+    for (const bad of [undefined, {}, { consent: 'ja' }, { consent: false }, { termsChecked: true }, { consent: 1 }])
+      await assert.rejects(() => t.s.confirmLogin(bad), /samtyckt/, JSON.stringify(bad));
     assert.equal(t.s.phase, 'login'); assert.equal(t.s.guard.phase, 'login');
-    assert.equal(t.s.report().samtycke, null);
-    await t.s.confirmLogin(OK);
-    assert.equal(t.s.phase, 'agent'); assert.equal(t.s.report().samtycke.consent, true); assert.equal(t.s.report().samtycke.termsChecked, true);
+    assert.equal(t.s.report().samtycke, null); assert.equal(t.s.state().consentText, CONSENT_TEXT);
+    await t.s.confirmLogin({ consent: true, termsChecked: false });                      // den gamla villkorsrutan finns inte längre och spelar ingen roll
+    assert.equal(t.s.phase, 'agent'); assert.equal(t.s.report().samtycke.text, CONSENT_TEXT); assert.ok(t.s.report().samtycke.at);
+    assert.equal(t.s.report().läge, 'real');
   } finally { await t.close(); }
+  const d = await start(scripted([]), { mode: 'demo' });
+  try {
+    await humanLogin(d.s.page, d.shop.url);
+    await d.s.confirmLogin({});                                                            // påhittad butik, inget konto: ingen ruta behövs
+    assert.equal(d.s.phase, 'agent'); assert.equal(d.s.report().samtycke, null); assert.equal(d.s.report().läge, 'demo'); assert.equal(d.s.state().consentText, null);
+  } finally { await d.close(); }
 });
 
 test('DOM-variant utan JSON: väljare ger exakt samma sorts data, och köp-knappar, varukorg och främmande sidor nekas av verktygen', async () => {
@@ -165,7 +175,7 @@ test('en POST-sökning nekas som standard, agenten får veta det, och efter oper
   try {
     await logIn(t);
     const first = await t.s.ask('Hitta vita rosor');
-    assert.equal(first.stop, 'klar', first.error); assert.match(first.text, /nekades/); assert.equal(first.picks, null);
+    assert.equal(first.stop, 'klar', first.error); assert.match(first.answer, /nekades/); assert.equal(first.picks, null);
     assert.equal(t.shop.requests.filter(r => r.path === '/api/search').length, 0);
     const st = t.s.state(); assert.equal(st.blocked.filter(b => b.method === 'POST').length, 1);
     assert.throws(() => t.s.allowBlockedPost(5), /finns inte i listan/);

@@ -9,6 +9,7 @@
 //               godkänt efter att ha sett vad som nekades. Ett mönster kan aldrig upphäva regel 1
 //            4. sidan lämnas aldrig: navigering till en värd som inte är godkänd nekas, och även hämtning av data (xhr/fetch) till främmande värdar
 //            5. bilder, media och typsnitt hämtas inte (sparar trafik, påverkar inte datan)
+//            6. ett tak för hur många anrop som släpps igenom i agentfasen (maxRequests). När det är nått nekas allt
 //
 // Skyddet loggar bara metod, värd, sökväg (utan frågevärden) och orsak. Aldrig rubriker, cookies eller innehåll i anrop.
 
@@ -57,7 +58,8 @@ export function createGuard(opts = {}) {
   const counts = { total: 0, allowed: 0, blocked: 0 };
   const reasons = {};
   let phase = 'login';
-  const cfg = { blockHeavy: opts.blockHeavy !== false, allowThirdPartyStatic: opts.allowThirdPartyStatic !== false, maxAudit: opts.maxAudit || 800 };
+  const cfg = { blockHeavy: opts.blockHeavy !== false, allowThirdPartyStatic: opts.allowThirdPartyStatic !== false, maxAudit: opts.maxAudit || 800, maxRequests: opts.maxRequests || 0 };
+  let agentAllowed = 0, expired = null;                    // anrop som släppts igenom i agentfasen, och orsaken om taket är nått
   const now = opts.now || (() => new Date().toISOString());
 
   function record(entry) {
@@ -72,6 +74,8 @@ export function createGuard(opts = {}) {
     let u;
     try { u = new URL(req.url); } catch (e) { return finish(req, null, false, 'ogiltig adress'); }
     if (phase !== 'agent') { counts.total++; counts.allowed++; return { allow: true, reason: 'inloggningsfasen: människan styr' }; }
+    if (!expired && cfg.maxRequests && agentAllowed >= cfg.maxRequests) expired = 'gräns för antal webbläsaranrop (' + cfg.maxRequests + ') är nådd';
+    if (expired) return finish(req, u, false, expired);
     const method = String(req.method || 'GET').toUpperCase(), type = req.resourceType || 'other';
     if (u.protocol === 'data:' || u.protocol === 'blob:' || u.protocol === 'about:') return finish(req, u, true, 'lokal data');
     if (u.protocol !== 'http:' && u.protocol !== 'https:' && u.protocol !== 'ws:' && u.protocol !== 'wss:') return finish(req, u, false, 'okänt protokoll');
@@ -101,6 +105,7 @@ export function createGuard(opts = {}) {
 
   function finish(req, u, allow, reason) {
     const entry = { method: String(req.method || 'GET').toUpperCase(), host: u ? u.hostname : '?', path: u ? safePath(u) : '?', type: req.resourceType || 'other', allow, reason };
+    if (allow && phase === 'agent') agentAllowed++;
     record(entry);
     return { allow, reason, entry };
   }
@@ -110,6 +115,11 @@ export function createGuard(opts = {}) {
     get phase() { return phase; },
     setPhase(p) { if (p !== 'login' && p !== 'agent') throw new Error('okänd fas: ' + p); phase = p; },
     addHost(h) { hosts.add(String(h).toLowerCase()); },
+    /** Antal anrop som släppts igenom i agentfasen, taket, och om taket är nått (då nekas allt). */
+    requests: () => ({ used: agentAllowed, max: cfg.maxRequests, exhausted: !!expired }),
+    setMaxRequests(n) { cfg.maxRequests = Number(n) || 0; },
+    /** Stänger allt direkt (till exempel när en annan gräns är nådd). Gäller bara agentfasen. */
+    expire(reason) { expired = expired || String(reason || 'gräns nådd'); },
     hosts: () => [...hosts],
     /** Operatörens beslut efter att ha sett ett nekat anrop. Ett mönster kan aldrig upphäva sökvägsreglerna. */
     allowPostPattern({ host, pathRegex }) {

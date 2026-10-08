@@ -36,8 +36,8 @@ const COLLECT = () => {
 };
 
 export function createToolbox({ page, guard, capture, limits = {}, sleep = ms => new Promise(r => setTimeout(r, ms)), now = () => Date.now() }) {
-  const lim = { maxPageLoads: 100, minGapMs: 2000, maxToolCalls: 80, ...limits };
-  const st = { catalog: new Map(), refs: [], pageLoads: 0, lastLoadAt: 0, calls: 0, blockedSeen: 0, final: null, lastSource: null };
+  const lim = { maxPageLoads: 100, minGapMs: 2000, maxToolCalls: 80, maxProductsPerTask: 1000, ...limits };
+  const st = { catalog: new Map(), refs: [], pageLoads: 0, lastLoadAt: 0, calls: 0, taskAdded: 0, blockedSeen: 0, final: null, lastSource: null };
 
   const hostAllowed = url => { try { return guard.hosts().some(h => hostMatches(new URL(url).hostname, h)); } catch (e) { return false; } };
   const riskyEl = d => RISKY_TEXT_RE.test([d.text, d.aria, d.name, d.id, d.cls, d.href && new URL(d.href).pathname].filter(Boolean).join(' ')) || (d.href && denyReason(d.href)) || (d.formAction && denyReason(d.formAction));
@@ -160,10 +160,18 @@ export function createToolbox({ page, guard, capture, limits = {}, sleep = ms =>
     } else throw new Error('source måste vara json eller dom.');
     if (!mapped.rows.length) return { antal: 0, anmarkningar: mapped.issues };
     const rows = mapped.rows.map(r => { const x = { extras: {} }; for (const [k, v] of Object.entries(r)) { if (k.startsWith('extra:')) x.extras[k.slice(6)] = v; else x[k] = v; } return x; });
-    const { products, skipped } = normalizeRows(rows, { priceUnit: input.price_unit, priceIncludesVat: input.price_includes_vat, currency: input.currency });
-    for (const p of products) st.catalog.set(p.id, { ...p, source: st.lastSource });
+    const parsed = normalizeRows(rows, { priceUnit: input.price_unit, priceIncludesVat: input.price_includes_vat, currency: input.currency });
+    // Tak per uppdrag: i första testet mot en riktig grossist läses högst N artiklar ut. Redan kända artiklar uppdateras utan att räknas.
+    const room = Math.max(0, lim.maxProductsPerTask - st.taskAdded);
+    const known = parsed.products.filter(p => st.catalog.has(p.id)), fresh = parsed.products.filter(p => !st.catalog.has(p.id));
+    const accepted = [...known, ...fresh.slice(0, room)];
+    const dropped = fresh.length - Math.min(fresh.length, room);
+    for (const p of accepted) st.catalog.set(p.id, { ...p, source: st.lastSource });
+    st.taskAdded += Math.min(fresh.length, room);
+    const products = accepted, skipped = parsed.skipped;
     const issues = {}; for (const p of products) for (const i of p.issues) issues[i] = (issues[i] || 0) + 1;
-    return { antal: products.length, hoppadeOver: skipped, medPris: products.filter(p => p.packPrice).length, medFörpackning: products.filter(p => p.packSize).length, anmarkningar: issues, exempel: products.slice(0, 3).map(compact) };
+    return { antal: products.length, hoppadeOver: skipped, medPris: products.filter(p => p.packPrice).length, medFörpackning: products.filter(p => p.packSize).length, anmarkningar: issues, exempel: products.slice(0, 3).map(compact),
+      ...(dropped > 0 ? { begransad: true, utanforTaket: dropped, rad: 'Taket för testet (' + lim.maxProductsPerTask + ' artiklar per uppdrag) är nått. ' + dropped + ' artiklar lästes inte ut. Avsluta med report_candidates, eller sök mer specifikt i ett nytt uppdrag.' } : {}) };
   }
 
   function findProducts(input) {
@@ -196,6 +204,8 @@ export function createToolbox({ page, guard, capture, limits = {}, sleep = ms =>
   const impl = { observe, goto, click, search, inspect_json: inspectJson, dom_outline: domOutline, set_extraction: setExtraction, find_products: findProducts, report_candidates: reportCandidates };
   return {
     definitions: TOOL_DEFS, state: st,
+    /** Nollställer det som räknas per uppdrag (verktygsanrop och nyutlästa artiklar) och det föregående resultatet. Sidhämtningar räknas per session. */
+    beginTask() { st.calls = 0; st.taskAdded = 0; st.final = null; },
     /** Kör ett verktyg. Fel blir ett vanligt resultat med is_error, så att agenten kan rätta sig. */
     async execute(name, input) {
       st.calls++;

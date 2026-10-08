@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { chromium } from 'playwright-core';
+import { envWithoutSecrets } from './secrets.mjs';
 
 export function findChrome(env = process.env, platform = process.platform, exists = fs.existsSync) {
   if (env.CHROME_PATH) return exists(env.CHROME_PATH) ? env.CHROME_PATH : null;
@@ -25,6 +26,7 @@ export async function launchLocal({ executablePath, headless = false, extraArgs 
   const tmpParent = fs.mkdtempSync(path.join(os.tmpdir(), 'grossistagent-'));
   const saved = { TMPDIR: process.env.TMPDIR, TEMP: process.env.TEMP, TMP: process.env.TMP };
   process.env.TMPDIR = process.env.TEMP = process.env.TMP = tmpParent;
+  opts.env = envWithoutSecrets(process.env);            // webbläsaren får aldrig se API-nyckeln eller andra hemligheter i miljön
   let browser;
   try { browser = await chromium.launch(opts); }
   catch (e) { fs.rmSync(tmpParent, { recursive: true, force: true }); throw new Error('Kunde inte starta Chrome: ' + String(e.message).split('\n')[0].slice(0, 160) + '. Installera Google Chrome, eller ange CHROME_PATH (se README).'); }

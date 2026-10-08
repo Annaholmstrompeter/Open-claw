@@ -1,6 +1,6 @@
 # MASTER-PLAN: Buketträknaren
 
-**Status:** plan, **version 2.4** (2026-10-08: MVP 1B delas i två slags test, se avsnitt 7.7; den tekniska läs-PoC:n är byggd i `poc/grossistagent/`). Tidigare version 2.3 (justerad efter Annas preciseringar 2026-10-07: uttryckligt "ingår / 0 kr", tre prisnivåer, prisgrund inkl./exkl. moms, bryggan till den nuvarande appen och den minimala jobbskärmen). Ekonomikoden, bryggan, offert/kundorder och en minimal Jobb-flik är byggda och testade (se avsnitt 13). Den gamla räknemotorn `calc()` är orörd. PR #9 är orörd. PR #10 mergas inte utan godkännande.
+**Status:** plan, **version 2.5** (2026-10-08: MVP 1B delas i två slags test, se avsnitt 7.7; den tekniska läs-PoC:n är byggd i `poc/grossistagent/` och drivs nu av en riktig AI-koppling mot en påhittad butik först, med dubbelklickstart, nyckel bara lokalt, hårda kostnadsgränser och en enda samtyckesruta, se 7.7.1). Tidigare version 2.4. Tidigare version 2.3 (justerad efter Annas preciseringar 2026-10-07: uttryckligt "ingår / 0 kr", tre prisnivåer, prisgrund inkl./exkl. moms, bryggan till den nuvarande appen och den minimala jobbskärmen). Ekonomikoden, bryggan, offert/kundorder och en minimal Jobb-flik är byggda och testade (se avsnitt 13). Den gamla räknemotorn `calc()` är orörd. PR #9 är orörd. PR #10 mergas inte utan godkännande.
 **Ersätter delvis:** `PLAN-grossistanslutning.md` (se avsnitt 2). `KONSEKVENSANALYS-FLORISTVISION.md`, `BESLUT.md`, `CHECKLISTA-PILOTGROSSIST.md` och `CLOUDFLARE-DEPLOYMENT.md` gäller fortfarande där de inte säger emot den här planen. Där de säger emot (moms, webbläsaragentens plats) gäller den här planen, och de två berörda raderna är rättade.
 
 Markeringen **(ej verifierat)** betyder att jag inte har kunnat kontrollera uppgiften mot själva källan. Det gäller särskilt allt om Blomstergrossistens webbplats (nätverket i min miljö blockerar den), aktuella molnpriser (hämtade ur sökträffar, kan ha ändrats) och juridik, moms och fakturakrav (Skatteverkets sidor är också blockerade härifrån, så jag har bara sökträffar, och jag är ingen jurist).
@@ -816,13 +816,27 @@ Varje anslutning har ett `ConnectorHealth`-värde som en intern vy visar. Floris
 | Villkor för att starta | Se listan nedan | Grossistens tillstånd eller en teknisk väg grossisten själv erbjuder |
 
 **Villkor för A (alla ska vara uppfyllda, och de är inbyggda i programmet).**
-1. Floristen har själv sagt ja, använder sitt eget legitima konto och loggar själv in (kryssruta som krävs innan agenten startar).
-2. Webbplatsens publika villkor har lästs och förbjuder inte uttryckligen den här sortens test (kryssruta som krävs). Förbjuder de det: **stoppa**.
-3. Ingen kringgång av CAPTCHA, MFA eller annan åtkomstkontroll. Inga köp och inga kontoändringar (tekniskt spärrat, se `poc/grossistagent/README.md`). Ingen aggressiv genomsökning (högst 100 sidhämtningar, minst 2 s mellan dem).
+1. Kontoinnehavaren har samtyckt och använder sitt eget legitima konto och loggar själv in. En kryssruta som krävs i läget RIKTIG GROSSIST innan agenten startar, med Annas ordalydelse: *"Kontoinnehavaren samtycker till detta begränsade read-only-test med sitt eget konto. Testet får inte genomföra köp eller ändra konto/order."* (Ersätter 2026-10-08 den tidigare rutan om att villkoren var lästa, som var ett juridiskt påstående.)
+2. Grossistens publika villkor: att titta på dem före testet är en rekommendation, inte en ruta. Hittas en **uttrycklig publik regel som förbjuder testet: stoppa**.
+3. Ingen kringgång av CAPTCHA, MFA eller annan åtkomstkontroll. Inga köp och inga kontoändringar (tekniskt spärrat, se `poc/grossistagent/README.md`). Ingen aggressiv genomsökning (RIKTIG GROSSIST: högst 30 sidhämtningar och högst 20 artiklar per uppdrag, minst 2 s mellan hämtningarna).
 4. Lösenordet skrivs bara direkt på grossistens egen inloggningssida i webbläsarfönstret: aldrig i chatt, i Buketträknaren, i repot, i loggar eller i en prompt.
 5. Ingen session sparas. Floristen får logga in igen nästa gång.
 
 Det som tidigare stod som startvillkor (pilotflorist, grossistens villkor lästa före första testet, ett Cloudflare-konto) gäller nu **B**, inte A. Min rekommendation om att ändå fråga grossisten tidigt står kvar som en rekommendation, men den blockerar inte A.
+
+#### 7.7.1 Riktig AI mot en påhittad butik först, och enkel start (Annas beslut 2026-10-08, andra beslutet)
+
+**Ordning.** Den riktiga AI-modellen styr agenten mot den **påhittade butiken** (DEMO) med exakt samma verktyg och samma skyddslager som senare mot grossisten. Ingen simulerad agentlogik finns kvar i demon. När DEMO har fungerat hos Anna körs samma kedja mot floristens riktiga konto (RIKTIG GROSSIST): floristen loggar in själv, agenten är pausad efter inloggningen, Anna startar första uppgiften, högst 20 artiklar, bara läsning, ingen varukorg, kassa eller order, ingen sparad session, sessionen raderas.
+
+**Enkel start för en icke-utvecklare.** Setup en gång hemma (`1-SETUP`), därefter `2-STARTA-GROSSISTAGENT`, välj DEMO eller RIKTIG GROSSIST, Chrome öppnas. Dubbelklicksfiler för Windows (`.bat`) och Mac (`.command`). Ingen git eller terminalkommandon hos floristen. (Skrivna med omsorg men bara testade på Linux.)
+
+**Nyckeln.** Anna skickar den aldrig till mig eller in i repot. Den ligger lokalt (miljövariabel eller en fil i användarmappen utanför repot, rättigheter 0600/0700 på Mac och Linux), skrivs in utan att synas, visas aldrig på kontrollsidan, skrivs aldrig i loggar eller rapporter, skickas aldrig till grossisten, ärvs inte av Chrome, och SDK:ns adress är låst till Anthropic. Filen är oskyddad text. Startskärmen visar "AI ansluten ✓" eller ett tydligt fel efter ett riktigt anrop med samma verktyg och parametrar som uppdragen.
+
+**AI räknar inte.** Priser, förpackningar, överskott och kostnad kommer från vår kod (`purchase.js`). AI:n ser inte priserna i listorna. Kontrollsidan visar bara korta statusrader ("Söker efter …", "Hittade 5 produkter …", "Klart ✓"), aldrig modellens resonemang.
+
+**Kostnadsskydd.** Hårda tak, olika för DEMO och RIKTIG GROSSIST (tabell i `poc/grossistagent/README.md`): modellanrop, verktygsanrop, tokens per uppdrag och session, tid, sidhämtningar, webbläsaranrop och artiklar per uppdrag. När ett tak nås stoppar agenten, och efter ett sessionstak nekar skyddet allt i webbläsaren.
+
+**Öppet.** Ingen riktig modell har körts av mig (ingen nyckel), och inget är provat mot grossistens riktiga butik. Grossistens villkor har inte gått att läsa härifrån. Ingen uttrycklig publik regel som förbjuder testet har hittats, men villkoren är **inte lästa**. Kommersiell eller bestående användning kräver ett eget villkors- och tillståndssteg som försöksversionen inte har.
 
 **De nio frågor PoC:n ska besvara.**
 
@@ -840,12 +854,12 @@ Det som tidigare stod som startvillkor (pilotflorist, grossistens villkor lästa
 
 **Spelregler (hårda gränser, inte önskemål).**
 - Bara ett legitimt, samtyckande kundkonto. Bara **läsning**. Inga skrivande anrop. Ingen varukorg.
-- **Låg volym:** högst ca 100 sidhämtningar per körning, minst ca 2 sekunder mellan dem, inga parallella anrop, ingen genomsökning av hela sortimentet.
+- **Låg volym:** högst 30 sidhämtningar per session i läget RIKTIG GROSSIST (60 i DEMO), minst 2 sekunder mellan dem, inga parallella anrop, ingen genomsökning av hela sortimentet.
 - **Ingen kringgång och ingen döljning:** inga CAPTCHA- eller MFA-försök, ingen förfalskad webbläsaridentitet, inga roterande adresser. Möts vi av CAPTCHA, spärr eller varning **avbryter vi** och rapporterar.
 - **Inga lösenord hos oss.** Floristen skriver sina uppgifter i molnfönstret. Vi läser, sparar och loggar dem aldrig. Ärligt: tangenttrycken passerar webbläsartjänstens infrastruktur medan floristen skriver. Det ska stå i det samtycke hon ger, och hon kan byta lösenord efteråt om hon vill.
 - **Cookies/session** hålls bara krypterat och tillfälligt (högst ett dygn i testet), raderas när testet är slut, och hamnar aldrig i git, loggar eller chatt.
 - **Grossistens data är konfidentiell** (särskilt kundspecifika priser). PoC-resultat **sparas inte i repot.** Vi delar bara struktur (fältnamn, adressmönster) och ett fåtal stickprov som floristen godkänt.
-- **Kostnadstak:** högst 1 timmes webbläsartid totalt (inom gratisnivån), **ingen AI** i PoC:n (extraktionen görs med fasta regler som vi tar fram i undersökningen). Valfritt: engångs AI-stöd för att förstå sidstrukturen, med mätning och tak på 2 USD, och bara på sanerad data.
+- **Kostnadstak:** webbläsaren är lokal och kostar inget. AI-delen är en riktig modell med hårda tak per uppdrag och session (steg, tokens, tid, verktygsanrop, webbläsaranrop, artiklar), se 7.7.1. Högsta tillåtna AI-kostnad per session är ungefär 1,4 USD (RIKTIG GROSSIST) respektive 1,9 USD (DEMO) med Sonnet 5.5, och floristen/Anna sätter dessutom ett tak hos Anthropic. (Ersätter den tidigare skrivningen "ingen AI i PoC:n".)
 - **Isolering:** egen katalog `poc/grossistagent/` och ett *separat* test-Worker. Rör inte `calc()`, `model.js`, `index.html`, `worker.js`, testerna eller PR #9. Driftsätts inte på produktionsadressen.
 
 **Så går inloggningstestet till, utan att något lösenord når mig.**

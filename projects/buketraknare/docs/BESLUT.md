@@ -146,6 +146,27 @@ Annas beslut och korrigering:
 **Mina val (kan ändras):**
 - **Lokal webbläsare i stället för Cloudflare Browser Run.** Cloudflare har enligt paketets typer Live View, överlämning till människa (`Cloudflare.handoff`), `keep_alive` upp till 10 minuter och en domänlista för utgående trafik, men jag kan inte nå deras dokumentation, grossistens sida eller något Cloudflare-konto härifrån, så det går inte att bevisa att det räcker. Dessutom kräver 30 minuter betalplan (gratisnivån uppges vara 10 minuter per dag), webbläsaren har icke-borttagbara signaturrubriker och körs från ett datacenter (risk för spärr eller att kontot flaggas), och Cloudflare-bygget för det här repot är sedan tidigare trasigt. Den lokala vägen går att bevisa härifrån, kostar ingenting för webbläsaren och använder floristens egen dator och adress. Kärnan är oberoende av webbläsarleverantör.
 - **Playwright i stället för Puppeteer.** Testerna visade att Puppeteer inte kan garantera att skyddet sitter på ett popup-fönster innan dess första anrop (ett skrivande anrop nådde servern). Playwright lägger skyddet på hela webbläsarkontexten, och 12 popupförsök släppte igenom noll.
-- **Kryssrutor i programmet** för floristens samtycke och för att villkoren är lästa. Agenten startar inte utan dem.
+- **Kryssrutor i programmet** för floristens samtycke och för att villkoren är lästa. Agenten startar inte utan dem. (**Ersatt 2026-10-08, andra beslutet, se nedan:** en ruta, ny ordalydelse.)
 - **Operatören, inte AI:n, godkänner en nekad POST-sökning,** med exakt värd och sökväg. Mönster som liknar varukorg eller beställning kan aldrig godkännas.
 - **WebSockets nekas** i agentfasen.
+
+## 2026-10-08 (andra beslutet): riktig AI mot en påhittad butik först, enkel start, nyckel bara lokalt, hårda gränser, enklare samtycke
+
+Annas beslut:
+1. **Riktig AI + låtsasbutik först.** Den riktiga Anthropic-modellen styr agenten i den påhittade butiken med exakt samma verktyg och samma skyddslager som senare mot grossisten. Ingen simulerad agentlogik i demon. AI:n räknar inte förpackningar eller priser om vår kod kan göra det. Alla skrivskydd ligger kvar.
+2. **Enkel start:** SETUP en gång hemma, sedan en dubbelklickad startfil som ger valet DEMO eller RIKTIG GROSSIST och öppnar Chrome. Ingen git eller terminal hos floristen.
+3. **API-nyckeln skickas aldrig till mig och finns bara lokalt.** Aldrig på kontrollsidan, i Git, i loggar, hos grossisten eller i någon fil i repot. Vid start visas "AI ansluten ✓" eller ett tydligt fel.
+4. **I demon skriver Anna egna frågor**, och ser bara korta statusrader, inte modellens resonemang.
+5. **Hårda kostnadsgränser** för steg, tokens, webbläsaranrop och sessionstid. Agenten stoppar när en gräns nås.
+6. **Efter demon:** samma kedja mot floristens riktiga konto, första testet med inloggning av floristen själv, agenten pausad efter inloggningen, Anna startar första uppgiften, högst 10–20 artiklar, bara läsning, ingen sparad session, sessionen raderas.
+7. **Samtyckesrutan ersätts** av en ruta med lydelsen: *"Kontoinnehavaren samtycker till detta begränsade read-only-test med sitt eget konto. Testet får inte genomföra köp eller ändra konto/order."* Kommersiell eller bestående användning har kvar ett eget villkors- och tillståndssteg. Hittas en uttrycklig publik regel som förbjuder testet ska jag stoppa och säga det.
+
+**Mina val (kan ändras):**
+- **Nyckeln sparas i en vanlig textfil i användarmappen** (`.grossistagent/anthropic-key.txt`, 0600 på Mac och Linux) när den inte ligger i en miljövariabel. Ett nyckelknippe i operativsystemet vore säkrare men kräver bibliotek per system som jag inte kan testa här. Mildring: ett litet tak hos Anthropic, en egen nyckel för testet, `3-RADERA-NYCKEL` och att nyckeln återkallas efteråt.
+- **SDK:ns adress är låst** (läses aldrig från miljön), och bara Anthropic eller en lokal testserver accepteras, så att nyckeln inte kan skickas någon annanstans av misstag.
+- **Samma modell som tidigare val, `claude-sonnet-5-5`** ($2/$10 per miljon tokens) som standard. Den dyrare modellen ger ungefär dubbel kostnad.
+- **Gränser per läge:** RIKTIG GROSSIST smalare än DEMO (14 steg, 120 000 tokens per uppdrag, 450 000 per session, 30 min, 30 sidhämtningar, 1 500 webbläsaranrop, 20 artiklar per uppdrag, 2 s mellan hämtningar). Tokens räknas när svaret kommit, så taket kan överskridas med ett anrop; programmet stoppar före nästa anrop om det väntas spräcka taket.
+- **Demon kräver inget samtycke** (inget konto används). Rapporten visar läget.
+- **Ingen session utan fungerande AI:** startknapparna är låsta tills AI-kontrollen lyckats.
+
+**Inte gjort och inte bevisat:** ingen riktig modell har körts (jag har ingen nyckel), inget är provat mot grossistens riktiga butik, dubbelklicksfilerna är bara provade på Linux, och grossistens villkor har inte gått att läsa. RIKTIG GROSSIST är därför **inte redo** förrän DEMO har fungerat hos Anna.

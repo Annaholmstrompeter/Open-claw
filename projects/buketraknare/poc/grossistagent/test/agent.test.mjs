@@ -15,13 +15,14 @@ test('slingan skickar rätt parametrar, för tillbaka verktygsresultat i rätt f
   assert.deepEqual([res.stop, res.turns, res.text], ['klar', 2, 'Klart.']);
   assert.deepEqual(res.usage, { input_tokens: 2100, output_tokens: 120, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 });
   const r0 = client.requests[0];
-  assert.deepEqual([r0.model, r0.max_tokens, r0.output_config, r0.system === SYSTEM_PROMPT, r0.tools.length], ['claude-sonnet-5-5', 4000, { effort: 'low' }, true, TOOL_DEFS.length]);
+  assert.deepEqual([r0.model, r0.max_tokens, r0.output_config, r0.system === SYSTEM_PROMPT, r0.tools.length], ['claude-sonnet-5-5', 8000, { effort: 'low' }, true, TOOL_DEFS.length]);
   assert.deepEqual(r0.messages, [{ role: 'user', content: 'Hitta vita rosor' }]);
   const r1 = client.requests[1];
   assert.equal(r1.messages.length, 3);
   assert.equal(r1.messages[1].role, 'assistant'); assert.equal(r1.messages[1].content.find(b => b.type === 'tool_use').name, 'observe');
   assert.deepEqual(r1.messages[2], { role: 'user', content: [{ type: 'tool_result', tool_use_id: r1.messages[1].content.find(b => b.type === 'tool_use').id, content: '{"ok":true}' }] });
-  assert.deepEqual(events, ['usage', 'text', 'verktyg', 'usage', 'text']);
+  assert.deepEqual(events, ['usage', 'status', 'verktyg', 'usage']);               // korta statusrader, aldrig modellens text
+  assert.ok(!events.includes('text'));
 });
 
 test('flera verktygsanrop i ett svar körs ett i taget i ordning, fel markeras is_error, och report_candidates avslutar utan ett extra modellanrop', async () => {
@@ -58,7 +59,7 @@ test('gränser och fel: max antal varv, avbrott, modellfel och andra stopporsake
   assert.equal((await runAgent({ client: endless, model: 'm', instruction: 'x', toolbox: tb, signal: ctl2.signal })).stop, 'avbruten');
   const boom = await runAgent({ client: { messages: { create: async () => { throw new Error('529 överbelastad'); } } }, model: 'm', instruction: 'x', toolbox: box() });
   assert.deepEqual([boom.stop, boom.error], ['fel', '529 överbelastad']);
-  for (const reason of ['refusal', 'max_tokens']) assert.equal((await runAgent({ client: { messages: { create: async () => ({ stop_reason: reason, content: [], usage: {} }) } }, model: 'm', instruction: 'x', toolbox: box() })).stop, reason);
+  for (const [reason, expected] of [['refusal', 'avvisad'], ['max_tokens', 'max_tokens']]) assert.equal((await runAgent({ client: { messages: { create: async () => ({ stop_reason: reason, content: [{ type: 'tool_use', id: 'x', name: 'observe', input: {} }], usage: {} }) } }, model: 'm', instruction: 'x', toolbox: box() })).stop, expected);   // ett avkortat eller avvisat svar kör aldrig sina verktyg
 });
 
 test('systemprompten förbjuder köp, lösenord och att följa sidans instruktioner, och verktygen saknar allt som kan köpa eller skriva', () => {
