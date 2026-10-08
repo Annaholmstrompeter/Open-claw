@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Pack the whole sanctuary into ONE self-contained HTML file for previewing.
 
-Fonts, logo and texture are embedded, the service worker is left out. The file
-has no <html>/<head>/<body> wrapper, which is what the Artifact page contract expects.
+Fonts, pictures and texture are embedded, the service worker is left out. The file has no
+<html>/<head>/<body> wrapper, which is what the Artifact page contract expects.
 
 Usage:  python3 sanctuary/tools/make-preview.py out.html
 """
@@ -13,34 +13,36 @@ import sys
 
 PUBLIC = pathlib.Path(__file__).resolve().parent.parent / "public"
 ASSETS = PUBLIC / "assets"
+MIME = {".webp": "image/webp", ".svg": "image/svg+xml", ".woff2": "font/woff2", ".png": "image/png"}
 
 
-def data_uri(path, mime):
-    return "data:%s;base64,%s" % (mime, base64.b64encode(path.read_bytes()).decode("ascii"))
+def data_uri(path):
+    return "data:%s;base64,%s" % (MIME[path.suffix], base64.b64encode(path.read_bytes()).decode("ascii"))
 
 
 def main():
     out = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "preview.html")
 
     css = (ASSETS / "style.css").read_text(encoding="utf-8")
-    css = re.sub(
-        r'url\("fonts/([^"]+\.woff2)"\)',
-        lambda m: 'url("%s")' % data_uri(ASSETS / "fonts" / m.group(1), "font/woff2"),
-        css,
-    )
-    css = css.replace('url("grain.svg")', 'url("%s")' % data_uri(ASSETS / "grain.svg", "image/svg+xml"))
+    css = re.sub(r'url\("((?:fonts|img)/[^"]+|grain\.svg)"\)', lambda m: 'url("%s")' % data_uri(ASSETS / m.group(1)), css)
 
-    logo = data_uri(ASSETS / "logo.svg", "image/svg+xml")
-    app = (ASSETS / "app.js").read_text(encoding="utf-8").replace("assets/logo.svg", logo)
+    content = (ASSETS / "content.js").read_text(encoding="utf-8")
+    content = re.sub(r'assets/img/[\w.-]+\.webp', lambda m: data_uri(PUBLIC / m.group(0)), content)
+
+    app = (ASSETS / "app.js").read_text(encoding="utf-8")
     app = re.sub(r"/\* ——— offline support.*?\n  \}\n", "", app, flags=re.S)  # no service worker in a preview
+
+    # the page body of index.html (without <script> tags and the file wrapper)
+    html = (PUBLIC / "index.html").read_text(encoding="utf-8")
+    body = re.search(r"<body>(.*)</body>", html, re.S).group(1)
+    body = re.sub(r"\s*<script[^>]*></script>", "", body)
+    body = body.replace("assets/img/logo.webp", data_uri(ASSETS / "img/logo.webp"))
 
     page = (
         "<title>Body Mind Earth Sanctuary</title>\n"
         "<style>\n" + css + "\n</style>\n"
-        '<header class="top"><a id="nav-back" class="nav-back" href="#/rituals" hidden></a></header>\n'
-        '<main id="stage" tabindex="-1"></main>\n'
-        "<script>\n" + (ASSETS / "content.js").read_text(encoding="utf-8") + "\n</script>\n"
-        "<script>\n" + (ASSETS / "art.js").read_text(encoding="utf-8") + "\n</script>\n"
+        + body.strip() + "\n"
+        "<script>\n" + content + "\n</script>\n"
         "<script>\n" + app + "\n</script>\n"
     )
     out.write_text(page, encoding="utf-8")

@@ -14,6 +14,7 @@ Those notes themselves are never shown.
 
 Usage:  python3 sanctuary/tools/build-content.py
 """
+import hashlib
 import json
 import math
 import pathlib
@@ -135,6 +136,28 @@ def to_screens(sections, affirmation):
     return screens
 
 
+def refresh_service_worker():
+    """Keep the offline file list and the cache version in public/sw.js in step with the site."""
+    public = ROOT / "public"
+    skip = {"sw.js", "_headers", "robots.txt"}
+    files = sorted(
+        f.relative_to(public).as_posix()
+        for f in public.rglob("*")
+        if f.is_file() and f.name not in skip and not f.name.startswith("OFL-")
+    )
+    digest = hashlib.sha1()
+    for name in files:
+        digest.update(name.encode())
+        digest.update((public / name).read_bytes())
+    version = "bme-sanctuary-" + digest.hexdigest()[:10]
+    sw = (public / "sw.js").read_text(encoding="utf-8")
+    sw = re.sub(r"var VERSION = '[^']*';", "var VERSION = '%s';" % version, sw)
+    listing = "var FILES = [\n  './',\n" + ",\n".join("  '%s'" % f for f in files) + "\n];"
+    sw = re.sub(r"var FILES = \[.*?\];", lambda m: listing, sw, flags=re.S)
+    (public / "sw.js").write_text(sw, encoding="utf-8")
+    print("offline cache %s: %d files" % (version, len(files)))
+
+
 def main():
     scripts = parse_manuscript(SRC.read_text(encoding="utf-8"))
     products = json.loads(PRODUCTS.read_text(encoding="utf-8"))
@@ -157,10 +180,16 @@ def main():
         if key not in scripts:
             problems.append("no meditation text found for " + key)
             continue
-        p = dict(p, title=p["title"].replace(" – ", " — "))  # one kind of dash, nothing else touched
         r = {k: p[k] for k in (
-            "id", "num", "color", "title", "kind", "scent", "with", "tone", "lede", "rows",
-            "affirmation", "formula", "essentials", "badges", "inci")}
+            "id", "num", "color", "kind", "scent", "tone", "with", "size", "rows", "affirmation",
+            "formula", "actives", "vegan", "ingredients", "natural", "labCreated", "footnote", "species")}
+        # pictures taken from the label (tools/extract-label-art.py); a missing one is a problem, not a surprise
+        r["img"] = {}
+        for part in ("botanical", "waves", "species"):
+            rel = "assets/img/%s-%s.webp" % (p["id"], part)
+            if not (ROOT / "public" / rel).exists():
+                problems.append("missing picture " + rel)
+            r["img"][part] = rel
         for mode in ("short", "extended"):
             secs = scripts[key][mode]
             if not secs:
@@ -174,7 +203,13 @@ def main():
         print("\n".join("PROBLEM: " + x for x in problems), file=sys.stderr)
         sys.exit(1)
 
-    data = {"intro": intro, "rituals": rituals}
+    if not (ROOT / "public/assets/img/logo.webp").exists():
+        problems.append("missing picture assets/img/logo.webp")
+    if problems:
+        print("\n".join("PROBLEM: " + x for x in problems), file=sys.stderr)
+        sys.exit(1)
+
+    data = {"intro": intro, "logo": "assets/img/logo.webp", "rituals": rituals}
     body = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
     body = body.replace('{"id":', '\n{"id":')  # one ritual per line, easier to diff
     OUT.write_text(
@@ -183,6 +218,7 @@ def main():
         "window.SANCTUARY = " + body + ";\n",
         encoding="utf-8",
     )
+    refresh_service_worker()
     for r in rituals:
         print("%-10s short: %2d screens   extended: %2d screens" % (r["id"], len(r["short"]), len(r["extended"])))
     print("wrote", OUT.relative_to(ROOT.parent))

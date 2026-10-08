@@ -1,26 +1,27 @@
 /*
  * Body Mind Earth — Sensory Ritual
  * A deliberately small router. No dependencies, no network calls, no tracking, nothing stored.
- * All words come from content.js (generated from Anna's own texts, see tools/build-content.py).
+ * All words come from content.js (generated from the labels and Anna's own manuscripts,
+ * see tools/build-content.py); all pictures come from the labels (tools/extract-label-art.py).
  *
  * Routes (hash based, so the browser's back button always works):
  *   #/                      welcome
- *   #/rituals               the five rituals
- *   #/r/<id>                a ritual: its scent, touch and feel, affirmation and ingredients
+ *   #/rituals               choose your ritual
+ *   #/r/<id>                a ritual: the product, its affirmation, ingredients
  *   #/r/<id>/s/<n>          short meditation, screen n      (/e/<n> = extended)
  *   #/r/<id>/s/<N+1>        the quiet ending
  *   #/about                 Sensory Enrichment
- *   #/close                 closing — back to the sanctuary
+ *   #/close                 closing: back to the sanctuary
  */
 (function () {
   'use strict';
 
   var DATA = window.SANCTUARY;
-  var ART = window.SANCTUARY_ART;
   var stage = document.getElementById('stage');
-  var backLink = document.getElementById('nav-back');
+  var menu = document.getElementById('menu');
+  var menuBtn = document.getElementById('menu-btn');
   var themeMeta = document.querySelector('meta[name="theme-color"]');
-  var SAND = '#efe6d6';
+  var PAPER = '#fff7e9';
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Interface words only. Everything the guest reads about the products or the rituals is in content.js.
@@ -29,23 +30,21 @@
     sub: 'Sensory Ritual',
     tagline: 'Your sanctuary,|wherever you are.',
     footline: 'Rituals for a more present you',
-    enter: 'Enter',
-    ritualsTitle: 'Five rituals',
+    begin: 'Begin your experience',
+    chooseTitle: 'Choose your ritual',
     aboutLink: 'About Sensory Enrichment',
     aboutEyebrow: 'Sensory Enrichment',
     closeLink: 'Close your visit',
-    navRituals: 'Rituals',
-    begin: 'Begin the ritual',
+    shortRitual: 'Short ritual',
     extended: 'Extended ritual',
     cont: 'Continue',
     back: 'Back',
-    scent: 'The Scent',
-    touch: 'The Touch',
-    feel: 'The Feel',
-    formula: 'Our Formula',
-    essentials: 'Advanced Essentials',
-    ingredients: 'Ingredients (INCI)',
+    formulaTitle: 'Formula',
+    activesTitle: 'Actives',
+    vegan: 'Vegan formula',
+    ingredientsTitle: 'Ingredients',
     ingredientsSummary: 'Formula & ingredients',
+    reminder: 'A reminder of the world we share',
     breathBegin: 'Begin breathing',
     breathPause: 'Pause',
     breathAgain: 'Breathe again',
@@ -67,8 +66,17 @@
   function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
   // Escapes text for display; a dash never starts a line (it stays with the word before it).
   function esc(s) {
-    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/ \u2014 /g, '\u00A0\u2014 ');
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/ — /g, ' — ');
   }
+  function img(src, cls, alt) {
+    return '<img' + (cls ? ' class="' + cls + '"' : '') + ' src="' + src + '" alt="' + (alt || '') + '" decoding="async">';
+  }
+  function logo(cls) { return img(DATA.logo, cls || 'mark'); }
+  function arrow() {
+    return '<svg class="arr" viewBox="0 0 24 12" aria-hidden="true"><path d="M1 6h21M17 1l5 5-5 5"/></svg>';
+  }
+  // "Body Mind Earth" with the three gold letters of the label wordmark.
+  function wordmark() { return 'B<i>O</i>DY MI<i>N</i>D <i>E</i>ARTH'; }
 
   function ritualById(id) {
     for (var i = 0; i < DATA.rituals.length; i++) if (DATA.rituals[i].id === id) return DATA.rituals[i];
@@ -141,7 +149,7 @@
     bindInstall();
   });
   function installButton() {
-    return installEvent ? '<button class="btn" type="button" data-install-btn>' + UI.install + '</button>' : '';
+    return installEvent ? '<button class="btn ghost" type="button" data-install-btn>' + UI.install + '</button>' : '';
   }
   function bindInstall() {
     var b = stage.querySelector('[data-install-btn]');
@@ -159,40 +167,66 @@
     return /iphone|ipad|ipod/i.test(navigator.userAgent) && !isStandalone();
   }
 
-  /* ——— screens ——— */
-  function arrowBack() {
-    return '<svg viewBox="0 0 9 14" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M8 1 2 7l6 6"/></svg>';
+  /* ——— the menu: three places, nothing else ——— */
+  function setMenu(open) {
+    menu.hidden = !open;
+    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) {
+      var first = menu.querySelector('a');
+      if (first) first.focus();
+    } else {
+      menuBtn.focus({ preventScroll: true });
+    }
   }
+  menuBtn.addEventListener('click', function () { setMenu(menu.hidden); });
+  document.getElementById('menu-close').addEventListener('click', function () { setMenu(false); });
+  window.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !menu.hidden) setMenu(false);
+  });
+
+  /* ——— screens ———
+     Each returns { title, kind, html, theme?, ... }. 'kind' drives the look (see style.css):
+     welcome, list, intro (colour hero on cream), med and end (full colour ground), about, close. */
+
+  function photo() { return '<div class="photo" aria-hidden="true"></div>'; }
 
   function welcome() {
     return {
       title: UI.brand + ' — ' + UI.sub,
+      kind: 'welcome',
       html:
         '<section class="screen welcome">' +
-        '<img class="mark" src="assets/logo.svg" alt="">' +
-        '<p class="brand"><span class="brand-name">' + UI.brand + '</span><br><span class="brand-sub">' + UI.sub + '</span></p>' +
-        '<div class="rule" aria-hidden="true"></div>' +
+        photo() +
+        '<div class="welcome-head">' + logo('mark') +
+        '<p class="brand-name">' + wordmark() + '</p><p class="brand-sub">' + UI.sub + '</p></div>' +
+        '<div class="welcome-body">' +
         '<h1 class="tagline">' + br(UI.tagline) + '</h1>' +
-        '<a class="btn" href="#/rituals">' + UI.enter + '</a>' +
-        '<p class="small-caps footline">' + UI.footline + '</p>' +
-        '</section>'
+        '<div class="rule" aria-hidden="true"></div>' +
+        '<p class="text">' + UI.footline + '</p>' +
+        '<a class="btn primary" href="#/rituals"><span>' + UI.begin + '</span>' + arrow() + '</a>' +
+        '</div></section>'
     };
   }
 
   function rituals() {
     var tiles = DATA.rituals.map(function (r) {
       return '<li><a class="tile" data-c="' + r.id + '" href="#/r/' + r.id + '">' +
-        '<span class="art" aria-hidden="true">' + ART[r.id] + '</span>' +
-        '<span class="num">' + r.num + '</span>' +
+        img(r.img.botanical, 'tile-art') +
+        '<span class="tile-text">' +
         '<span class="name">' + r.id + '</span>' +
-        '<span class="kind">' + esc(r.kind) + ' · ' + esc(r.scent) + '</span></a></li>';
+        '<span class="kind">' + esc(r.kind) + '</span>' +
+        '<span class="kind">' + esc(r.scent) + '</span>' +
+        '</span>' +
+        '<svg class="chev" viewBox="0 0 10 18" aria-hidden="true"><path d="M1 1l8 8-8 8"/></svg>' +
+        '</a></li>';
     }).join('');
     return {
-      title: UI.ritualsTitle + ' — ' + UI.brand,
+      title: UI.chooseTitle + ' — ' + UI.brand,
+      kind: 'list',
       html:
         '<section class="screen top-aligned">' +
-        '<p class="eyebrow">' + UI.sub + '</p>' +
-        '<h1 class="title">' + UI.ritualsTitle + '</h1>' +
+        '<h1 class="title caps">' + UI.chooseTitle + '</h1>' +
+        '<p class="text sub-title">' + UI.footline + '</p>' +
         '<ul class="ritual-list">' + tiles + '</ul>' +
         '<nav class="quiet">' +
         '<a href="#/about"><span>' + UI.aboutLink + '</span></a>' +
@@ -201,36 +235,61 @@
     };
   }
 
+  // The cream middle panel of the label: formula, actives, ingredients, origin.
+  function labelCard(r) {
+    var actives = r.actives
+      ? '<h3>' + UI.activesTitle + '</h3><p>' + r.actives.map(esc).join(' · ') + '</p>'
+      : '';
+    return '<div class="label-card">' +
+      '<h3>' + UI.formulaTitle + '</h3><p>' + esc(r.formula) + '</p>' +
+      actives +
+      (r.vegan ? '<p class="vegan">' + UI.vegan + '</p>' : '') +
+      '<h4>' + UI.ingredientsTitle + '</h4><p class="inci">' + esc(r.ingredients) + '</p>' +
+      '<p class="origin">' + esc(r.natural) + '</p>' +
+      (r.labCreated ? '<p class="lab">' + esc(r.labCreated) + '</p>' : '') +
+      (r.footnote ? '<p class="foot">' + esc(r.footnote) + '</p>' : '') +
+      '</div>';
+  }
+
+  // "A reminder of the world we share": the species engraved on the label.
+  function speciesCard(r) {
+    var sp = r.species;
+    return '<aside class="species">' +
+      '<div class="sp-body">' +
+      '<div class="sp-text"><p class="sp-name">' + esc(sp.name) + '</p><p class="sp-latin">' + esc(sp.latin) + '</p>' +
+      '<p class="sp-note">' + sp.note.map(esc).join('<br>') + '</p></div>' +
+      img(r.img.species, 'sp-art') +
+      '</div>' +
+      '<p class="reminder">' + UI.reminder + '</p>' +
+      '</aside>';
+  }
+
   function ritualIntro(r) {
-    var rows =
-      '<div><dt>' + UI.scent + '</dt><dd>' + esc(r.rows.scent) + '</dd></div>' +
-      '<div><dt>' + UI.touch + '</dt><dd>' + esc(r.rows.touch) + '</dd></div>' +
-      '<div><dt>' + UI.feel + '</dt><dd>' + esc(r.rows.feel) + '</dd></div>';
-    var badges = r.badges.map(function (b) { return '<li>' + esc(b) + '</li>'; }).join('');
-    var details =
-      '<details class="formula"><summary>' + UI.ingredientsSummary + '</summary>' +
-      '<h2>' + UI.formula + '</h2><p>' + esc(r.formula) + '</p>' +
-      (r.essentials ? '<h2>' + UI.essentials + '</h2><p>' + esc(r.essentials) + '</p>' : '') +
-      '<ul class="badges">' + badges + '</ul>' +
-      '<h2>' + UI.ingredients + '</h2><p class="inci">' + esc(r.inci) + '</p></details>';
+    // the three ritual lines of the label, read as one short passage
+    var prose = [r.rows.scent, r.rows.touch, r.rows.feel].map(esc).join(' ');
     return {
       title: cap(r.id) + ' — ' + UI.brand,
+      kind: 'intro',
       theme: r,
-      back: true,
       html:
         '<section class="screen intro">' +
-        '<div class="ritual-art" aria-hidden="true">' + ART[r.id] + '</div>' +
-        '<p class="eyebrow">' + r.num + ' · ' + esc(r.kind) + ' · ' + esc(r.scent) + '</p>' +
+        '<div class="hero on-colour">' +
+        img(r.img.botanical, 'hero-art') +
+        '<p class="eyebrow">' + UI.sub + '</p>' +
         '<h1 class="display">' + r.id + '</h1>' +
-        '<p class="product">' + esc(r.title) + '</p>' +
-        '<dl class="rows">' + rows + '</dl>' +
-        '<p class="aff-line">' + esc(r.affirmation) + '</p>' +
-        '<div class="actions">' +
-        '<a class="btn primary" href="#/r/' + r.id + '/s/1">' + UI.begin + '</a>' +
-        '<a class="linkish" href="#/r/' + r.id + '/e/1"><span>' + UI.extended + '</span></a>' +
+        '<p class="product-line">' + esc(r.kind) + ' · ' + esc(r.scent) + '</p>' +
+        logo('mark small') +
+        '<p class="aff-caps">' + esc(r.affirmation) + '</p>' +
         '</div>' +
-        details +
-        '</section>'
+        '<div class="intro-body">' +
+        '<p class="prose">' + prose + '</p>' +
+        '<p class="with">' + esc(r.tone) + ' · with ' + r.with.map(esc).join(' · ') + '</p>' +
+        '<div class="actions">' +
+        '<a class="btn primary" href="#/r/' + r.id + '/s/1"><span>' + UI.shortRitual + '</span>' + arrow() + '</a>' +
+        '<a class="btn ghost" href="#/r/' + r.id + '/e/1"><span>' + UI.extended + '</span></a>' +
+        '</div>' +
+        '<details class="formula"><summary>' + UI.ingredientsSummary + '</summary>' + labelCard(r) + '</details>' +
+        '</div></section>'
     };
   }
 
@@ -240,28 +299,30 @@
     var s = screens[n - 1];
     var base = '#/r/' + r.id + '/' + mode + '/';
     var prev = n === 1 ? '#/r/' + r.id : base + (n - 1);
+    var seenAff = false;
     var lines = s.l.map(function (l) {
-      return l.indexOf('§ ') === 0
-        ? '<p class="line aff">' + esc(l.slice(2)) + '</p>'
-        : '<p class="line">' + esc(l) + '</p>';
+      if (l.indexOf('§ ') !== 0) return '<p class="line">' + esc(l) + '</p>';
+      var mark = seenAff ? '' : logo('mark small aff-mark');
+      seenAff = true;
+      return mark + '<p class="line aff">' + esc(l.slice(2)) + '</p>';
     }).join('');
     var breathHtml = s.b
       ? '<div class="breath"><div class="orb-ring"><div class="orb"></div></div>' +
         '<p class="breath-label" aria-live="polite"></p>' +
-        '<button class="btn" type="button" data-breath aria-pressed="false">' + UI.breathBegin + '</button></div>'
+        '<button class="btn ghost" type="button" data-breath aria-pressed="false">' + UI.breathBegin + '</button></div>'
       : '';
     return {
       title: cap(r.id) + ' — ' + UI.brand,
+      kind: 'med',
       theme: r,
-      back: true,
       html:
         '<section class="screen med">' +
-        '<p class="eyebrow">' + r.id + ' · ' + (mode === 'e' ? UI.extended : 'Short ritual') + '</p>' +
+        '<p class="eyebrow">' + r.id + ' · ' + (mode === 'e' ? UI.extended : UI.shortRitual) + '</p>' +
         '<progress class="prog" max="' + total + '" value="' + n + '" aria-label="' + n + ' / ' + total + '"></progress>' +
         '<div class="lines">' + lines + '</div>' +
         breathHtml +
         '<nav class="steps-nav">' +
-        '<a class="btn primary" data-next href="' + base + (n + 1) + '">' + UI.cont + '</a>' +
+        '<a class="btn primary" data-next href="' + base + (n + 1) + '"><span>' + UI.cont + '</span>' + arrow() + '</a>' +
         '<a class="linkish" data-prev href="' + prev + '"><span>' + UI.back + '</span></a>' +
         '</nav></section>'
     };
@@ -275,15 +336,18 @@
       : '';
     return {
       title: cap(r.id) + ' — ' + UI.brand,
+      kind: 'end',
       theme: r,
-      back: true,
       html:
         '<section class="screen end">' +
-        '<div class="ritual-art small" aria-hidden="true">' + ART[r.id] + '</div>' +
+        logo('mark small') +
         '<h1 class="affirmation">' + esc(r.affirmation) + '</h1>' +
         '<div class="rule" aria-hidden="true"></div>' +
-        '<a class="btn primary" href="#/rituals">' + UI.returnRituals + '</a>' +
+        speciesCard(r) +
+        '<div class="actions">' +
+        '<a class="btn primary" href="#/rituals"><span>' + UI.returnRituals + '</span>' + arrow() + '</a>' +
         '<nav class="quiet"><a href="#/r/' + next.id + '"><span>' + UI.nextRitual + ': ' + cap(next.id) + '</span></a>' + other + '</nav>' +
+        '</div>' +
         '</section>'
     };
   }
@@ -292,16 +356,22 @@
     var paras = DATA.intro.slice(1).map(function (p, i, all) {
       return '<p class="text' + (i === all.length - 1 ? ' big' : '') + '">' + esc(p) + '</p>';
     }).join('');
+    var species = DATA.rituals.map(function (r) {
+      return img(r.img.species, 'sp-mini', r.species.name);
+    }).join('');
     return {
       title: UI.aboutEyebrow + ' — ' + UI.brand,
-      back: true,
+      kind: 'about',
       html:
         '<section class="screen about top-aligned">' +
         '<p class="eyebrow">' + UI.aboutEyebrow + '</p>' +
-        '<h1 class="title">' + esc(DATA.intro[0]) + '</h1>' +
-        paras +
+        '<h1 class="title caps">' + esc(DATA.intro[0]) + '</h1>' +
         '<div class="rule" aria-hidden="true"></div>' +
-        '<a class="btn primary" href="#/rituals">' + UI.returnRituals + '</a>' +
+        paras +
+        '<div class="reminder-row" role="group" aria-label="' + UI.reminder + '">' +
+        '<div class="sp-row">' + species + '</div>' +
+        '<p class="reminder">' + UI.reminder + '</p></div>' +
+        '<a class="btn primary" href="#/rituals"><span>' + UI.returnRituals + '</span>' + arrow() + '</a>' +
         '<h2>' + UI.privacyTitle + '</h2>' +
         '<p class="text fine">' + UI.privacy + '</p>' +
         /* CONTACT (optional): when a contact address is decided, add it here, e.g.
@@ -313,20 +383,22 @@
   function closing() {
     return {
       title: plain(UI.closeTitle) + ' — ' + UI.brand,
-      back: true,
+      kind: 'close',
       html:
         '<section class="screen closing">' +
-        '<img class="mark" src="assets/logo.svg" alt="">' +
+        photo() +
+        '<div class="welcome-head">' + logo('mark') + '</div>' +
+        '<div class="welcome-body">' +
         '<h1 class="tagline">' + br(UI.closeTitle) + '</h1>' +
         '<div class="rule" aria-hidden="true"></div>' +
         '<p class="text">' + UI.closeText + '</p>' +
         '<div class="actions">' +
-        '<a class="btn primary" href="#/rituals">' + UI.returnRituals + '</a>' +
+        '<a class="btn primary" href="#/rituals"><span>' + UI.returnRituals + '</span>' + arrow() + '</a>' +
         '<div data-install>' + installButton() + '</div>' +
         (isIOS() ? '<p class="install-hint">' + UI.iosHint + '</p>' : '') +
         '</div>' +
-        '<p class="small-caps footline">' + UI.brand + ' · ' + UI.sub + '</p>' +
-        '</section>'
+        '<p class="small-caps footline">' + wordmark() + '</p>' +
+        '</div></section>'
     };
   }
 
@@ -355,21 +427,28 @@
     stopBreath();
     var page = resolve();
     var root = document.documentElement;
+    var coloured = page.kind === 'med' || page.kind === 'end';
     if (page.theme) {
       root.setAttribute('data-c', page.theme.id);
-      if (themeMeta) themeMeta.setAttribute('content', page.theme.color);
+      if (themeMeta) themeMeta.setAttribute('content', page.kind === 'intro' || coloured ? page.theme.color : PAPER);
     } else {
       root.removeAttribute('data-c');
-      if (themeMeta) themeMeta.setAttribute('content', SAND);
+      if (themeMeta) themeMeta.setAttribute('content', PAPER);
     }
+    root.setAttribute('data-page', page.kind);
+    if (coloured) root.setAttribute('data-ground', ''); else root.removeAttribute('data-ground');
     document.title = page.title;
     stage.innerHTML = page.html;
-    backLink.hidden = !page.back;
-    if (page.back) backLink.innerHTML = arrowBack() + '<span>' + UI.navRituals + '</span>';
+    setMenuClosed();
     window.scrollTo(0, 0);
     try { stage.focus({ preventScroll: true }); } catch (e) { stage.focus(); }
     bindBreath();
     bindInstall();
+  }
+
+  function setMenuClosed() {
+    menu.hidden = true;
+    menuBtn.setAttribute('aria-expanded', 'false');
   }
 
   // The route lives in memory and is mirrored to the address bar, so navigation also works
@@ -385,7 +464,7 @@
   }
 
   function show() {
-    if (route === shown) return;
+    if (route === shown) { setMenuClosed(); return; }
     var firstDraw = shown === null;
     shown = route;
     clearTimeout(swapTimer);
@@ -393,6 +472,7 @@
       draw();
       return;
     }
+    setMenuClosed();
     stage.classList.add('leaving');
     swapTimer = setTimeout(function () {
       draw();

@@ -1,5 +1,6 @@
 /* Body Mind Earth — Sensory Ritual
-   Calm by construction: warm sand, gold line work, one colour world per ritual. */
+   The look of the labels and the box: label cream, the five label colours with their botanical
+   engravings and flowing line ornament, gold, and quiet serif type. */
 
 @font-face { font-family: "Cormorant Garamond"; font-style: normal; font-weight: 300; font-display: swap; src: url("fonts/cormorant-garamond-latin-300-normal.woff2") format("woff2"); }
 @font-face { font-family: "Cormorant Garamond"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/cormorant-garamond-latin-400-normal.woff2") format("woff2"); }
@@ -12,47 +13,53 @@
 :root {
   --serif: "Cormorant Garamond", "Cormorant", Georgia, "Times New Roman", serif;
   --sans: "Jost", "Futura", "Century Gothic", "Avenir Next", system-ui, sans-serif;
+  --label-serif: "Times New Roman", Times, "Liberation Serif", Georgia, serif; /* the small print on the labels */
   --ease: cubic-bezier(.22, .61, .36, 1);
+  --panel: 30rem; /* width of the "label" on large screens */
 
-  --sand: #efe6d6;
-  --cream: #f8f2e6;
-  --gold: #b08a3e;
+  --paper: #fff7e9;   /* the cream middle panel of the labels */
+  --cream: #fffdf8;   /* text on the coloured grounds (printed white on the labels) */
+  --gold: #d4af37;
+  --btn-gold: linear-gradient(105deg, #b79b3a 0%, #94782a 58%, #a88b30 100%);
 
-  /* Light (sand) theme — the default */
-  --bg: var(--sand);
-  --ink: #3a3024;
-  --soft: #5e5240;
-  --accent: #7a5c1a;
-  --line: rgba(176, 138, 62, .6);
-  --on-accent: #fbf6ea;
+  /* Cream pages: the default */
+  --bg: var(--paper);
+  --bg-outer: var(--bg);
+  --ink: #33291d;
+  --soft: #5c503e;
+  --accent: #8a6c1a;
+  --eyebrow: var(--accent);
+  --line: rgba(160, 125, 40, .55);
+  --line-strong: rgba(51, 41, 29, .5);
 }
 
-/* Ritual colour worlds — each sets --c, used by the page background and by its tile */
-[data-c="balance"]   { --c: #59672f; }
-[data-c="luminance"] { --c: #a4522e; }
-[data-c="kindness"]  { --c: #68395a; }
-[data-c="serenity"]  { --c: #5f6549; }
-[data-c="presence"]  { --c: #9c3f63; }
+/* The five colour worlds: the exact ground colour of each label, and its line ornament */
+[data-c="balance"]   { --c: #7b8741; --waves: url("img/balance-waves.webp"); }
+[data-c="luminance"] { --c: #b87950; --waves: url("img/luminance-waves.webp"); }
+[data-c="kindness"]  { --c: #773d4d; --waves: url("img/kindness-waves.webp"); }
+[data-c="serenity"]  { --c: #8a6d55; --waves: url("img/serenity-waves.webp"); }
+[data-c="presence"]  { --c: #ad536a; --waves: url("img/presence-waves.webp"); }
 
-/* Inside a ritual the page turns to that colour, with cream text and pale gold */
-html[data-c] {
-  --bg: var(--c);
+/* Anything that sits on a label colour: white text, gold accents */
+.on-colour, .tile, html[data-ground] {
   --ink: var(--cream);
-  --soft: rgba(248, 242, 230, .9);
-  --accent: #ecd292;
-  --line: rgba(236, 210, 146, .6);
-  --on-accent: #2a2116;
+  --soft: rgba(255, 253, 248, .93);
+  --accent: #ebc94f;
+  --eyebrow: var(--ink);
+  --line: rgba(235, 201, 79, .7);
+  --line-strong: rgba(255, 253, 248, .7);
 }
+html[data-ground] { --bg: var(--c); --bg-outer: var(--c); }
+.on-colour, .tile { color: var(--ink); }
 
 *, *::before, *::after { box-sizing: border-box; }
-
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 body {
   margin: 0;
   min-height: 100vh;
   min-height: 100svh;
-  background-color: var(--bg);
+  background-color: var(--bg-outer);
   color: var(--ink);
   font-family: var(--serif);
   font-size: 1.25rem;
@@ -68,23 +75,16 @@ body::before {
   content: "";
   position: fixed;
   inset: -12%;
-  z-index: -1;
+  z-index: -2;
   pointer-events: none;
   background:
-    radial-gradient(60% 46% at 18% 0%, rgba(255, 246, 224, .55), transparent 70%),
-    radial-gradient(50% 40% at 100% 38%, rgba(255, 240, 210, .22), transparent 70%),
-    linear-gradient(to bottom, transparent 45%, rgba(40, 28, 10, .10));
-  animation: drift 26s ease-in-out infinite alternate;
+    radial-gradient(60% 46% at 18% 0%, rgba(255, 250, 235, .6), transparent 70%),
+    linear-gradient(to bottom, transparent 55%, rgba(120, 90, 40, .07));
 }
-html[data-c] body::before {
+html[data-ground] body::before {
   background:
-    radial-gradient(60% 46% at 18% 0%, rgba(255, 244, 220, .20), transparent 70%),
-    radial-gradient(50% 40% at 100% 40%, rgba(255, 244, 220, .08), transparent 70%),
-    linear-gradient(to bottom, transparent 40%, rgba(0, 0, 0, .20));
-}
-@keyframes drift {
-  from { transform: translate3d(-2%, 0, 0); }
-  to   { transform: translate3d(2%, 1.5%, 0); }
+    radial-gradient(60% 46% at 18% 0%, rgba(255, 244, 220, .07), transparent 70%),
+    linear-gradient(to bottom, transparent 55%, rgba(0, 0, 0, .13));
 }
 
 /* A whisper of paper grain */
@@ -95,53 +95,116 @@ body::after {
   z-index: 50;
   pointer-events: none;
   background: url("grain.svg");
-  opacity: .06;
+  opacity: .05;
 }
 
 img { display: block; max-width: 100%; }
 a { color: inherit; }
 button { font: inherit; color: inherit; }
-
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 #stage:focus { outline: none; }
 
+/* ——— The label itself, as a panel behind the content ——— */
+.panel-bg, .waves { position: fixed; top: 0; bottom: 0; pointer-events: none; }
+.panel-bg {
+  display: none;
+  z-index: -3;
+  left: 50%;
+  width: var(--panel);
+  margin-left: calc(var(--panel) / -2);
+  background: var(--bg);
+  box-shadow: 0 0 90px rgba(60, 40, 10, .22);
+  transition: background-color 1.1s var(--ease);
+}
+.waves {
+  z-index: -1;
+  right: max(0px, calc((100vw - var(--panel)) / 2));
+  width: min(100vw, var(--panel));
+  background: var(--waves) right top / cover no-repeat;
+  opacity: 0;
+  transition: opacity 1.2s var(--ease);
+}
+html[data-ground] .waves { opacity: 1; }
+html[data-page="med"] .waves { opacity: .5; }
+html[data-page="list"] .waves, html[data-page="about"] .waves {
+  background-image: url("img/waves-gold.webp");
+  opacity: .3;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 30%, transparent 75%);
+  mask-image: linear-gradient(to bottom, #000 0, #000 30%, transparent 75%);
+}
+@media (min-width: 720px) {
+  :root { --bg-outer: #e9dfca; }
+  html[data-ground] { --bg-outer: color-mix(in srgb, var(--c) 66%, #1a1109); }
+  .panel-bg { display: block; }
+}
+
 /* ——— Top bar ——— */
 .top {
-  position: fixed;
-  top: 0; left: 0; right: 0;
+  position: absolute;
+  top: 0;
+  left: 50%;
   z-index: 10;
+  width: min(100%, var(--panel));
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: calc(env(safe-area-inset-top) + 12px) max(20px, env(safe-area-inset-right)) 12px max(20px, env(safe-area-inset-left));
-  font-family: var(--sans);
-  font-size: .72rem;
-  letter-spacing: .26em;
+  padding: calc(env(safe-area-inset-top) + 8px) 8px 8px 18px;
+  color: var(--ink);
+}
+html[data-page="intro"] .top { color: var(--cream); }
+html[data-page="welcome"] .head-brand, html[data-page="close"] .head-brand { visibility: hidden; }
+.head-brand {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: .78rem;
+  letter-spacing: .3em;
   text-transform: uppercase;
 }
-.nav-back {
-  display: inline-flex;
-  align-items: center;
-  gap: .6em;
-  min-height: 44px;
-  text-decoration: none;
-  color: var(--soft);
-  transition: color .4s;
+.head-brand i, .brand-name i, .footline i { font-style: normal; color: #cfa42a; }
+html[data-ground] .head-brand i, html[data-page="intro"] .head-brand i { color: #f4d874; }
+.head-logo { width: 2.1rem; height: 2.1rem; }
+.menu-btn, .menu-close {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: inherit;
 }
-.nav-back[hidden] { display: none; }
-.nav-back svg { width: 9px; height: 14px; flex: none; }
-.nav-back:hover { color: var(--accent); }
+.menu-btn svg, .menu-close svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; }
+
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .8rem;
+  background: var(--paper);
+  color: #33291d;
+}
+.menu[hidden] { display: none; }
+.menu a { padding: .6rem 1rem; font-weight: 500; font-size: 1.55rem; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; }
+.menu a:hover, .menu a:focus-visible { color: #8a6c1a; }
+.menu-close { position: absolute; top: calc(env(safe-area-inset-top) + 8px); right: 8px; }
 
 /* ——— Stage and screens ——— */
-#stage {
-  transition: opacity .3s ease, transform .3s ease;
-}
+#stage { transition: opacity .3s ease, transform .3s ease; }
 #stage.leaving { opacity: 0; transform: translateY(-6px); }
 
 .screen {
   min-height: 100vh;
   min-height: 100svh;
-  max-width: 36rem;
+  max-width: var(--panel);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -160,97 +223,76 @@ button { font: inherit; color: inherit; }
 .screen > *:nth-child(6) { animation-delay: .6s; }
 .screen > *:nth-child(7) { animation-delay: .72s; }
 .screen > *:nth-child(8) { animation-delay: .84s; }
-.screen > .ritual-list { animation: none; }
+.screen > .ritual-list, .screen > .lines { animation: none; }
 @keyframes rise {
   from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: none; }
 }
 
 /* ——— Type ——— */
-h1, h2, .intention, .tagline, .title, .step-title, .text { text-wrap: balance; }
+h1, h2, .tagline, .title, .text { text-wrap: balance; }
 .eyebrow {
   margin: 0;
   font-family: var(--sans);
   font-weight: 400;
-  font-size: .72rem;
+  font-size: .74rem;
   line-height: 1.5;
   letter-spacing: .3em;
   margin-right: -.3em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--eyebrow);
 }
 .display {
-  margin: .35em -.2em .25em 0;
-  font-family: var(--serif);
-  font-weight: 400;
-  font-size: clamp(2.1rem, 10vw, 3.3rem);
+  margin: .25em -.14em .1em 0;
+  font-weight: 500;
+  font-size: clamp(2.2rem, 9.6vw, 3.1rem);
   line-height: 1.12;
-  letter-spacing: .2em;
+  letter-spacing: .14em;
   text-transform: uppercase;
 }
-.title {
-  margin: .3em 0 .5em;
-  font-weight: 400;
-  font-size: clamp(2rem, 8.4vw, 2.7rem);
-  line-height: 1.18;
-}
-.tagline {
-  margin: 0;
-  font-style: italic;
-  font-weight: 400;
-  font-size: clamp(1.9rem, 8.2vw, 2.7rem);
-  line-height: 1.2;
-}
-.intention {
-  margin: .2em 0 0;
-  font-style: italic;
-  font-size: 1.5rem;
-  line-height: 1.35;
-  color: var(--soft);
-}
+.title { margin: .3em 0 .5em; font-weight: 400; font-size: clamp(2rem, 8.4vw, 2.7rem); line-height: 1.18; }
+.title.caps { font-size: clamp(1.35rem, 5.6vw, 1.7rem); font-weight: 500; letter-spacing: .14em; margin-right: -.14em; text-transform: uppercase; }
+.sub-title { margin: 0 0 1.4rem; font-style: italic; }
+.tagline { margin: 0; font-style: italic; font-weight: 400; font-size: clamp(1.9rem, 8.2vw, 2.6rem); line-height: 1.2; }
 .text { margin: 0 0 1.1em; color: var(--soft); max-width: 31rem; }
 .text.big { font-size: 1.4rem; color: var(--ink); }
-.small-caps {
-  font-family: var(--sans);
-  font-size: .72rem;
-  letter-spacing: .26em;
+.small-caps { font-family: var(--sans); font-size: .72rem; letter-spacing: .26em; text-transform: uppercase; color: var(--soft); }
+.rule { width: 3.2rem; height: 1px; margin: 1.3rem auto; background: var(--line); }
+.aff-caps, .line.aff, .end .affirmation {
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: .07em;
   text-transform: uppercase;
-  color: var(--soft);
+  text-wrap: balance;
 }
-
-.rule { width: 3.2rem; height: 1px; margin: 1.5rem auto; background: var(--line); }
 
 /* ——— Buttons and quiet links ——— */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: .75rem;
+  width: 100%;
+  max-width: 20rem;
   min-height: 54px;
-  padding: 0 2.4rem;
-  border: 1px solid var(--line);
+  padding: 0 1.6rem;
+  border: 1px solid transparent;
   border-radius: 999px;
-  background: transparent;
-  color: var(--ink);
-  font-family: var(--sans);
-  font-weight: 400;
-  font-size: .78rem;
-  letter-spacing: .3em;
-  text-transform: uppercase;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 1.2rem;
+  letter-spacing: .02em;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color .5s var(--ease), color .5s var(--ease), border-color .5s var(--ease);
+  transition: filter .4s var(--ease), background-color .4s var(--ease), color .4s var(--ease), border-color .4s var(--ease);
 }
-.btn:hover { background: var(--ink); border-color: var(--ink); color: var(--bg); }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-.btn.primary:hover { background: transparent; color: var(--accent); }
+.btn .arr { width: 1.25rem; height: .62rem; flex: none; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.btn.primary { background: var(--btn-gold); color: #fffaf0; box-shadow: 0 10px 24px -14px rgba(110, 80, 10, .8); }
+.btn.primary:hover { filter: brightness(1.1); }
+.btn.ghost { background: transparent; border-color: var(--line-strong); color: var(--ink); }
+.btn.ghost:hover { background: var(--ink); border-color: var(--ink); color: var(--bg); }
 
-.quiet {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: .25rem 2rem;
-  margin-top: 2.2rem;
-}
+.quiet { display: flex; flex-wrap: wrap; justify-content: center; gap: .25rem 2rem; margin-top: 1.8rem; }
 .quiet a, .linkish {
   display: inline-block;
   padding: .85rem .2rem;
@@ -268,62 +310,51 @@ h1, h2, .intention, .tagline, .title, .step-title, .text { text-wrap: balance; }
 .quiet a span, .linkish span { border-bottom: 1px solid var(--line); padding-bottom: 3px; }
 .quiet a:hover, .linkish:hover { color: var(--accent); }
 
-/* ——— Welcome ——— */
-.mark { width: 7.2rem; height: 7.2rem; margin-bottom: 1.8rem; }
-.welcome .brand { margin: 0; }
-.welcome .brand-name {
-  font-size: clamp(1.1rem, 5.6vw, 2rem);
-  font-weight: 400;
-  letter-spacing: .26em;
-  margin-right: -.26em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.welcome .brand-sub {
-  margin-top: .5em;
-  font-family: var(--sans);
-  font-size: .72rem;
-  letter-spacing: .34em;
-  margin-right: -.34em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-.welcome .tagline { margin-top: 0; margin-bottom: 2.4rem; }
-.welcome .footline { margin: 2.6rem 0 0; }
-
-/* ——— Ritual list ——— */
-.ritual-list {
-  list-style: none;
-  margin: 1.9rem 0 0;
-  padding: 0;
+/* ——— Welcome and closing: a soft-focus photograph that melts into the page ——— */
+.welcome, .closing { position: relative; justify-content: flex-start; padding: 0 0 calc(30px + env(safe-area-inset-bottom)); }
+.photo {
+  flex: 1 1 0;
   width: 100%;
-  display: grid;
-  gap: 12px;
+  min-height: 21rem;
+  background: url("img/hero.webp") 72% center / cover no-repeat;
+  -webkit-mask-image: linear-gradient(to bottom, #000 52%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 52%, transparent 100%);
 }
+.welcome-head { position: absolute; top: calc(70px + env(safe-area-inset-top)); left: 0; right: 0; display: grid; justify-items: center; }
+.welcome-head .mark { margin-bottom: .9rem; }
+.brand-name { margin: 0; font-weight: 500; font-size: clamp(1.1rem, 5.2vw, 1.7rem); letter-spacing: .26em; margin-right: -.26em; text-transform: uppercase; white-space: nowrap; text-shadow: 0 0 16px rgba(255, 247, 233, .9); }
+.brand-sub { margin: .35rem 0 0; font-family: var(--sans); font-weight: 400; font-size: .72rem; letter-spacing: .34em; margin-right: -.34em; text-transform: uppercase; color: var(--ink); text-shadow: 0 0 12px rgba(255, 247, 233, .95); }
+.welcome-body { position: relative; flex: none; display: grid; justify-items: center; width: 100%; padding: 0 28px; margin-top: -7rem; }
+.welcome-body .btn { margin-top: .6rem; }
+.welcome-body .footline { margin: 2rem 0 0; }
+.closing .welcome-body { margin-top: -5.5rem; }
+
+.mark { width: 7rem; height: auto; margin-bottom: 1.6rem; }
+.mark.small { width: 3.6rem; margin-bottom: 1rem; }
+
+/* ——— Choose your ritual: label-coloured cards ——— */
+.ritual-list { list-style: none; margin: .4rem 0 0; padding: 0; width: 100%; display: grid; gap: 12px; }
 .ritual-list li { animation: rise 1.1s var(--ease) both; }
-.ritual-list li:nth-child(1) { animation-delay: .35s; }
-.ritual-list li:nth-child(2) { animation-delay: .43s; }
-.ritual-list li:nth-child(3) { animation-delay: .51s; }
-.ritual-list li:nth-child(4) { animation-delay: .59s; }
-.ritual-list li:nth-child(5) { animation-delay: .67s; }
+.ritual-list li:nth-child(1) { animation-delay: .15s; }
+.ritual-list li:nth-child(2) { animation-delay: .23s; }
+.ritual-list li:nth-child(3) { animation-delay: .31s; }
+.ritual-list li:nth-child(4) { animation-delay: .39s; }
+.ritual-list li:nth-child(5) { animation-delay: .47s; }
 
 .tile {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-end;
-  gap: .15rem;
-  min-height: 7.9rem;
-  padding: 1.25rem 1.4rem 1.2rem;
-  border-radius: 6px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: 5.9rem;
+  padding: 0 1rem 0 6.2rem;
+  border-radius: 14px;
   overflow: hidden;
   isolation: isolate;
   text-align: left;
   text-decoration: none;
   background: var(--c);
-  color: var(--cream);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, .08) inset, 0 12px 30px -18px rgba(40, 28, 10, .55);
+  box-shadow: 0 12px 28px -18px rgba(60, 40, 10, .6);
   transition: transform .7s var(--ease), box-shadow .7s var(--ease);
 }
 .tile::before {
@@ -331,75 +362,54 @@ h1, h2, .intention, .tagline, .title, .step-title, .text { text-wrap: balance; }
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(115deg, rgba(255, 255, 255, .14), transparent 55%);
+  background: var(--waves) left top / 11rem auto no-repeat;
+  -webkit-mask-image: linear-gradient(to right, #000 0, #000 34%, transparent 46%);
+  mask-image: linear-gradient(to right, #000 0, #000 34%, transparent 46%);
 }
-.tile .art {
+.tile-art {
   position: absolute;
-  right: -.6rem;
+  right: 0;
   top: 50%;
-  width: 8.6rem;
-  height: 8.6rem;
-  margin-top: -4.3rem;
   z-index: -1;
-  color: var(--cream);
-  opacity: .34;
-  transition: opacity .7s var(--ease), transform .9s var(--ease);
+  height: 125%;
+  width: auto;
+  max-width: 42%;
+  transform: translateY(-50%) scaleX(-1);
+  transform-origin: center;
+  opacity: .9;
+  transition: transform 1s var(--ease);
 }
-.tile .art svg { width: 100%; height: 100%; }
-.tile .num { font-family: var(--sans); font-size: .7rem; letter-spacing: .3em; color: #ecd292; }
-.tile .name { font-size: 1.65rem; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; line-height: 1.2; }
-.tile .kind { font-family: var(--sans); font-weight: 300; font-size: .74rem; letter-spacing: .2em; text-transform: uppercase; color: rgba(248, 242, 230, .94); }
-.tile:hover, .tile:focus-visible { transform: translateY(-3px); box-shadow: 0 1px 0 rgba(255, 255, 255, .1) inset, 0 20px 36px -18px rgba(40, 28, 10, .6); }
-.tile:hover .art, .tile:focus-visible .art { opacity: .55; transform: rotate(-3deg) scale(1.04); }
+.tile-text { display: grid; gap: .05rem; }
+.tile .name { font-size: clamp(1.25rem, 5.4vw, 1.5rem); font-weight: 500; letter-spacing: .14em; text-transform: uppercase; line-height: 1.2; margin-bottom: .2rem; }
+.tile .kind { font-size: 1rem; line-height: 1.2; opacity: .95; }
+.chev { width: .62rem; height: 1.1rem; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.tile:hover, .tile:focus-visible { transform: translateY(-3px); box-shadow: 0 20px 34px -18px rgba(60, 40, 10, .65); }
+.tile:hover .tile-art, .tile:focus-visible .tile-art { transform: translateY(-50%) scaleX(-1) scale(1.05); }
 
-/* ——— Ritual ——— */
-.ritual-art { width: 11rem; height: 11rem; margin-bottom: .6rem; color: var(--accent); }
-.ritual-art svg { width: 100%; height: 100%; }
-.ritual-art.small { width: 7rem; height: 7rem; opacity: .9; }
-
-
-.steps-nav { display: flex; flex-direction: column; align-items: center; gap: .2rem; margin-top: 1.3rem; }
-
-/* Breathing */
-.breath { display: grid; justify-items: center; gap: .8rem; margin: .8rem 0 1.1rem; }
-.orb-ring {
-  width: 10rem; height: 10rem;
-  border-radius: 50%;
-  border: 1px dotted var(--line);
-  display: grid; place-items: center;
+/* ——— A ritual: colour hero that melts into cream ——— */
+.intro { justify-content: flex-start; padding-top: 0; }
+.hero {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  width: calc(100% + 56px);
+  margin: 0 -28px;
+  padding: calc(58px + env(safe-area-inset-top)) 28px 6.4rem;
+  text-align: center;
+  background: linear-gradient(to bottom, var(--c) 0, var(--c) 86%, var(--paper) 100%);
 }
-.orb {
-  width: 100%; height: 100%;
-  border-radius: 50%;
-  border: 1px solid var(--line);
-  background: radial-gradient(circle at 36% 30%, rgba(255, 255, 255, .34), rgba(255, 255, 255, .10) 58%, rgba(255, 255, 255, .02) 72%);
-  transform: scale(.6);
-  transition: transform 4s cubic-bezier(.45, 0, .35, 1);
-}
-.orb.in  { transform: scale(1); transition-duration: 4s; }
-.orb.out { transform: scale(.6); transition-duration: 6s; }
-.breath-label { min-height: 2.1rem; margin: 0; font-style: italic; font-size: 1.55rem; line-height: 1.3; }
-.breath .btn { min-height: 48px; padding: 0 1.8rem; }
+.hero::before { content: ""; position: absolute; inset: 0; background: var(--waves) right top / cover no-repeat; pointer-events: none; }
+.hero > * { position: relative; }
+.hero-art { justify-self: start; height: 13.5rem; width: auto; max-width: 62%; margin: 0 0 .5rem -28px; object-fit: contain; object-position: left top; }
+.product-line { margin: .1rem 0 1.1rem; font-size: 1.25rem; letter-spacing: .03em; }
+.aff-caps { margin: 0; max-width: 20rem; font-size: 1.32rem; }
 
-/* ——— Ritual introduction ——— */
-.intro .ritual-art { width: 8.5rem; height: 8.5rem; margin-bottom: .2rem; }
-.product {
-  margin: 0 0 1.5rem;
-  font-family: var(--sans);
-  font-weight: 300;
-  font-size: .74rem;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--soft);
-}
-.rows { margin: 0 0 1.5rem; display: grid; gap: 1.05rem; width: 100%; }
-.rows div { display: grid; gap: .15rem; }
-.rows dt { font-family: var(--sans); font-size: .68rem; letter-spacing: .3em; margin-right: -.3em; text-transform: uppercase; color: var(--accent); }
-.rows dd { margin: 0; font-style: italic; font-size: 1.32rem; line-height: 1.4; }
-.aff-line { margin: .1rem 0 1.9rem; font-style: italic; font-size: 1.6rem; line-height: 1.3; color: var(--accent); }
-.intro .actions { display: grid; justify-items: center; gap: .1rem; }
+.intro-body { display: grid; justify-items: center; width: 100%; max-width: 26rem; margin-top: -.6rem; }
+.prose { margin: 0 0 1rem; font-size: 1.38rem; line-height: 1.5; color: var(--ink); text-wrap: pretty; }
+.with { margin: 0 0 1.7rem; font-family: var(--sans); font-weight: 300; font-size: .68rem; letter-spacing: .22em; text-transform: uppercase; color: var(--soft); line-height: 1.7; }
+.actions { display: grid; justify-items: center; gap: .8rem; width: 100%; }
 
-details.formula { width: 100%; margin-top: 2.2rem; border-top: 1px solid var(--line); }
+details.formula { width: 100%; margin-top: 2rem; border-top: 1px solid var(--line); }
 details.formula summary {
   list-style: none;
   cursor: pointer;
@@ -414,20 +424,28 @@ details.formula summary::-webkit-details-marker { display: none; }
 details.formula summary::after { content: " +"; }
 details.formula[open] summary::after { content: " \2212"; }
 details.formula summary:hover { color: var(--accent); }
-details.formula h2 {
-  margin: 1.4rem 0 .35rem;
-  font-family: var(--sans);
-  font-weight: 400;
-  font-size: .68rem;
-  letter-spacing: .3em;
-  margin-right: -.3em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-details.formula p { margin: 0; font-size: 1.2rem; line-height: 1.5; color: var(--soft); }
-details.formula .inci { font-size: 1rem; line-height: 1.7; }
-.badges { list-style: none; display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; margin: 1.3rem 0 0; padding: 0; }
-.badges li { border: 1px solid var(--line); border-radius: 999px; padding: .3rem .9rem; font-family: var(--sans); font-size: .66rem; letter-spacing: .16em; text-transform: uppercase; color: var(--soft); }
+
+/* The cream middle panel of the label, in the label's own small print */
+.label-card, .species { background: var(--paper); color: #161208; border-radius: 4px; font-family: var(--label-serif); }
+.label-card { padding: 1.7rem 1.3rem 1.5rem; text-align: center; margin-bottom: 1rem; border: 1px solid rgba(120, 95, 40, .25); box-shadow: 0 14px 30px -24px rgba(60, 40, 10, .55); }
+.label-card h3 { margin: 0 0 .3rem; font-size: 1.05rem; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; }
+.label-card h3:not(:first-child) { margin-top: 1.1rem; }
+.label-card h4 { margin: 1.3rem 0 .35rem; font-size: .85rem; font-weight: 400; letter-spacing: .06em; text-transform: uppercase; }
+.label-card p { margin: 0; font-size: 1rem; line-height: 1.45; }
+.label-card .vegan { margin-top: 1.1rem; font-style: italic; font-size: 1.05rem; }
+.label-card .inci { font-size: .92rem; line-height: 1.5; }
+.label-card .origin { margin-top: .9rem; font-size: 1.1rem; }
+.label-card .lab { margin-top: .15rem; font-size: .9rem; }
+.label-card .foot { margin-top: .8rem; font-size: .8rem; line-height: 1.4; }
+
+/* "A reminder of the world we share": the species engraved on the label */
+.species { width: 100%; margin: 1.4rem 0 1.8rem; padding: 1.2rem 1.2rem 1rem; text-align: left; }
+.sp-body { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .8rem; align-items: center; }
+.sp-name { margin: 0; font-size: .95rem; letter-spacing: .03em; text-transform: uppercase; }
+.sp-latin { margin: .15rem 0 .5rem; font-style: italic; font-size: .95rem; }
+.sp-note { margin: 0; font-size: .85rem; line-height: 1.4; }
+.sp-art { width: 6.4rem; height: auto; }
+.reminder { margin: .9rem 0 0; text-align: center; font-family: var(--label-serif); font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; }
 
 /* ——— Meditation screens ——— */
 .prog {
@@ -445,46 +463,51 @@ details.formula .inci { font-size: 1rem; line-height: 1.7; }
 .prog::-webkit-progress-bar { background: rgba(255, 255, 255, .22); }
 .prog::-webkit-progress-value { background: var(--accent); transition: width .9s var(--ease); }
 .prog::-moz-progress-bar { background: var(--accent); }
-.lines { display: grid; gap: 1.1rem; max-width: 30rem; animation: none; }
-.screen > .lines { animation: none; }
+.lines { display: grid; gap: 1.1rem; max-width: 30rem; }
 .line { margin: 0; font-size: 1.5rem; line-height: 1.5; animation: rise 1.4s var(--ease) both; }
 .line:nth-child(1) { animation-delay: .2s; }
 .line:nth-child(2) { animation-delay: .8s; }
 .line:nth-child(3) { animation-delay: 1.4s; }
 .line:nth-child(4) { animation-delay: 2s; }
 .line:nth-child(5) { animation-delay: 2.6s; }
-.line.aff { margin-top: .4rem; font-style: italic; font-size: 1.95rem; line-height: 1.28; color: var(--accent); }
-.med .steps-nav { margin-top: 2rem; }
+.line.aff { margin-top: .2rem; font-size: 1.4rem; }
+.aff-mark { justify-self: center; margin: .8rem 0 0; }
+.steps-nav { display: grid; justify-items: center; gap: .2rem; width: 100%; margin-top: 2rem; }
 
-.end .affirmation { margin: .4rem 0 0; font-weight: 400; font-style: italic; font-size: clamp(2rem, 8.6vw, 2.8rem); line-height: 1.2; color: var(--accent); }
-.end .quiet { margin-top: 1.4rem; }
+/* Breathing */
+.breath { display: grid; justify-items: center; gap: .8rem; margin: .8rem 0 1.1rem; }
+.orb-ring { width: 10rem; height: 10rem; border-radius: 50%; border: 1px dotted var(--line); display: grid; place-items: center; }
+.orb {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: radial-gradient(circle at 36% 30%, rgba(255, 255, 255, .34), rgba(255, 255, 255, .10) 58%, rgba(255, 255, 255, .02) 72%);
+  transform: scale(.6);
+  transition: transform 4s cubic-bezier(.45, 0, .35, 1);
+}
+.orb.in  { transform: scale(1); transition-duration: 4s; }
+.orb.out { transform: scale(.6); transition-duration: 6s; }
+.breath-label { min-height: 2.1rem; margin: 0; font-style: italic; font-size: 1.55rem; line-height: 1.3; }
+.breath .btn { width: auto; min-height: 48px; padding: 0 1.8rem; font-size: 1.1rem; }
 
-/* ——— About ——— */
-.about { align-items: center; }
-.about .title { font-size: clamp(1.8rem, 7.4vw, 2.4rem); }
+.end .affirmation { margin: .2rem 0 0; max-width: 21rem; font-size: clamp(1.5rem, 6.4vw, 1.95rem); }
+.end .actions { margin-top: 0; }
+.end .quiet { margin-top: .8rem; }
+
+/* ——— Sensory Enrichment ——— */
 .about .text { text-align: center; }
 .about .text.big { font-style: italic; }
-.about .btn { margin-top: .2rem; }
-.about h2 {
-  margin: 2rem 0 .6rem;
-  font-family: var(--sans);
-  font-weight: 400;
-  font-size: .76rem;
-  letter-spacing: .3em;
-  margin-right: -.3em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-.ing { list-style: none; margin: 1rem 0 1.4rem; padding: 0; width: 100%; display: grid; gap: .85rem; }
-.ing li { display: grid; gap: .05rem; }
-.ing b { font-weight: 500; letter-spacing: .2em; text-transform: uppercase; font-size: 1.05rem; }
-.ing span { color: var(--soft); font-size: 1.15rem; }
+.about .btn { margin-top: .4rem; }
+.about h2 { margin: 2rem 0 .6rem; font-family: var(--sans); font-weight: 400; font-size: .76rem; letter-spacing: .3em; margin-right: -.3em; text-transform: uppercase; color: var(--accent); }
+.reminder-row { width: 100%; margin: 1.2rem 0 1.8rem; padding: 1.2rem .4rem 1rem; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.sp-row { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .6rem .8rem; max-width: 16rem; margin: 0 auto; }
+.sp-mini { width: 4.4rem; height: auto; }
+.reminder-row .reminder { color: var(--soft); }
 .fine { font-size: 1.1rem; }
 
 /* ——— Closing ——— */
-.closing .mark { width: 5.6rem; height: 5.6rem; }
 .install-hint { margin: 1.2rem 0 0; font-size: 1.05rem; font-style: italic; color: var(--soft); }
-.closing .actions { display: grid; justify-items: center; gap: 1rem; margin-top: 1rem; }
+.closing .actions { margin-top: .4rem; }
 
 .nojs { padding: 2rem; text-align: center; font-style: italic; }
 
@@ -504,13 +527,11 @@ details.formula .inci { font-size: 1rem; line-height: 1.7; }
 /* Short phones: keep a whole step in view */
 @media (max-height: 740px) {
   .orb-ring { width: 8.4rem; height: 8.4rem; }
-  .text.big { font-size: 1.28rem; }
-  .ritual-art { width: 8.5rem; height: 8.5rem; }
+  .text.big, .line { font-size: 1.32rem; }
+  .hero-art { height: 11rem; }
 }
 
 /* Roomier on large screens */
 @media (min-width: 720px) {
   body { font-size: 1.32rem; }
-  .screen { max-width: 40rem; }
-  .tile { min-height: 8.6rem; }
 }

@@ -1,25 +1,42 @@
 /* Offline support: after the first visit the whole sanctuary works without signal.
    Bump VERSION whenever files change so guests receive the update on their next visit. */
-var VERSION = 'bme-sanctuary-v2';
+var VERSION = 'bme-sanctuary-8d2eaec3f6';
 var FILES = [
   './',
-  'index.html',
-  'manifest.webmanifest',
-  'assets/style.css',
-  'assets/content.js',
-  'assets/art.js',
   'assets/app.js',
-  'assets/logo.svg',
-  'assets/icon.svg',
-  'assets/icon-180.png',
-  'assets/grain.svg',
+  'assets/content.js',
   'assets/fonts/cormorant-garamond-latin-300-normal.woff2',
-  'assets/fonts/cormorant-garamond-latin-400-normal.woff2',
   'assets/fonts/cormorant-garamond-latin-400-italic.woff2',
+  'assets/fonts/cormorant-garamond-latin-400-normal.woff2',
   'assets/fonts/cormorant-garamond-latin-500-normal.woff2',
   'assets/fonts/jost-latin-300-normal.woff2',
   'assets/fonts/jost-latin-400-normal.woff2',
-  'assets/fonts/jost-latin-500-normal.woff2'
+  'assets/fonts/jost-latin-500-normal.woff2',
+  'assets/grain.svg',
+  'assets/icon-180.png',
+  'assets/icon-192.png',
+  'assets/icon-512.png',
+  'assets/img/balance-botanical.webp',
+  'assets/img/balance-species.webp',
+  'assets/img/balance-waves.webp',
+  'assets/img/hero.webp',
+  'assets/img/kindness-botanical.webp',
+  'assets/img/kindness-species.webp',
+  'assets/img/kindness-waves.webp',
+  'assets/img/logo.webp',
+  'assets/img/luminance-botanical.webp',
+  'assets/img/luminance-species.webp',
+  'assets/img/luminance-waves.webp',
+  'assets/img/presence-botanical.webp',
+  'assets/img/presence-species.webp',
+  'assets/img/presence-waves.webp',
+  'assets/img/serenity-botanical.webp',
+  'assets/img/serenity-species.webp',
+  'assets/img/serenity-waves.webp',
+  'assets/img/waves-gold.webp',
+  'assets/style.css',
+  'index.html',
+  'manifest.webmanifest'
 ];
 
 self.addEventListener('install', function (event) {

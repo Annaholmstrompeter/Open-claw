@@ -1,19 +1,26 @@
 # Body Mind Earth — Sensory Ritual (fristaden)
 
 En liten, helt fristående webbplats som gästerna når med QR-koden i Sensory Enrichment-asken.
-Fem ritualer (Balance, Luminance, Kindness, Serenity, Presence), guidade skärm för skärm, med
-dina egna texter. Ingen butik, inga priser, inga länkar ut, inga cookies och ingen spårning.
+Fem ritualer (Balance, Luminance, Kindness, Serenity, Presence), guidade skärm för skärm. Ingen
+butik, inga priser, inga länkar ut, inga cookies och ingen spårning.
 
-Kostar 0 kr: statiska filer på Cloudflare Pages (gratis), ingen databas, inget byggsteg.
+Formspråket kommer från etiketterna: etikettens exakta färger, gravyrerna, vågmönstret, den
+riktiga logotypen och "A reminder of the world we share". Texterna är dina egna: ritualtexterna
+från Google-dokumentet "Meditations mall" och produkttexterna från etiketterna.
+
+Kostar 0 kr: statiska filer på Cloudflare Pages (gratis), ingen databas, inget byggsteg i molnet.
 
 ## Vad som är vad
 
 | Mapp / fil | Innehåll |
 |---|---|
 | `public/` | Själva sidan. Det här är det som läggs ut. |
+| `public/assets/img/` | Bilderna, uttagna ur etikett-PDF:erna (gravyrer, vågmönster, arter, logotyp) samt `hero.webp`. |
 | `content/meditations-mall.txt` | Textkopia av Google-dokumentet "Meditations mall" (Drive-id i filens första rader). |
-| `content/products.json` | Kopia av de fem produkterna i Shopify: namn, doft, "The Scent/Touch/Feel", bekräftelse, formula, INCI. |
-| `tools/build-content.py` | Gör `public/assets/content.js` av de två filerna ovan. Skriver inte om något. |
+| `content/products.json` | Produktfakta ordagrant från de fem etiketterna, plus Shopify-id. |
+| `tools/build-content.py` | Gör `public/assets/content.js` av de två filerna ovan och uppdaterar offline-cachen i `public/sw.js`. |
+| `tools/extract-label-art.py` | Tar ut bilderna ur etikett-PDF:erna (kräver `pdftoppm`, `numpy`, `scipy`, `pillow`). |
+| `tools/make-hero.py` | Gör bakgrundsfotot till välkomstvyn och avslutet. |
 | `tools/make-qr.py` | Gör QR-koden när den riktiga adressen är bestämd. |
 | `tools/make-preview.py` | Packar hela sidan i en enda fil för förhandsvisning. |
 
@@ -34,32 +41,31 @@ Kostar 0 kr: statiska filer på Cloudflare Pages (gratis), ingen databas, inget 
 
 ## När texterna ändras
 
-Du ändrar i Google-dokumentet "Meditations mall" och produkterna i Shopify. Be mig synka
-(eller klistra in ändringen i `content/…`), kör sedan
+Du ändrar i Google-dokumentet "Meditations mall" eller i etiketterna. Be mig synka (eller klistra
+in ändringen i `content/…`), kör sedan
 
 ```
 python3 sanctuary/tools/build-content.py
 ```
 
-och höj `VERSION` i `public/sw.js` så att gäster som redan öppnat sidan får den nya versionen.
-Skriptet delar manuset i lugna skärmar vid pauserna; produktionsanteckningarna i hakparentes
-([Pause.], [Music …]) visas aldrig.
+Det räcker. Skriptet delar manuset i lugna skärmar vid pauserna (produktionsanteckningarna i
+hakparentes visas aldrig) och ser till att gäster som redan öppnat sidan får den nya versionen.
+Har etiketterna ändrats: kör `extract-label-art.py` med de nya PDF-filerna först.
 
 ## Öppna punkter
 
-- **Bilder.** Shopifys bildserver (`cdn.shopify.com`) är spärrad i den här miljön, så etikettbilderna
-  och produktbilderna är inte med än. Platsen finns (`shopify.image` i `products.json`). Tills vidare
-  ritar sidan en liten botanisk linjeteckning per ritual.
-- **Balance, ingrediensrad.** Shopify har "Coco-Communis Oil" i INCI-listan för handtvålen; den äldre
-  etiketten har "Coco Glucoside … Ricinus Communis Oil" och "Simmondsia Chinensis Oil". Det ser ut som
-  en sammanblandning. Sidan visar Shopify-texten; rätta den där (eller i `products.json`) innan lansering.
-- **Meningen om webbplatsen.** I introt står "You can discover more … on our website." Den är utelämnad
-  eftersom fristaden är sluten. Lägg tillbaka den om du vill.
-- **Texterna är inte klara.** Mallen ändras fortfarande. Sidan är byggd på kopian från 2026-10-08.
+- **Texterna är inte klara.** Mallen ändras fortfarande. Sidan bygger på kopian från 2026-10-08.
+- **Shopify stämmer inte med etiketterna.** Etiketterna har använts som källa. Shopify-sidorna har
+  bland annat andra ritualrader och ton-ord (t.ex. "Smoothing" mot etikettens "Hydrating") och en
+  garblad ingredienslista för handtvålen ("Coco-Communis Oil"). Uppdatera Shopify efter etiketterna.
+- **Bakgrundsfoto.** Välkomstvyn och avslutet använder en mjukfokuserad bit av olivkvisten i kit-fotot
+  (`public/assets/img/hero.webp`). Byt mot ett riktigt foto när det finns (varmt, ljust, högt format).
+- **Inget ljud.** Meditationerna finns som inspelningar i Drive, men sidan visar bara text och bild.
+- **Ingen "Visit Body Mind Earth"-knapp,** som skissen hade. Fristaden är stängd.
+- **Meningen om webbplatsen** i introt ("You can discover more … on our website.") är utelämnad.
 - **Språk.** Allt är på engelska, som lådorna och inspelningarna. Svenska kräver en översättning som du godkänner.
 - **Kontakt.** Ingen e-postadress är inlagd. Ett färdigt ställe finns i kommentaren i `about()` i `public/assets/app.js`.
 - **Integritetsraden** ("keeps nothing about you") stämmer så länge ingen statistik slås på i Cloudflare.
-- **Logotypen** är en nyritad approximation av märket. Byt ut `public/assets/logo.svg` mot den riktiga.
 
 ## Typsnitt
 
