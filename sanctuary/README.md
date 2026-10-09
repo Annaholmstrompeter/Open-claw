@@ -73,6 +73,16 @@ spelas som ström), så gästerna behöver täckning när de lyssnar.
 4. Gör QR-koden med den slutliga adressen och skanna den med en telefon innan tryck:
    `pip install segno` och sedan `python3 sanctuary/tools/make-qr.py https://din-adress`.
 
+### Provsida på GitHub Pages (för att prova Together på riktiga telefoner)
+
+Innan sidan ligger på sin riktiga adress kan den läggas ut som en provsida, utan nya konton:
+
+```
+sanctuary/tools/publish-test-site.sh sökväg/till/testljud.mp3
+```
+
+Skriptet bygger sidan (bara `public/`, inga manus eller anteckningar), lägger testljudet som Together-inspelning (bara på provsidan) och pushar den som grenen `gh-pages`. En gång i GitHub: *Settings → Pages → Deploy from a branch → `gh-pages`, `/ (root)` → Save*. Adressen blir `https://<användare>.github.io/<arkiv>/`. Kör skriptet igen efter varje ändring. Grenen är en byggprodukt: redigera den aldrig för hand. Provsidan är publik men inte länkad och har `noindex`; stäng av den under *Settings → Pages*. GitHub Pages läser inte `_headers`, så säkerhetshuvudena (CSP m.m.) gäller först på Cloudflare.
+
 ## När något ändras
 
 Texter eller citat: ändra i `content/…` (eller be mig synka från Google-dokumentet) och kör
