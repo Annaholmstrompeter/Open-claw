@@ -101,6 +101,8 @@ En ny avdelning med egen flik (**Rituals | Together**, och en länk i menyn) på
 
 ### Så här kopplar du på delade sessioner (en gång, ca 15 minuter, gratis)
 
+**Status:** projektet är redan skapat (`body-mind-earth-together`, organisationen *body mind earth*, Free-planen, region Stockholm) och adressen och den publika nyckeln står i `public/assets/together/config.js`. Stegen nedan gäller om det ska göras om eller flyttas.
+
 Delade sessioner behöver en tjänst som låter de två telefonerna hitta varandra och skicka korta kommandon (ingen ljudström: ljudet spelas från varje telefon för sig). Det är byggt för **Supabase Realtime** (gratis plan räcker).
 
 1. Skapa ett konto och ett projekt på <https://supabase.com> (välj en EU-region). Databasen används inte.
