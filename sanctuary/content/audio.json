@@ -1,0 +1,12 @@
+{
+  "_note": "The recordings, exactly as named in the Drive folder 'FÄRDIGA - hemsida (8 okt)'. Put the mp3 files unchanged in public/assets/audio/. Files that are not there yet make the player say that the recording is not available.",
+  "dir": "assets/audio/",
+  "intro": "01_Intro_Sensory-Enrichment.mp3",
+  "rituals": {
+    "balance":   { "short": "04_Balance_Bergamot-Hand-Wash_KORT.mp3",       "extended": "05_Balance_Bergamot-Hand-Wash_LANG.mp3" },
+    "luminance": { "short": "06_Luminance_Apricot-Hand-Cream_KORT.mp3",     "extended": "07_Luminance_Apricot-Hand-Cream_LANG.mp3" },
+    "kindness":  { "short": "08_Kindness_Cherry-Body-Wash_KORT.mp3",        "extended": "09_Kindness_Cherry-Body-Wash_LANG.mp3" },
+    "serenity":  { "short": "10_Serenity_Macadamia-Shampoo_KORT.mp3",       "extended": "11_Serenity_Macadamia-Shampoo_LANG.mp3" },
+    "presence":  { "short": "02_Presence_Raspberry-Body-Lotion_KORT.mp3",   "extended": "03_Presence_Raspberry-Body-Lotion_LANG.mp3" }
+  }
+}

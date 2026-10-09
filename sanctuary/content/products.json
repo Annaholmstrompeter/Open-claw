@@ -1,0 +1,155 @@
+{
+  "_note": "Product facts, copied as printed on the five label PDFs (176 x 96 mm) in 2026-10-08, plus the Shopify product ids. The labels are the source: the Shopify product pages differ in a few places (ritual lines, tone words, one ingredient list) and should be updated to match them. 'color' is the exact ground colour of each label. Edit here, then run: python3 sanctuary/tools/build-content.py",
+  "rituals": [
+    {
+      "id": "balance",
+      "num": "I",
+      "color": "#7b8741",
+      "script": "balance",
+      "shopify": { "gid": "gid://shopify/Product/15503970074998", "handle": "hand-wash-bergamot" },
+      "kind": "Hand Wash",
+      "scent": "Bergamot",
+      "tone": "Softening",
+      "with": ["Olive Oil", "Soapwort"],
+      "size": "250 ml / 8.4 fl oz",
+      "rows": {
+        "scent": "Let the bright aroma of bergamot bring clarity.",
+        "touch": "Let the steady rhythm bring you back to balance.",
+        "feel": "Let your shoulders soften. Return to center."
+      },
+      "affirmation": "I am rooted, centered and aligned.",
+      "formula": "Botanical oils and extracts enriched with carefully selected actives.",
+      "actives": ["Collagen-inspired Peptide", "Allantoin", "Vitamin E"],
+      "vegan": true,
+      "ingredients": "Aqua, Coco-Glucoside, Lactobacillus Ferment, Saponaria Officinalis Extract, Ricinus Communis Oil, Olea Europaea Fruit Oil, Parfum, Cetearyl Olivate, Sorbitan Olivate, Tocopherol, Allantoin*, sh-Polypeptide-121*, Citric Acid",
+      "natural": "99.7% natural origin",
+      "labCreated": "Complemented by 0.3% lab-created actives*",
+      "footnote": "*Allantoin and sh-Polypeptide-121 (vegan collagen-inspired peptide).",
+      "species": {
+        "name": "Ocean Forests",
+        "latin": "Macrocystis pyrifera",
+        "note": ["Shelter for marine life.", "Vulnerable to warming seas."]
+      }
+    },
+    {
+      "id": "luminance",
+      "num": "II",
+      "color": "#b87950",
+      "script": "luminance",
+      "shopify": { "gid": "gid://shopify/Product/15503974826358", "handle": "hand-cream-apricot" },
+      "kind": "Hand Cream",
+      "scent": "Apricot",
+      "tone": "Hydrating",
+      "with": ["Shea Butter", "Avocado"],
+      "size": "250 ml / 8.4 fl oz",
+      "rows": {
+        "scent": "Let the sun-warmed apricot aroma illuminate the moment.",
+        "touch": "Let the warmth of your touch awaken a gentle glow.",
+        "feel": "Let your hands rest. A quiet lightness returns."
+      },
+      "affirmation": "I am radiant, open and light.",
+      "formula": "Botanical oils and extracts.",
+      "actives": null,
+      "vegan": true,
+      "ingredients": "Aqua, Butyrospermum Parkii Butter, Sesamum Indicum Seed Oil, Simmondsia Chinensis Seed Oil, Prunus Armeniaca Kernel Oil, Persea Gratissima Butter, Cetearyl Olivate, Sorbitan Olivate, Aloe Barbadensis Leaf Extract, Lactobacillus Ferment, Euphorbia Cerifera Wax, Chamomilla Recutita Flower Extract, Parfum, Cotinus Coggygria Leaf Extract, Prunus Armeniaca Extract, Vanilla Planifolia Extract",
+      "natural": "100% natural origin",
+      "labCreated": null,
+      "footnote": null,
+      "species": {
+        "name": "Coral Reef Life",
+        "latin": "Hippocampus bargibanti",
+        "note": ["Coral reefs shelter life.", "Warming seas put them at risk."]
+      }
+    },
+    {
+      "id": "kindness",
+      "num": "III",
+      "color": "#773d4d",
+      "script": "kindness",
+      "shopify": { "gid": "gid://shopify/Product/15503979544950", "handle": "body-wash-cherry" },
+      "kind": "Body Wash",
+      "scent": "Cherry",
+      "tone": "Soothing",
+      "with": ["Jojoba", "Castor Oil"],
+      "size": "250 ml / 8.4 fl oz",
+      "rows": {
+        "scent": "Let the rich aroma of cherry bring you comfort.",
+        "touch": "Let each touch become an act of kindness.",
+        "feel": "Let the day fall away. Rest in your own warmth."
+      },
+      "affirmation": "I am gentle, worthy and whole.",
+      "formula": "Botanical oils and extracts enriched with carefully selected actives.",
+      "actives": ["Niacinamide", "Allantoin", "Vitamin E"],
+      "vegan": true,
+      "ingredients": "Aqua, Coco-Glucoside, Lactobacillus Ferment, Simmondsia Chinensis Seed Oil, Ricinus Communis Seed Oil, Niacinamide*, Prunus Avium Fruit Extract, Parfum, Cetearyl Olivate, Sorbitan Olivate, Xanthan Gum, Tocopherol, Allantoin*",
+      "natural": "98.8% natural origin",
+      "labCreated": "Complemented by 1.2% lab-created actives*",
+      "footnote": "*Niacinamide and Allantoin.",
+      "species": {
+        "name": "Sunda Pangolin",
+        "latin": "Manis javanica",
+        "note": ["Threatened by illegal wildlife trade."]
+      }
+    },
+    {
+      "id": "serenity",
+      "num": "IV",
+      "color": "#8a6d55",
+      "script": "serenity",
+      "shopify": { "gid": "gid://shopify/Product/15503983935862", "handle": "shampoo-macadamia" },
+      "kind": "Shampoo",
+      "scent": "Macadamia",
+      "tone": "Vitalizing",
+      "with": ["Rosemary", "Avocado"],
+      "size": "250 ml / 8.4 fl oz",
+      "rows": {
+        "scent": "Let the warm aroma of macadamia soften the moment.",
+        "touch": "Let the slow rhythm guide you inward.",
+        "feel": "Let the world grow quiet. Settle into stillness."
+      },
+      "affirmation": "I am settled, steady and still.",
+      "formula": "Botanical oils and extracts enriched with carefully selected actives.",
+      "actives": ["Biotin", "Caffeine", "Niacinamide"],
+      "vegan": true,
+      "ingredients": "Aqua, Coco-Glucoside, Macadamia Ternifolia Seed Oil, Sesamum Indicum Seed Oil, Persea Gratissima Oil, Aloe Barbadensis Leaf Extract, Lactobacillus Ferment, Simmondsia Chinensis Seed Oil, Niacinamide*, Cocos Nucifera Seed Butter, Cetearyl Olivate, Sorbitan Olivate, Parfum, Urtica Dioica Extract, Caffeine*, Tocopherol, Echinacea Purpurea Extract, Saponaria Officinalis Extract, Chamomilla Recutita Flower Extract, Humulus Lupulus Extract, Rosmarinus Officinalis Leaf Extract, Biotin*",
+      "natural": "98.65% natural origin",
+      "labCreated": "Complemented by 1.35% lab-created actives*",
+      "footnote": "*Niacinamide, Caffeine and Biotin.",
+      "species": {
+        "name": "Climate-Sensitive Pollinator",
+        "latin": "Danaus plexippus",
+        "note": ["Climate change threatens its migration."]
+      }
+    },
+    {
+      "id": "presence",
+      "num": "V",
+      "color": "#ad536a",
+      "script": "presence",
+      "shopify": { "gid": "gid://shopify/Product/15503994683766", "handle": "body-lotion-raspberry" },
+      "kind": "Body Lotion",
+      "scent": "Raspberry",
+      "tone": "Nourishing",
+      "with": ["Shea Butter", "Jojoba"],
+      "size": "250 ml / 8.4 fl oz",
+      "rows": {
+        "scent": "Let the aroma of wild raspberry awaken your senses.",
+        "touch": "Let each gentle touch bring you back to yourself.",
+        "feel": "Let your body settle. Arrive in the moment."
+      },
+      "affirmation": "I am present, grounded and awake.",
+      "formula": "Botanical oils and extracts enriched with carefully selected actives.",
+      "actives": ["Bakuchiol", "Elastin-inspired Peptide", "Allantoin"],
+      "vegan": true,
+      "ingredients": "Aqua, Butyrospermum Parkii Butter, Simmondsia Chinensis Seed Oil, Ricinus Communis Seed Oil, Cetearyl Olivate, Sorbitan Olivate, Euphorbia Cerifera Wax, Lactobacillus Ferment, Rubus Idaeus Fruit Extract, Tocopherol, Bakuchiol, Parfum, Allantoin*, sh-Polypeptide-50*, Xanthan Gum",
+      "natural": "99.7% natural origin",
+      "labCreated": "Complemented by 0.3% lab-created actives*",
+      "footnote": "*Allantoin and sh-Polypeptide-50 (vegan elastin-inspired peptide).",
+      "species": {
+        "name": "Essential Pollinator",
+        "latin": "Bombus terrestris",
+        "note": ["From blossom to berry."]
+      }
+    }
+  ]
+}
