@@ -29,6 +29,20 @@ mkdir -p "$SITE"
 cp -R "$ROOT/sanctuary/public/." "$SITE/"
 rm -f "$SITE/_headers"                 # GitHub Pages does not read it
 touch "$SITE/.nojekyll"                # serve the files as they are
+# A test site must always show the latest: no offline cache. The page no longer registers the service worker, and
+# the sw.js that is served only removes one that an earlier visit left behind.
+sed -i "s/if ('serviceWorker' in navigator \&\&/if (false \&\&/" "$SITE/assets/app.js"
+grep -q "if (false &&" "$SITE/assets/app.js" || { echo "could not switch off the service worker in app.js: has it changed?" >&2; exit 1; }
+cat > "$SITE/sw.js" <<'JS'
+/* Test site: no offline cache. This worker only clears away the cache an earlier visit may have left, then goes. */
+self.addEventListener('install', function () { self.skipWaiting(); });
+self.addEventListener('activate', function (event) {
+  event.waitUntil(
+    caches.keys().then(function (keys) { return Promise.all(keys.map(function (k) { return caches.delete(k); })); })
+      .then(function () { return self.registration.unregister(); })
+  );
+});
+JS
 if [ -n "$REC" ]; then
   mkdir -p "$SITE/assets/audio/together"
   cp "$REC" "$SITE/assets/audio/together/heart-to-heart.mp3"

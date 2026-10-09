@@ -47,7 +47,10 @@ var FILES = [
 
 self.addEventListener('install', function (event) {
   event.waitUntil(
-    caches.open(VERSION).then(function (cache) { return cache.addAll(FILES); }).then(function () { return self.skipWaiting(); })
+    // 'reload': fetched from the server, never from the browser's short-term copy (a host may allow it ten minutes)
+    caches.open(VERSION).then(function (cache) {
+      return cache.addAll(FILES.map(function (f) { return new Request(f, { cache: 'reload' }); }));
+    }).then(function () { return self.skipWaiting(); })
   );
 });
 
@@ -70,7 +73,7 @@ self.addEventListener('fetch', function (event) {
   event.respondWith(
     caches.open(VERSION).then(function (cache) {
       return cache.match(req, { ignoreSearch: true }).then(function (hit) {
-        var fresh = fetch(req).then(function (res) {
+        var fresh = fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }).then(function (res) {
           if (res && res.ok) cache.put(req, res.clone());
           return res;
         }).catch(function () { return hit; });
