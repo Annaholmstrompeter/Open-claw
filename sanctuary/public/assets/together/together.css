@@ -1,0 +1,281 @@
+/* Body Mind Earth — TOGETHER (A Ritual for Two)
+   Champagne, ivory and cream on the sanctuary's own paper, a little gold, and warm stone with
+   light moving on water for the ritual itself. Everything here hangs on html[data-tg] and the
+   classes .tg-*, so the rest of the sanctuary looks exactly as before. */
+
+:root {
+  --tg-gold: #b8964a;
+  --tg-gold-light: #ebd392;
+  --tg-stone-1: #6b5946;
+  --tg-stone-2: #4a3d2f;
+  --tg-stone-3: #2d251c;
+  --tg-champagne: #f2e6cc;
+}
+
+/* ——— the quiet water-light behind the ritual ——— */
+.tg-scene {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 2.6s var(--ease);
+  background: radial-gradient(120% 80% at 50% 16%, #7d6952 0%, #5a4a3b 36%, #3b3026 70%, #2a2219 100%);
+}
+html[data-tg="scene"] .tg-scene { opacity: 1; }
+.tg-scene i, .tg-light i { position: absolute; inset: -9%; will-change: transform; }
+.tg-scene i.a, .tg-light i.a { background: url("img/light-a.webp") 0 0 / 440px auto repeat; opacity: .24; animation: tg-drift-a 84s ease-in-out infinite alternate; }
+.tg-scene i.b, .tg-light i.b { background: url("img/light-b.webp") 0 0 / 820px auto repeat; opacity: .2; animation: tg-drift-b 131s ease-in-out infinite alternate; }
+.tg-scene i.v {
+  inset: 0;
+  opacity: 1;
+  background:
+    radial-gradient(90% 70% at 50% 42%, transparent 40%, rgba(18, 12, 6, .5) 100%),
+    linear-gradient(to bottom, rgba(18, 12, 6, .18), transparent 22%, transparent 62%, rgba(18, 12, 6, .38));
+  animation: none;
+}
+@keyframes tg-drift-a { from { transform: translate3d(-3%, -2%, 0) scale(1.02); } to { transform: translate3d(3%, 2.4%, 0) scale(1.07); } }
+@keyframes tg-drift-b { from { transform: translate3d(2.6%, 2%, 0) scale(1.08) rotate(.4deg); } to { transform: translate3d(-3%, -2.6%, 0) scale(1.02) rotate(-.4deg); } }
+.tg-still .tg-scene i, .tg-still .tg-light i { animation-play-state: paused; }
+
+/* the ritual's own colours: warm stone, champagne light */
+html[data-tg="scene"] {
+  --bg: #4a3d2f;
+  --bg-outer: #2d251c;
+  --ink: #fbf4e6;
+  --soft: rgba(251, 244, 230, .86);
+  --accent: #ebd392;
+  --eyebrow: var(--ink);
+  --line: rgba(235, 211, 146, .55);
+  --line-strong: rgba(251, 244, 230, .62);
+}
+html[data-tg="scene"] .head-brand i { color: #f4d874; }
+html[data-tg="scene"] body::before { opacity: 0; }
+
+/* the pages of TOGETHER on cream carry the sanctuary's own gold line ornament, as the lists do */
+html[data-page="together"] .waves {
+  background-image: url("../img/waves-gold.webp");
+  opacity: .3;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 30%, transparent 75%);
+  mask-image: linear-gradient(to bottom, #000 0, #000 30%, transparent 75%);
+}
+html[data-tg="scene"] .waves { opacity: 0; }
+
+/* ——— the section tabs ——— */
+.tg-tabs { display: flex; justify-content: center; gap: 2.6rem; width: 100%; margin: -.5rem 0 1.2rem; }
+.tg-tabs a {
+  padding: .7rem .1rem;
+  font-family: var(--sans);
+  font-size: .72rem;
+  letter-spacing: .3em;
+  margin-right: -.3em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--soft);
+  transition: color .4s;
+}
+.tg-tabs a span { display: inline-block; padding-bottom: 4px; border-bottom: 1px solid transparent; transition: border-color .5s var(--ease); }
+.tg-tabs a[aria-current="page"] { color: var(--ink); }
+.tg-tabs a[aria-current="page"] span { border-bottom-color: var(--tg-gold); }
+.tg-tabs a:hover { color: var(--accent); }
+
+/* ——— two rings: you, and your partner ——— */
+.tg-rings { display: block; width: min(64%, 13rem); height: auto; margin: .6rem auto; overflow: visible; }
+.tg-rings circle { fill: none; stroke: var(--accent); stroke-width: .9; }
+.tg-rings .ra, .tg-rings .rb { transition: transform 1.9s var(--ease), opacity 1.4s var(--ease); }
+.tg-rings .lens { fill: rgba(235, 211, 146, 0); transition: fill 1.8s var(--ease); }
+.tg-rings[data-partner="none"] .ra { transform: translateX(-22px); }
+.tg-rings[data-partner="none"] .rb { transform: translateX(22px); opacity: .42; }
+.tg-rings[data-partner="none"] .rb circle { stroke-dasharray: 1.6 3.2; }
+.tg-rings[data-partner="here"] .lens, .tg-rings[data-partner="ready"] .lens { fill: rgba(235, 211, 146, .16); }
+.tg-rings[data-partner="ready"][data-you="ready"] .lens { fill: rgba(235, 211, 146, .34); }
+.tg-rings[data-partner="ready"] .rb circle, .tg-rings[data-you="ready"] .ra circle { stroke-width: 1.3; }
+.tg-live .tg-rings .ra, .tg-live .tg-rings .rb { animation: tg-breathe 9s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.tg-live .tg-rings .rb { animation-delay: -4.5s; }
+@keyframes tg-breathe { 0%, 100% { opacity: 1; } 50% { opacity: .78; } }
+.tg-live .tg-rings[data-partner="none"] .rb { animation: none; }
+
+/* ——— hero panels: warm stone with light on it ——— */
+.tg-hero {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  aspect-ratio: 5 / 3.4;
+  max-height: 34svh;
+  margin-bottom: 1.5rem;
+  border-radius: 22px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(158deg, var(--tg-stone-1) 0%, var(--tg-stone-2) 55%, var(--tg-stone-3) 100%);
+  box-shadow: 0 26px 50px -28px rgba(40, 26, 8, .65), 0 0 0 1px rgba(255, 244, 220, .12) inset;
+  --accent: var(--tg-gold-light);
+  --ink: var(--cream);
+  --soft: rgba(255, 253, 248, .9);
+  color: var(--cream);
+}
+.tg-hero .tg-light { position: absolute; inset: 0; z-index: -1; overflow: hidden; }
+.tg-hero::after { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(90% 90% at 50% 45%, transparent 38%, rgba(20, 13, 6, .5) 100%); }
+.tg-hero .tg-rings { width: min(58%, 12rem); margin: 0; }
+.tg-hero-ritual { aspect-ratio: auto; min-height: 17rem; max-height: none; align-content: space-between; justify-items: center; padding: 2rem 1.2rem 1.5rem; }
+.tg-hero-ritual .tg-rings { width: min(46%, 9.4rem); }
+.tg-hero-text { display: grid; justify-items: center; }
+.tg-hero-text .eyebrow { color: var(--tg-gold-light); }
+.tg-hero-text .tg-sub { color: var(--soft); font-size: 1.2rem; }
+
+/* ——— type ——— */
+.tg-title {
+  margin: .1em -.2em .05em 0;
+  font-weight: 500;
+  font-size: clamp(2.3rem, 11vw, 3.3rem);
+  line-height: 1.1;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+}
+.tg-title.small { font-size: clamp(1.4rem, 6.4vw, 1.9rem); letter-spacing: .15em; margin-right: -.15em; margin-top: .3em; white-space: nowrap; }
+.tg-sub { margin: 0; font-style: italic; font-size: 1.4rem; color: var(--soft); text-wrap: balance; }
+.tg-lead { font-size: 1.32rem; color: var(--ink); max-width: 25rem; }
+.tg-intro { font-size: 1.12rem; max-width: 24rem; margin-bottom: 1.6rem; }
+.tg-landing .rule { margin: 1.1rem auto; }
+.tg-privacy { margin: 1.6rem 0 0; max-width: 22rem; line-height: 1.7; text-transform: none; letter-spacing: .1em; font-size: .68rem; }
+.tg-meta { margin: 0 0 .9rem; }
+.tg-prose { max-width: 25rem; font-size: 1.28rem; }
+.tg-back { align-self: flex-start; display: inline-flex; align-items: center; gap: .5rem; margin: -.4rem 0 .6rem -.2rem; padding: .6rem .2rem; text-decoration: none; font-family: var(--sans); font-size: .7rem; letter-spacing: .26em; text-transform: uppercase; color: var(--soft); }
+.tg-back svg { width: .5rem; height: .9rem; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.tg-back:hover { color: var(--accent); }
+.tg-fine, .fine.tg-fine { font-size: 1.05rem; max-width: 24rem; margin: 1rem 0 0; }
+
+/* the five stages of a ritual */
+.tg-phases { list-style: none; margin: 1.2rem 0 1.2rem; padding: 0; width: 100%; text-align: left; border-top: 1px solid var(--line); }
+.tg-phases li { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: 0 .4rem; padding: 1.05rem 0 1.1rem; border-bottom: 1px solid var(--line); }
+.tg-phases .n { padding-top: .1rem; font-style: italic; font-size: 1.15rem; color: var(--accent); }
+.tg-phases h3 { margin: 0 0 .2rem; font-family: var(--sans); font-weight: 400; font-size: .74rem; letter-spacing: .26em; text-transform: uppercase; }
+.tg-phases p { margin: 0; font-size: 1.12rem; line-height: 1.4; color: var(--soft); text-wrap: pretty; }
+.tg-consent { margin: .6rem 0 1.8rem; max-width: 24rem; font-style: italic; font-size: 1.22rem; line-height: 1.45; color: var(--ink); }
+.tg-actions { gap: .9rem; }
+.tg-note { margin: 0; max-width: 22rem; font-size: 1.05rem; }
+.btn[disabled], .btn:disabled { opacity: .45; cursor: default; filter: none; }
+.btn span + svg { flex: none; }
+
+/* choosing a ritual: a stone card, like the tiles of the rituals but in champagne light */
+.tg-list { list-style: none; margin: .4rem 0 0; padding: 0; width: 100%; display: grid; gap: 12px; }
+.tg-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 5.2rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .8rem;
+  min-height: 6.4rem;
+  padding: 0 1rem 0 0;
+  border-radius: 14px;
+  overflow: hidden;
+  isolation: isolate;
+  text-align: left;
+  text-decoration: none;
+  color: var(--cream);
+  background: linear-gradient(158deg, var(--tg-stone-1), var(--tg-stone-2) 60%, var(--tg-stone-3));
+  box-shadow: 0 12px 28px -18px rgba(60, 40, 10, .6);
+  transition: transform .7s var(--ease), box-shadow .7s var(--ease);
+  --accent: var(--tg-gold-light);
+}
+.tg-card-art { position: relative; align-self: stretch; display: grid; place-items: center; overflow: hidden; }
+.tg-card-art .tg-light { position: absolute; inset: 0; z-index: -1; overflow: hidden; }
+.tg-card-art .tg-rings { width: 4rem; margin: 0; }
+.tg-card-text { display: grid; gap: .1rem; padding: .9rem 0; }
+.tg-card .name { font-size: clamp(1.05rem, 4.7vw, 1.25rem); font-weight: 500; letter-spacing: .1em; white-space: nowrap; text-transform: uppercase; line-height: 1.2; }
+.tg-card .kind { font-size: 1.02rem; line-height: 1.25; opacity: .95; }
+.tg-card .meta { margin-top: .3rem; font-family: var(--sans); font-size: .62rem; letter-spacing: .16em; text-transform: uppercase; color: var(--tg-gold-light); }
+.tg-card:hover, .tg-card:focus-visible { transform: translateY(-3px); box-shadow: 0 20px 34px -18px rgba(60, 40, 10, .65); }
+
+/* ——— one device ——— */
+.tg-solo { justify-content: center; }
+.tg-solo-head { display: grid; justify-items: center; }
+.tg-solo-art { width: 100%; padding: 1.2rem 0 .4rem; }
+.tg-hint { max-width: 22rem; font-size: 1.12rem; }
+html[data-tg="light"] .tg-solo .range::-webkit-slider-runnable-track { background: linear-gradient(to right, var(--accent) var(--p), rgba(51, 41, 29, .2) var(--p)); }
+html[data-tg="light"] .tg-solo .range::-moz-range-track { background: rgba(51, 41, 29, .2); }
+html[data-tg="light"] .tg-solo .ctl:hover { background: rgba(51, 41, 29, .06); }
+html[data-tg="scene"] .tg-solo .tg-rings { width: min(40%, 8rem); }
+
+/* ——— the shared session ——— */
+.tg-session { justify-content: center; }
+.tg-live { width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.tg-live > * { animation: rise 1.1s var(--ease) both; }
+.tg-live > *:nth-child(2) { animation-delay: .1s; }
+.tg-live > *:nth-child(3) { animation-delay: .2s; }
+.tg-live > *:nth-child(4) { animation-delay: .3s; }
+.tg-live > *:nth-child(5) { animation-delay: .4s; }
+.tg-live > *:nth-child(6) { animation-delay: .5s; }
+.tg-live > *:nth-child(7) { animation-delay: .6s; }
+.tg-h { margin: .2em 0 .35em; }
+.tg-wait { margin: .2em 0 .5em; font-style: italic; font-weight: 400; font-size: clamp(1.7rem, 7.4vw, 2.2rem); line-height: 1.25; text-wrap: balance; }
+.tg-wait-line { margin: .5rem 0 .4rem; font-style: italic; font-size: 1.35rem; color: var(--soft); text-wrap: balance; }
+.tg-live .actions { margin: .3rem 0 .2rem; }
+.tg-live .notice { max-width: 22rem; margin: .8rem 0 0; }
+.tg-live .quiet { margin-top: 1.2rem; }
+
+.tg-qr { width: 13.6rem; margin: .6rem auto 1.1rem; padding: 12px; border: 1px solid var(--line); border-radius: 18px; background: #fffdf8; box-shadow: 0 18px 34px -24px rgba(60, 40, 10, .55); }
+.tg-qr:empty { height: 13.6rem; }
+.tg-qr svg { display: block; width: 100%; height: auto; }
+.tg-qr path { fill: #33291d; }
+.tg-link-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: .7rem; justify-items: center; width: 100%; margin-bottom: .4rem; }
+.tg-link-row .btn { max-width: 18rem; }
+.tg-link-row .btn svg { width: 1.2rem; height: 1.2rem; flex: none; }
+.tg-link-row .i-line { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+/* a discreet receipt: who is here, who is ready */
+.tg-receipt { display: flex; justify-content: center; gap: 0; margin: .6rem 0 1.3rem; }
+.tg-badge { display: grid; gap: .15rem; min-width: 8.2rem; padding: 0 1.1rem; }
+.tg-badge + .tg-badge { border-left: 1px solid var(--line); }
+.tg-badge .who { font-family: var(--sans); font-size: .64rem; letter-spacing: .24em; text-transform: uppercase; color: var(--soft); }
+.tg-badge .st { font-style: italic; font-size: 1.2rem; color: var(--soft); transition: color .8s var(--ease); }
+.tg-badge[data-st="here"] .st, .tg-badge[data-st="ready"] .st { color: var(--ink); }
+.tg-badge[data-st="ready"] .st { color: var(--accent); }
+.tg-badge[data-st="ready"] .st::before { content: ""; display: inline-block; width: .42rem; height: .42rem; margin-right: .45rem; border-radius: 50%; background: var(--accent); vertical-align: .12em; }
+.tg-bar { width: 100%; max-width: 20rem; height: 2px; margin-top: .9rem; background: var(--line); border-radius: 2px; overflow: hidden; }
+.tg-bar i { display: block; height: 100%; width: var(--p, 0%); background: var(--accent); transition: width .4s linear; }
+
+/* the breath before it begins, then 3 · 2 · 1 */
+.tg-count { min-height: 46svh; display: grid; place-items: center; width: 100%; }
+.tg-breathe { margin: 0 0 .5rem; font-style: italic; font-size: clamp(1.8rem, 7.6vw, 2.3rem); line-height: 1.25; text-wrap: balance; animation: rise 1.6s var(--ease) both; }
+.tg-soft { margin: 0; font-family: var(--sans); font-size: .72rem; letter-spacing: .26em; text-transform: uppercase; color: var(--soft); animation: rise 2s var(--ease) .5s both; }
+.tg-num { display: block; font-weight: 300; font-size: 7rem; line-height: 1; animation: tg-num 1s var(--ease) both; }
+@keyframes tg-num { from { opacity: 0; transform: scale(.94); } 25% { opacity: 1; } to { opacity: .0; transform: scale(1.04); } }
+
+/* while it plays: very little */
+.tg-phase { min-height: 1.6rem; margin: .4rem 0 0; font-family: var(--sans); font-size: .74rem; letter-spacing: .3em; text-transform: uppercase; color: var(--accent); }
+.tg-progress { display: grid; grid-template-columns: 2.6rem minmax(0, 1fr) 2.6rem; align-items: center; gap: .8rem; width: 100%; max-width: 20rem; margin: 1.6rem 0 1.8rem; font-family: var(--sans); font-size: .72rem; letter-spacing: .08em; color: var(--soft); }
+.tg-progress span:first-child { text-align: right; }
+.tg-progress span:last-child { text-align: left; }
+.tg-line { position: relative; height: 1px; background: rgba(251, 244, 230, .26); }
+.tg-line i { position: absolute; left: 0; top: -.5px; height: 2px; width: var(--p, 0%); background: var(--accent); border-radius: 2px; }
+.tg-session .ctl.play { width: 4.4rem; height: 4.4rem; background: transparent; border: 1px solid var(--line); color: var(--ink); box-shadow: none; }
+.tg-session .ctl.play:hover { background: rgba(251, 244, 230, .1); filter: none; }
+.tg-session .ctl.play .i-pause { display: block; }
+.tg-quiet { min-height: 3.2rem; margin: 1.4rem 0 0; max-width: 20rem; font-style: italic; font-size: 1.1rem; color: var(--soft); }
+
+.tg-offscreen { position: fixed; left: -9999px; top: 0; }
+
+/* the invitation link, in small print under the buttons */
+.tg-linktext { margin: .2rem 0 0; width: 100%; max-width: 21rem; font-family: var(--sans); font-size: .62rem; letter-spacing: .03em; line-height: 1.55; color: var(--soft); word-break: break-all; user-select: all; -webkit-user-select: all; }
+
+/* the invitation has the most to show: keep it within one phone screen */
+.tg-live[data-phase="invite"] .tg-h { font-size: clamp(1.7rem, 7.2vw, 2.2rem); margin-bottom: .15em; }
+.tg-live[data-phase="invite"] .text { font-size: 1.12rem; margin-bottom: .5em; }
+.tg-live[data-phase="invite"] .tg-qr { width: 12.4rem; margin: .4rem auto .9rem; padding: 10px; }
+.tg-live[data-phase="invite"] .tg-qr:empty { height: 12.4rem; }
+.tg-live[data-phase="invite"] .tg-rings { width: 6.2rem; margin: .9rem auto .1rem; }
+.tg-live[data-phase="invite"] .tg-wait-line { margin-top: .2rem; font-size: 1.25rem; }
+
+/* small phones */
+@media (max-height: 740px) {
+  .tg-hero { max-height: 28svh; margin-bottom: 1.1rem; }
+  .tg-hero-ritual { min-height: 14.5rem; padding-top: 1.5rem; }
+  .tg-hero-ritual .tg-rings { width: min(38%, 7.6rem); }
+  .tg-lead { font-size: 1.22rem; }
+  .tg-num { font-size: 5.6rem; }
+  .tg-qr { width: 11.8rem; }
+  .tg-qr:empty { height: 11.8rem; }
+}
+@media (min-width: 720px) { .tg-card, .tg-hero { max-width: 28rem; } }

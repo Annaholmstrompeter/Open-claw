@@ -13,6 +13,7 @@
  *   #/r/<id>/done           the quiet ending
  *   #/about                 Sensory Enrichment (with the spoken introduction)
  *   #/close                 closing: back to the sanctuary
+ *   #/together/…            TOGETHER, a ritual for two: its own module (assets/together/), see together.js
  */
 (function () {
   'use strict';
@@ -293,6 +294,9 @@
 
   function photo() { return '<div class="photo" aria-hidden="true"></div>'; }
 
+  // TOGETHER is a separate module; the sanctuary works the same without it.
+  function tgTabs(active) { return window.BMETogether && window.BMETogether.available() ? window.BMETogether.tabs(active) : ''; }
+
   function welcome() {
     return {
       title: UI.brand + ' — ' + UI.sub,
@@ -328,6 +332,7 @@
       kind: 'list',
       html:
         '<section class="screen top-aligned">' +
+        tgTabs('rituals') +
         '<h1 class="title caps">' + UI.chooseTitle + '</h1>' +
         '<p class="text sub-title">' + UI.footline + '</p>' +
         '<ul class="ritual-list">' + tiles + '</ul>' +
@@ -517,6 +522,7 @@
     if (parts[0] === 'rituals') return rituals();
     if (parts[0] === 'about') return about();
     if (parts[0] === 'close') return closing();
+    if (parts[0] === 'together') return (window.BMETogether && window.BMETogether.screen(parts)) || rituals();
     if (parts[0] === 'r') {
       var r = ritualById(parts[1]);
       if (!r) return rituals();
@@ -527,7 +533,11 @@
     return welcome();
   }
 
+  var activePage = null; // a screen that has something to clean up when it is left (TOGETHER's sessions)
+
   function draw() {
+    if (activePage && activePage.unmount) { try { activePage.unmount(); } catch (e) { /* leaving anyway */ } }
+    activePage = null;
     var page = resolve();
     var root = document.documentElement;
     // the recording only plays on its own screen (and on the introduction's)
@@ -544,6 +554,8 @@
       if (themeMeta) themeMeta.setAttribute('content', PAPER);
     }
     root.setAttribute('data-page', page.kind);
+    if (page.kind === 'together') window.BMETogether.enter(page);
+    else if (window.BMETogether) window.BMETogether.clear();
     if (coloured) root.setAttribute('data-ground', ''); else root.removeAttribute('data-ground');
     document.title = page.title;
     stage.innerHTML = page.html;
@@ -552,6 +564,8 @@
     try { stage.focus({ preventScroll: true }); } catch (e) { stage.focus(); }
     bindPlayer();
     bindInstall();
+    activePage = page;
+    if (page.mount) page.mount(stage);
   }
 
   function setMenuClosed() {
@@ -570,6 +584,8 @@
     try { if (location.hash !== hash) location.hash = hash; } catch (e) { /* in-memory route still works */ }
     show();
   }
+
+  window.SANCTUARY_APP = { navigate: navigate };
 
   function show() {
     if (route === shown) { setMenuClosed(); return; }

@@ -16,6 +16,7 @@
   <link rel="preload" href="assets/fonts/cormorant-garamond-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/jost-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/together/together.css">
 </head>
 <body>
   <div class="panel-bg" aria-hidden="true"></div>
@@ -33,6 +34,7 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
     </button>
     <a href="#/rituals">Rituals</a>
+    <a href="#/together">Together</a>
     <a href="#/about">Sensory Enrichment</a>
     <a href="#/close">Close your visit</a>
   </nav>
@@ -42,6 +44,12 @@
   <noscript><p class="nojs">This sanctuary needs JavaScript to guide you through the rituals.</p></noscript>
 
   <script src="assets/content.js"></script>
+  <!-- TOGETHER (a ritual for two): its own small modules; the sanctuary works without them -->
+  <script src="assets/together/config.js"></script>
+  <script src="assets/together/session.js"></script>
+  <script src="assets/together/transport.js"></script>
+  <script src="assets/together/player.js"></script>
+  <script src="assets/together/together.js"></script>
   <script src="assets/app.js"></script>
 </body>
 </html>

@@ -6,6 +6,7 @@ Reads
   content/products.json          product facts, copied from the five labels
   content/quotes.json            one line from each meditation, shown while it plays
   content/audio.json             the names of the recordings in public/assets/audio/
+  content/together.json          TOGETHER (A Ritual for Two): the paired rituals
 and writes
   public/assets/content.js       what the site displays
   public/sw.js                   the offline file list and cache version
@@ -27,6 +28,7 @@ SRC = ROOT / "content" / "meditations-mall.txt"
 PRODUCTS = ROOT / "content" / "products.json"
 QUOTES = ROOT / "content" / "quotes.json"
 AUDIO = ROOT / "content" / "audio.json"
+TOGETHER = ROOT / "content" / "together.json"
 OUT = ROOT / "public" / "assets" / "content.js"
 
 # "4. BALANCE — SHORT", "2. PRESENCE — KORT RITUAL", "KINDNESS — EXTENDED" ...
@@ -79,13 +81,17 @@ def duration_minutes(path):
 
 def refresh_service_worker():
     """Keep the offline file list and the cache version in public/sw.js in step with the site.
-    The recordings are not cached by the service worker (they are large and are streamed)."""
+    The recordings are not cached by the service worker (they are large and are streamed).
+    TOGETHER's Supabase client and its pictures are left out too: they are fetched, and then kept,
+    the first time someone opens a shared session, so a guest who only uses the rituals never downloads them."""
     public = ROOT / "public"
     skip = {"sw.js", "_headers", "robots.txt"}
     files = sorted(
         f.relative_to(public).as_posix()
         for f in public.rglob("*")
         if f.is_file() and f.name not in skip and not f.name.startswith("OFL-") and "assets/audio/" not in f.as_posix()
+        and "assets/together/vendor/" not in f.as_posix() and "assets/together/img/" not in f.as_posix()
+        and f.name != "config.js"
     )
     digest = hashlib.sha1()
     for name in files:
@@ -106,6 +112,19 @@ def main():
     quotes = json.loads(QUOTES.read_text(encoding="utf-8"))
     audio = json.loads(AUDIO.read_text(encoding="utf-8"))
     problems, warnings = [], []
+
+    together = json.loads(TOGETHER.read_text(encoding="utf-8"))
+    together.pop("_note", None)
+    for t in together["rituals"]:
+        for key in ("id", "title", "subtitle", "minutes", "lead", "phases", "consent", "disclaimer", "audio"):
+            if key not in t:
+                problems.append("together %s: missing %s" % (t.get("id", "?"), key))
+        t["audio"].pop("_cues", None)
+        if not (ROOT / "public" / t["audio"]["src"]).exists():
+            warnings.append("TOGETHER recording not added yet: " + t["audio"]["src"])
+        cues = t["audio"].get("cues")
+        if cues and any(c["phase"] >= len(t["phases"]) for c in cues):
+            problems.append("together %s: a cue points at a phase that does not exist" % t["id"])
 
     # The shared introduction, for the Sensory Enrichment page. The sanctuary is closed,
     # so a line sending guests to a website is left out.
@@ -160,6 +179,7 @@ def main():
         "introAudio": audio["dir"] + intro_file,
         "logo": "assets/img/logo.webp",
         "rituals": rituals,
+        "together": together,
     }
     body = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
     body = body.replace('{"id":', '\n{"id":')  # one ritual per line, easier to diff

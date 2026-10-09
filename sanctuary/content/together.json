@@ -1,0 +1,34 @@
+{
+  "_note": "TOGETHER (A Ritual for Two). Everything a guest reads about the paired rituals. build-content.py copies this into content.js as SANCTUARY.together. Interface words (buttons, status lines) live in assets/together/together.js. The recording file does not exist yet: add it as public/assets/audio/together/heart-to-heart.mp3 (see README, 'Heart to Heart'). The spoken words are never shipped to the phone: the draft script is content/together-heart-to-heart-manus.md and stays here.",
+  "tab": "Together",
+  "landing": {
+    "brand": "Body Mind Earth",
+    "title": "Together",
+    "sub": "A Ritual for Two",
+    "lead": "A moment to slow down together. To feel, to listen, and to rediscover the quiet beauty of connection.",
+    "intro": "Sit side by side, or facing each other. Each of you listens on your own phone, with your own headphones, to the same guiding voice at the same moment."
+  },
+  "rituals": [
+    {
+      "id": "heart-to-heart",
+      "title": "Heart to Heart",
+      "subtitle": "A Guided Ritual for Connection",
+      "minutes": 10,
+      "lead": "A quiet ritual for two people, sitting side by side or facing each other. One voice guides you both through presence, breath and, if you both wish, gentle touch.",
+      "phases": [
+        { "name": "Arrival", "text": "Land in your body, and notice the presence of the person beside you." },
+        { "name": "Heart Connection", "text": "One hand rests over your own heart. If you both wish, the other rests gently over your partner's: warmth, skin, contact, the quiet weight of a hand." },
+        { "name": "Shared Breathing", "text": "Notice each other's breath, and let your own come a little closer to a shared rhythm, without forcing anything." },
+        { "name": "Deepening Connection", "text": "Eye contact, if it feels comfortable. Touch, stillness, presence." },
+        { "name": "Integration", "text": "A closing moment to feel what you have shared, and to carry it into the rest of your day." }
+      ],
+      "consent": "Everything here is an invitation. Touch and eye contact are always optional, and you are welcome to keep your hands on your own hearts.",
+      "disclaimer": "A ritual of attention and care. It is not a treatment, and it makes no promises about your body or your breathing.",
+      "audio": {
+        "src": "assets/audio/together/heart-to-heart.mp3",
+        "_cues": "Fill in when the recording is final: [{\"at\": 0, \"phase\": 0}, {\"at\": 105, \"phase\": 1}, ...] with 'at' in seconds and 'phase' the index in 'phases'. The screen then names the phase while it plays. Leave null until then.",
+        "cues": null
+      }
+    }
+  ]
+}

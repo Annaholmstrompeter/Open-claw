@@ -1,6 +1,6 @@
 /* Offline support: after the first visit the whole sanctuary works without signal.
    Bump VERSION whenever files change so guests receive the update on their next visit. */
-var VERSION = 'bme-sanctuary-d53788d489';
+var VERSION = 'bme-sanctuary-898b2b4d8d';
 var FILES = [
   './',
   'assets/app.js',
@@ -35,6 +35,11 @@ var FILES = [
   'assets/img/serenity-waves.webp',
   'assets/img/waves-gold.webp',
   'assets/style.css',
+  'assets/together/player.js',
+  'assets/together/session.js',
+  'assets/together/together.css',
+  'assets/together/together.js',
+  'assets/together/transport.js',
   'index.html',
   'manifest.webmanifest'
 ];
@@ -57,8 +62,10 @@ self.addEventListener('activate', function (event) {
 self.addEventListener('fetch', function (event) {
   var req = event.request;
   var url = new URL(req.url);
-  // the recordings are large and are streamed: the browser handles them itself
-  if (req.method !== 'GET' || url.origin !== self.location.origin || url.pathname.indexOf('/assets/audio/') !== -1) return;
+  // the recordings are large and are streamed: the browser handles them itself.
+  // TOGETHER's connection settings (config.js) are always read fresh, so a change to them applies at once.
+  if (req.method !== 'GET' || url.origin !== self.location.origin || url.pathname.indexOf('/assets/audio/') !== -1 ||
+      url.pathname.indexOf('/assets/together/config.js') !== -1) return;
   event.respondWith(
     caches.open(VERSION).then(function (cache) {
       return cache.match(req, { ignoreSearch: true }).then(function (hit) {
