@@ -38,6 +38,10 @@
     chooseTitle: 'Choose your ritual',
     enterRitual: 'Enter the ritual',
     aboutLink: 'About Sensory Enrichment',
+    home: 'Home',
+    allRituals: 'All rituals',
+    aboutProduct: 'About the product',
+    minShort: 'min',
     aboutEyebrow: 'Sensory Enrichment',
     closeLink: 'Close your visit',
     shortRitual: 'Short ritual',
@@ -293,7 +297,7 @@
 
   /* ——— screens ———
      Each returns { title, kind, html, theme? }. 'kind' drives the look (see style.css):
-     welcome, list, intro (colour hero on cream), player and end (full colour ground), about, close. */
+     welcome, list, intro (the ritual's own quiet page), player and end (full colour ground), about, close. */
 
   function photo() { return '<div class="photo" aria-hidden="true"></div>'; }
 
@@ -313,6 +317,7 @@
         '<h1 class="front-title">' + UI.frontTitle + '</h1>' +
         '<p class="text">' + UI.frontText + '</p>' +
         '<a class="btn primary" href="#/rituals"><span>' + UI.discover + '</span>' + arrow() + '</a>' +
+        '<nav class="quiet front-menu" aria-label="' + UI.aboutEyebrow + '"><a href="#/about"><span>' + UI.aboutLink + '</span></a></nav>' +
         '</div></section>'
     };
   }
@@ -406,31 +411,45 @@
       '</aside>';
   }
 
+  function playMark() { return '<svg class="ri-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.2l11 6.8-11 6.8z"/></svg>'; }
+  function homeLink() { return '<a href="#/"><span>' + UI.home + '</span></a>'; }
+
+  // One section of the ritual's page: a title that opens and closes.
+  function section(title, body, open) {
+    return '<details class="rd"' + (open ? ' open' : '') + '><summary>' + title + '</summary><div class="rd-body">' + body + '</div></details>';
+  }
+
+  // A ritual: the same quiet page as the carousel. The picture, what it is, two ways to listen, then what to read.
   function ritualIntro(r) {
+    function mins(a) { return a.min ? '<em>' + Math.round(a.min) + ' ' + UI.minShort + '</em>' : ''; }
     // the three ritual lines of the label, read as one short passage
     var prose = [r.rows.scent, r.rows.touch, r.rows.feel].map(esc).join(' ');
+    var facts =
+      '<p>' + esc(r.tone) + ' · with ' + r.with.map(esc).join(' · ') + '</p>' +
+      '<p>' + esc(r.size) + '</p>' +
+      '<p>' + (r.vegan ? UI.vegan + ' · ' : '') + esc(r.natural) + '</p>';
     return {
       title: cap(r.id) + ' — ' + UI.brand,
       kind: 'intro',
       theme: r,
       html:
-        '<section class="screen intro">' +
-        '<div class="hero on-colour">' +
-        img(r.img.botanical, 'hero-art') +
-        '<p class="eyebrow">' + UI.sub + '</p>' +
-        '<h1 class="display">' + r.id + '</h1>' +
-        '<p class="product-line">' + esc(r.kind) + ' · ' + esc(r.scent) + '</p>' +
-        logo('mark small') +
-        '<p class="aff-caps">' + esc(r.affirmation) + '</p>' +
+        '<section class="screen top-aligned intro">' +
+        '<div class="ri-hero"><div class="rc-frame"><div class="rc-photo">' +
+        '<img src="' + r.img.photo + '" alt="" width="900" height="1125" decoding="async">' +
+        '<h1 class="rc-name">' + r.id + '</h1></div></div></div>' +
+        '<div class="ri-body">' +
+        '<p class="rc-kind">' + esc(r.kind) + ' · ' + esc(r.scent) + '</p>' +
+        '<p class="ri-aff">' + esc(r.affirmation) + '</p>' +
+        '<div class="ri-listen">' +
+        '<a class="ri-btn primary" data-listen="' + r.id + ':short" href="#/r/' + r.id + '/s">' + playMark() + '<span>' + UI.shortRitual + '</span>' + mins(r.audio.short) + '</a>' +
+        '<a class="ri-btn" data-listen="' + r.id + ':extended" href="#/r/' + r.id + '/e">' + playMark() + '<span>' + UI.extended + '</span>' + mins(r.audio.extended) + '</a>' +
         '</div>' +
-        '<div class="intro-body">' +
-        '<p class="prose">' + prose + '</p>' +
-        '<p class="with">' + esc(r.tone) + ' · with ' + r.with.map(esc).join(' · ') + '</p>' +
-        '<div class="actions">' +
-        '<a class="btn primary" data-listen="' + r.id + ':short" href="#/r/' + r.id + '/s"><span>' + UI.shortRitual + '</span>' + arrow() + '</a>' +
-        '<a class="btn ghost" data-listen="' + r.id + ':extended" href="#/r/' + r.id + '/e"><span>' + UI.extended + '</span></a>' +
+        '<div class="ri-more">' +
+        section(UI.aboutProduct, facts, true) +
+        section(UI.theRitual, '<p>' + prose + '</p>') +
+        section(UI.ingredientsSummary, labelCard(r)) +
         '</div>' +
-        '<details class="formula"><summary>' + UI.ingredientsSummary + '</summary>' + labelCard(r) + '</details>' +
+        '<nav class="quiet"><a href="#/rituals"><span>' + UI.allRituals + '</span></a>' + homeLink() + '</nav>' +
         '</div></section>'
     };
   }
@@ -467,6 +486,7 @@
         '<nav class="quiet">' +
         '<a href="#/r/' + r.id + '"><span>' + UI.theRitual + '</span></a>' +
         '<a data-listen="' + r.id + ':' + otherKey + '" href="#/r/' + r.id + '/' + (otherKey === 'extended' ? 'e' : 's') + '"><span>' + (otherKey === 'extended' ? UI.extended : UI.shortRitual) + '</span></a>' +
+        homeLink() +
         '</nav></section>'
     };
   }
@@ -487,7 +507,7 @@
         '<div class="actions">' +
         '<a class="btn primary" href="#/rituals"><span>' + UI.returnRituals + '</span>' + arrow() + '</a>' +
         '<nav class="quiet"><a href="#/r/' + next.id + '"><span>' + UI.nextRitual + ': ' + cap(next.id) + '</span></a>' +
-        '<a data-listen="' + r.id + ':short" href="#/r/' + r.id + '/s"><span>' + UI.listenAgain + '</span></a></nav>' +
+        '<a data-listen="' + r.id + ':short" href="#/r/' + r.id + '/s"><span>' + UI.listenAgain + '</span></a>' + homeLink() + '</nav>' +
         '</div>' +
         '</section>'
     };
@@ -519,6 +539,7 @@
         '<div class="sp-row">' + species + '</div>' +
         '<p class="reminder">' + UI.reminder + '</p></div>' +
         '<a class="btn primary" href="#/rituals"><span>' + UI.returnRituals + '</span>' + arrow() + '</a>' +
+        '<nav class="quiet">' + homeLink() + '</nav>' +
         '<h2>' + UI.privacyTitle + '</h2>' +
         '<p class="text fine">' + UI.privacy + '</p>' +
         /* CONTACT (optional): when a contact address is decided, add it here, e.g.
@@ -543,6 +564,7 @@
         '<a class="btn primary" href="#/rituals"><span>' + UI.returnRituals + '</span>' + arrow() + '</a>' +
         '<div data-install>' + installButton() + '</div>' +
         (isIOS() ? '<p class="install-hint">' + UI.iosHint + '</p>' : '') +
+        '<nav class="quiet">' + homeLink() + '</nav>' +
         '</div>' +
         '<p class="small-caps footline">' + wordmark() + '</p>' +
         '</div></section>'
@@ -583,7 +605,7 @@
     var coloured = page.kind === 'player' || page.kind === 'end';
     if (page.theme) {
       root.setAttribute('data-c', page.theme.id);
-      if (themeMeta) themeMeta.setAttribute('content', page.kind === 'intro' || coloured ? page.theme.color : PAPER);
+      if (themeMeta) themeMeta.setAttribute('content', coloured ? page.theme.color : PAPER);
     } else {
       root.removeAttribute('data-c');
       if (themeMeta) themeMeta.setAttribute('content', PAPER);

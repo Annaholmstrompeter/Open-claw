@@ -413,6 +413,37 @@ test('the way back to the front page: the logo and the menu\'s Home, from the ri
   noErrors(p); await closeAll(p);
 });
 
+test('a ritual\'s own page: the picture, two ways to listen, what to read, and a way Home from every page', async () => {
+  const p = await phone();
+  await open(p, '#/r/presence');
+  await p.page.waitForSelector('.ri-hero img');
+  assert.equal((await p.page.textContent('h1.rc-name')).trim().toLowerCase(), 'presence');
+  assert.match(await p.page.textContent('.rc-kind'), /Body Lotion · Raspberry/);
+  assert.equal(await p.page.getAttribute('.ri-btn.primary', 'href'), '#/r/presence/s');
+  assert.equal(await p.page.getAttribute('.ri-btn:not(.primary)', 'href'), '#/r/presence/e');
+  assert.equal(await p.page.locator('.rd').count(), 3, 'three things to read');
+  assert.equal(await p.page.locator('.rd[open]').count(), 1, 'the first is open');
+  assert.match(await p.page.textContent('.rd[open]'), /250 ml/);
+  await p.page.click('.rd:nth-of-type(3) summary');
+  assert.match(await p.page.textContent('.rd:nth-of-type(3)'), /Rubus Idaeus/, 'the ingredients open');
+  // the ritual's page no longer wears the ritual's colour: it is the carousel's quiet page
+  assert.equal(await p.page.evaluate(() => document.documentElement.hasAttribute('data-ground')), false);
+  // Home from every kind of page
+  for (const h of ['#/r/presence', '#/r/presence/s', '#/r/presence/done', '#/about', '#/close', '#/rituals']) {
+    await open(p, h);
+    await p.page.click(h === '#/rituals' ? 'a.head-brand' : '#stage a[href="#/"]');
+    await p.page.waitForSelector('.front');
+  }
+  // the front page has its own way to Sensory Enrichment
+  await p.page.click('.front-menu a');
+  await p.page.waitForSelector('.screen.about');
+  // listening starts from the ritual's page
+  await open(p, '#/r/presence');
+  await p.page.click('.ri-btn.primary');
+  await p.page.waitForSelector('[data-player="presence:short"]');
+  noErrors(p); await closeAll(p);
+});
+
 test('the sanctuary\'s own five rituals play as before', { timeout: 60000 }, async () => {
   const p = await phone();
   await open(p, '#/r/balance/s');

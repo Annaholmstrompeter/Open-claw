@@ -6,7 +6,8 @@
 //
 // Expected, and only this: the list of rituals gains the Rituals | Together tabs, the menu gains "Together" and "Home" (the way back to the front page; the logo is a link there too),
 // the front page ('#/') is redesigned on purpose (2026-10-09, from Anna's mockup; no shop), and so is the list of rituals
-// ('#/rituals': a carousel of five large pictures, 2026-10-09).
+// ('#/rituals': a carousel of five large pictures, 2026-10-09), and so is each ritual's own page ('#/r/<id>', 2026-10-09);
+// every other page gains a quiet "Home" link (a way back to the front page).
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -55,11 +56,16 @@ fs.rmSync(tmp, { recursive: true, force: true });
 
 const tabs = (h) => h.replace(/<nav class="tg-tabs"[\s\S]*?<\/nav>/, '');
 let unexpected = 0;
+// the one thing added to the other pages: a quiet link back to the front page
+function withoutHome(html) { return html.replace('<a href="#/"><span>Home</span></a>', '').replace('<nav class="quiet"></nav>', ''); }
+
 for (const k of Object.keys(a)) {
   const x = JSON.stringify(a[k]), y = JSON.stringify(b[k]);
   if (x === y) { console.log('same     ', k); continue; }
   if (k === '#/') { console.log('on purpose', k, '(the front page, redesigned)'); continue; }
   if (k === '#/rituals') { console.log('on purpose', k, '(the list of rituals, now a carousel)'); continue; }
+  if (/^#\/r\/[a-z]+$/.test(k) && a[k].title === b[k].title && a[k].page === b[k].page) { console.log('on purpose', k, "(the ritual's own page, in the carousel's style)"); continue; }
+  if (typeof b[k] === 'object' && withoutHome(b[k].stage) === a[k].stage && ['page', 'c', 'ground', 'tg', 'title', 'theme'].every((f) => a[k][f] === b[k][f])) { console.log('+ Home    ', k, '(a link back to the front page, nothing else)'); continue; }
   if (false && tabs(b[k].stage) === a[k].stage && ['page', 'c', 'ground', 'title', 'theme'].every((f) => a[k][f] === b[k][f])) { console.log('tabs only', k); continue; }
   if (k === '__menu' && b[k].replace(/\s*<a href="#\/together">Together<\/a>/, '').replace(/\s*<a href="#\/">Home<\/a>/, '') === a[k]) { console.log('menu +2  ', k, '(the Together link, and a way back to the front page)'); continue; }
   unexpected++;

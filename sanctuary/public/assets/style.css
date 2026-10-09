@@ -152,7 +152,6 @@ html[data-page="about"] .waves {
   padding: calc(env(safe-area-inset-top) + 8px) 8px 8px 18px;
   color: var(--ink);
 }
-html[data-page="intro"] .top { color: var(--cream); }
 html[data-page="close"] .head-brand { visibility: hidden; }
 .head-brand {
   display: flex;
@@ -168,7 +167,7 @@ html[data-page="close"] .head-brand { visibility: hidden; }
   text-decoration: none;
 }
 .head-brand i, .brand-name i, .footline i { font-style: normal; color: #cfa42a; }
-html[data-ground] .head-brand i, html[data-page="intro"] .head-brand i { color: #f4d874; }
+html[data-ground] .head-brand i { color: #f4d874; }
 .head-logo { width: 2.1rem; height: 2.1rem; }
 .menu-btn, .menu-close {
   display: grid;
@@ -260,7 +259,7 @@ h1, h2, .tagline, .title, .text { text-wrap: balance; }
 .text.big { font-size: 1.4rem; color: var(--ink); }
 .small-caps { font-family: var(--sans); font-size: .72rem; letter-spacing: .26em; text-transform: uppercase; color: var(--soft); }
 .rule { width: 3.2rem; height: 1px; margin: 1.3rem auto; background: var(--line); }
-.aff-caps, .end .affirmation {
+.end .affirmation {
   font-weight: 500;
   line-height: 1.45;
   letter-spacing: .07em;
@@ -388,44 +387,8 @@ h1, h2, .tagline, .title, .text { text-wrap: balance; }
 .tile:hover, .tile:focus-visible { transform: translateY(-3px); box-shadow: 0 20px 34px -18px rgba(60, 40, 10, .65); }
 .tile:hover .tile-art, .tile:focus-visible .tile-art { transform: translateY(-50%) scaleX(-1) scale(1.05); }
 
-/* ——— A ritual: colour hero that melts into cream ——— */
-.intro { justify-content: flex-start; padding-top: 0; }
-.hero {
-  position: relative;
-  display: grid;
-  justify-items: center;
-  width: calc(100% + 56px);
-  margin: 0 -28px;
-  padding: calc(58px + env(safe-area-inset-top)) 28px 6.4rem;
-  text-align: center;
-  background: linear-gradient(to bottom, var(--c) 0, var(--c) 86%, var(--paper) 100%);
-}
-.hero::before { content: ""; position: absolute; inset: 0; background: var(--waves) right top / cover no-repeat; pointer-events: none; }
-.hero > * { position: relative; }
-.hero-art { justify-self: start; height: 13.5rem; width: auto; max-width: 62%; margin: 0 0 .5rem -28px; object-fit: contain; object-position: left top; }
-.product-line { margin: .1rem 0 1.1rem; font-size: 1.25rem; letter-spacing: .03em; }
-.aff-caps { margin: 0; max-width: 20rem; font-size: 1.32rem; }
-
-.intro-body { display: grid; justify-items: center; width: 100%; max-width: 26rem; margin-top: -.6rem; }
-.prose { margin: 0 0 1rem; font-size: 1.38rem; line-height: 1.5; color: var(--ink); text-wrap: pretty; }
-.with { margin: 0 0 1.7rem; font-family: var(--sans); font-weight: 300; font-size: .68rem; letter-spacing: .22em; text-transform: uppercase; color: var(--soft); line-height: 1.7; }
+/* ——— Buttons stacked (the end of a ritual, closing) ——— */
 .actions { display: grid; justify-items: center; gap: .8rem; width: 100%; }
-
-details.formula { width: 100%; margin-top: 2rem; border-top: 1px solid var(--line); }
-details.formula summary {
-  list-style: none;
-  cursor: pointer;
-  padding: 1.2rem 0;
-  font-family: var(--sans);
-  font-size: .72rem;
-  letter-spacing: .26em;
-  text-transform: uppercase;
-  color: var(--soft);
-}
-details.formula summary::-webkit-details-marker { display: none; }
-details.formula summary::after { content: " +"; }
-details.formula[open] summary::after { content: " \2212"; }
-details.formula summary:hover { color: var(--accent); }
 
 /* The cream middle panel of the label, in the label's own small print */
 .label-card, .species { background: var(--paper); color: #161208; border-radius: 4px; font-family: var(--label-serif); }
@@ -558,15 +521,15 @@ details.formula summary:hover { color: var(--accent); }
 .nojs { padding: 2rem; text-align: center; font-style: italic; }
 
 /* ——— The front page: a calm header, one photograph, a few words, one door ——— */
-html[data-page="welcome"] .top, html[data-page="list"] .top {
+html[data-page="welcome"] .top, html[data-page="list"] .top, html[data-page="intro"] .top {
   justify-content: center;
   height: calc(80px + env(safe-area-inset-top));
   padding: calc(env(safe-area-inset-top) + 8px) 56px 6px;
   background: var(--paper);
 }
-html[data-page="welcome"] .head-brand, html[data-page="list"] .head-brand { flex-direction: column; gap: .3rem; text-align: center; font-size: .72rem; letter-spacing: .34em; margin-right: -.34em; }
-html[data-page="welcome"] .head-logo, html[data-page="list"] .head-logo { width: 2.7rem; height: 2.7rem; }
-html[data-page="welcome"] .menu-btn, html[data-page="list"] .menu-btn { position: absolute; left: 6px; top: calc(env(safe-area-inset-top) + 16px); }
+html[data-page="welcome"] .head-brand, html[data-page="list"] .head-brand, html[data-page="intro"] .head-brand { flex-direction: column; gap: .3rem; text-align: center; font-size: .72rem; letter-spacing: .34em; margin-right: -.34em; }
+html[data-page="welcome"] .head-logo, html[data-page="list"] .head-logo, html[data-page="intro"] .head-logo { width: 2.7rem; height: 2.7rem; }
+html[data-page="welcome"] .menu-btn, html[data-page="list"] .menu-btn, html[data-page="intro"] .menu-btn { position: absolute; left: 6px; top: calc(env(safe-area-inset-top) + 16px); }
 
 .front { justify-content: flex-start; padding: calc(80px + env(safe-area-inset-top)) 0 calc(40px + env(safe-area-inset-bottom)); }
 .front-photo { width: 100%; aspect-ratio: 941 / 873; background: url("img/welcome-hero.webp") center / cover no-repeat; }
@@ -577,9 +540,10 @@ html[data-page="welcome"] .menu-btn, html[data-page="list"] .menu-btn { position
 
 /* ——— Choose your ritual: one large picture at a time, in a thin pale frame. Quiet and plain, nothing else. ——— */
 .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-html[data-page="list"] { --bg: #faf7f1; --bg-outer: #faf7f1; }
-html[data-page="list"] .top { background: #f4efe6; }
-html[data-page="list"] body::before, html[data-page="list"] body::after { display: none; }   /* no glow, no paper grain */
+html[data-page="list"], html[data-page="intro"] { --bg: #faf7f1; --bg-outer: #faf7f1; }
+html[data-page="list"] .top, html[data-page="intro"] .top { background: #f4efe6; }
+html[data-page="list"] body::before, html[data-page="list"] body::after,
+html[data-page="intro"] body::before, html[data-page="intro"] body::after { display: none; }   /* no glow, no paper grain */
 
 .rituals-screen { justify-content: flex-start; padding: calc(80px + env(safe-area-inset-top) + 22px) 0 calc(104px + env(safe-area-inset-bottom)); }
 .rc { width: 100%; }
@@ -651,6 +615,62 @@ html[data-page="list"] body::before, html[data-page="list"] body::after { displa
 .rc-cta:hover { background: #9a7e29; }
 @media (max-height: 740px) { .rc-name { top: 5%; } .rc-kind { margin-top: .8rem; } }
 
+/* ——— A ritual's own page: the carousel's picture, what it is, two ways to listen, then what to read ——— */
+.intro { padding: calc(80px + env(safe-area-inset-top) + 22px) 0 calc(36px + env(safe-area-inset-bottom)); }
+.ri-hero { width: 100%; padding: 0 22px; }
+.ri-hero .rc-name { margin-top: 0; margin-bottom: 0; }
+.ri-body { width: 100%; max-width: 28rem; padding: 0 22px; }
+.ri-body .rc-kind { margin: 1.15rem 0 0; }
+.ri-aff { margin: .5rem 0 0; font-style: italic; font-size: 1.28rem; line-height: 1.4; color: var(--soft); text-wrap: balance; }
+.ri-listen { display: grid; gap: .75rem; margin: 1.7rem 0 0; }
+.ri-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .75rem;
+  min-height: 58px;
+  padding: 0 1rem;
+  border: 1px solid #a88b30;
+  border-radius: 7px;
+  background: transparent;
+  color: #86691a;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: .86rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background-color .4s var(--ease);
+}
+.ri-btn.primary { background: #a88b30; color: #fffdf8; }
+.ri-btn.primary:hover { background: #9a7e29; }
+.ri-btn:not(.primary):hover { background: rgba(168, 139, 48, .09); }
+.ri-btn em { font-style: normal; font-weight: 400; letter-spacing: .08em; opacity: .85; }
+.ri-play { width: 1rem; height: 1rem; flex: none; fill: currentColor; }
+.ri-more { margin: 2.1rem 0 0; border-top: 1px solid rgba(51, 41, 29, .14); text-align: left; }
+.rd { border-bottom: 1px solid rgba(51, 41, 29, .14); }
+.rd summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.15rem 0;
+  list-style: none;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-size: .76rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.rd summary::-webkit-details-marker { display: none; }
+.rd summary::after { content: "+"; font-size: 1.3rem; letter-spacing: 0; color: var(--soft); }
+.rd[open] summary::after { content: "\2212"; }
+.rd-body { padding: 0 0 1.4rem; }
+.rd-body > p { margin: 0 0 .45rem; font-size: 1.15rem; line-height: 1.5; color: var(--soft); }
+.rd .label-card { margin: 0; box-shadow: none; }
+.ri-body > .quiet { margin-top: 1.4rem; }
+.front-menu { margin-top: 1rem; }
+
 /* ——— Reduced motion: keep it still, keep it kind ——— */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -664,7 +684,6 @@ html[data-page="list"] body::before, html[data-page="list"] body::after { displa
 /* Short phones: keep a whole step in view */
 @media (max-height: 740px) {
   .text.big { font-size: 1.32rem; }
-  .hero-art { height: 11rem; }
   .art-card { max-height: 34svh; margin-bottom: 1rem; }
   .quote { margin-bottom: 1rem; }
   .player .quiet { margin-top: 1.6rem; }
