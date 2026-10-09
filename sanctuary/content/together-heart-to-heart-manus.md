@@ -4,7 +4,7 @@
 
 Tonen: varm, vuxen, stilla. Inga löften om kroppen ("era hjärtan synkas", "sänker stress"), inga klichéer. Allt är en inbjudan: beröring och ögonkontakt är alltid frivilliga, och man får hålla händerna på sitt eget hjärta. Varje del bör någon gång säga det på något sätt.
 
-Tiderna är riktmärken. När inspelningen är klar: fyll i `cues` i `content/together.json` (sekunder där varje del börjar), så visar skärmen delens namn medan den spelas. Lämna `cues` tom tills dess.
+Tiderna är riktmärken. **Inget av det här visas på sidan:** ritualen lyssnas bara på, och delarna är en arbetsstruktur för inspelningen.
 
 `[paus 5 s]` = tystnad. Det är pauserna som gör att det tar 10 minuter; läs lugnare än du tror.
 

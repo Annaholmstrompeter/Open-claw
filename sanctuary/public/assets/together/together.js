@@ -33,7 +33,6 @@
     about: 'About',
     minutes: 'minutes',
     backTogether: 'Together',
-    phasesTitle: 'The ritual',
     invite: 'Invite Your Partner',
     oneDevice: 'Listen Together on One Device',
     oneDeviceNote: 'Two Bluetooth headphones can work on one phone, if your phone and headphones allow it. This website cannot switch that on for you: look for audio sharing in your phone’s Bluetooth settings.',
@@ -123,7 +122,6 @@
     var A = window.SANCTUARY_APP;
     if (A && A.navigate) A.navigate(hash); else location.hash = hash;
   }
-  var ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
 
   var ICON = {
     play: '<svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.2l11 6.8-11 6.8z"/></svg>',
@@ -223,9 +221,6 @@
   }
 
   function ritualPage(r) {
-    var phases = r.phases.map(function (p, i) {
-      return '<li><span class="n">' + ROMAN[i] + '</span><div><h3>' + esc(p.name) + '</h3><p>' + esc(p.text) + '</p></div></li>';
-    }).join('');
     return {
       title: r.title + ' — Body Mind Earth',
       kind: 'together',
@@ -240,7 +235,6 @@
         '<p class="tg-sub">' + esc(r.subtitle) + '</p></div></div>' +
         '<p class="small-caps tg-meta">' + UI.about + ' ' + r.minutes + ' ' + UI.minutes + ' · ' + UI.forTwo + '</p>' +
         '<p class="prose tg-prose">' + esc(r.lead) + '</p>' +
-        '<ol class="tg-phases" aria-label="' + UI.phasesTitle + '">' + phases + '</ol>' +
         '<p class="tg-consent">' + esc(r.consent) + '</p>' +
         '<div class="actions tg-actions">' +
         '<button class="btn primary" type="button" data-invite><span>' + UI.invite + '</span>' + arrow() + '</button>' +
@@ -517,7 +511,6 @@
         case 'playing':
           return '<p class="eyebrow">' + esc(r.title) + '</p>' +
             rings('here', v.peer.present ? 'here' : 'none') +
-            '<p class="tg-phase" data-phase></p>' +
             '<div class="tg-progress"><span data-now>0:00</span><div class="tg-line"><i data-line></i></div><span data-total>' + fmt(totalSeconds()) + '</span></div>' +
             '<button class="ctl play" type="button" data-act="pause" aria-label="' + UI.pause + '">' + ICON.pause + '</button>' +
             '<p class="tg-quiet" data-quiet></p>';
@@ -590,13 +583,6 @@
         if (line) line.style.setProperty('--p', (pos / totalSeconds() * 100).toFixed(2) + '%');
         var v = session.view(), q = live.querySelector('[data-quiet]');
         if (q) q.textContent = v.reconnecting ? UI.reconnecting : (v.peer.left ? UI.partnerLeft + ' ' + UI.partnerLeftText : '');
-        var ph2 = live.querySelector('[data-phase]'), cues = r.audio.cues;
-        if (ph2 && cues && cues.length) {
-          var cur = cues[0];
-          for (var i = 0; i < cues.length; i++) if (cues[i].at <= pos) cur = cues[i];
-          var nm = r.phases[cur.phase].name;
-          if (ph2.textContent !== nm) ph2.textContent = nm;
-        }
       } else if (ph === 'ready') {
         var bar = live.querySelector('[data-bar]');
         if (bar) bar.style.setProperty('--p', Math.round(ui.prep * 100) + '%');

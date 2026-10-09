@@ -97,7 +97,7 @@ med de nya PDF-filerna först.
 
 ## Together — *A Ritual for Two*
 
-En ny avdelning med egen flik (**Rituals | Together**, och en länk i menyn) på `#/together`. Två personer lyssnar på samma ritual, var och en på sin egen telefon med sina egna hörlurar, och inspelningen startar samtidigt. Första ritualen är **Heart to Heart** (ca 10 minuter, fem delar: Arrival, Heart Connection, Shared Breathing, Deepening Connection, Integration). De fem produktritualerna är oförändrade; Together är separata moduler som sanctuaryt klarar sig utan.
+En ny avdelning med egen flik (**Rituals | Together**, och en länk i menyn) på `#/together`. Två personer lyssnar på samma ritual, var och en på sin egen telefon med sina egna hörlurar, och inspelningen startar samtidigt. Första ritualen är **Heart to Heart** (ca 10 minuter). De fem produktritualerna är oförändrade; Together är separata moduler som sanctuaryt klarar sig utan.
 
 ### Så ser det ut för gästen
 
@@ -129,7 +129,7 @@ Utan `config.js`-värden säger sidan att delade sessioner inte är påslagna; e
 
 Den finns inte än, och ingen är påhittad. Lägg den som `public/assets/audio/together/heart-to-heart.mp3`. Krav (utförligt i `content/together-heart-to-heart-manus.md`): mp3 med konstant bitrate (128 till 192 kbps), minst 1,5 sekunds tystnad först, jämn volym. Manusutkastet i samma mapp är ett förslag att skriva om.
 Så länge filen saknas är *Invite Your Partner* avstängd och sidan säger att inspelningen förbereds.
-När inspelningen är klar kan du fylla i `cues` i `content/together.json` (sekunder där varje del börjar) så visar skärmen delens namn medan den spelas.
+Som i resten av sanctuaryt **lyssnas ritualen bara på**: ingen del av meditationen eller dess manus skrivs ut på sidan eller skickas till telefonen.
 
 ### Hur synkroniseringen fungerar (och vad den inte kan lova)
 

@@ -146,12 +146,6 @@ html[data-tg="scene"] .waves { opacity: 0; }
 .tg-back:hover { color: var(--accent); }
 .tg-fine, .fine.tg-fine { font-size: 1.05rem; max-width: 24rem; margin: 1rem 0 0; }
 
-/* the five stages of a ritual */
-.tg-phases { list-style: none; margin: 1.2rem 0 1.2rem; padding: 0; width: 100%; text-align: left; border-top: 1px solid var(--line); }
-.tg-phases li { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: 0 .4rem; padding: 1.05rem 0 1.1rem; border-bottom: 1px solid var(--line); }
-.tg-phases .n { padding-top: .1rem; font-style: italic; font-size: 1.15rem; color: var(--accent); }
-.tg-phases h3 { margin: 0 0 .2rem; font-family: var(--sans); font-weight: 400; font-size: .74rem; letter-spacing: .26em; text-transform: uppercase; }
-.tg-phases p { margin: 0; font-size: 1.12rem; line-height: 1.4; color: var(--soft); text-wrap: pretty; }
 .tg-consent { margin: .6rem 0 1.8rem; max-width: 24rem; font-style: italic; font-size: 1.22rem; line-height: 1.45; color: var(--ink); }
 .tg-actions { gap: .9rem; }
 .tg-note { margin: 0; max-width: 22rem; font-size: 1.05rem; }
@@ -244,7 +238,6 @@ html[data-tg="scene"] .tg-solo .tg-rings { width: min(40%, 8rem); }
 @keyframes tg-num { from { opacity: 0; transform: scale(.94); } 25% { opacity: 1; } to { opacity: .0; transform: scale(1.04); } }
 
 /* while it plays: very little */
-.tg-phase { min-height: 1.6rem; margin: .4rem 0 0; font-family: var(--sans); font-size: .74rem; letter-spacing: .3em; text-transform: uppercase; color: var(--accent); }
 .tg-progress { display: grid; grid-template-columns: 2.6rem minmax(0, 1fr) 2.6rem; align-items: center; gap: .8rem; width: 100%; max-width: 20rem; margin: 1.6rem 0 1.8rem; font-family: var(--sans); font-size: .72rem; letter-spacing: .08em; color: var(--soft); }
 .tg-progress span:first-child { text-align: right; }
 .tg-progress span:last-child { text-align: left; }

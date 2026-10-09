@@ -140,7 +140,9 @@ test('Together is a tab on the rituals page and in the menu; the five rituals ar
   await p.page.click('a[href="#/together/heart-to-heart"]');
   await p.page.waitForSelector('.tg-ritual');
   assert.match(await p.page.textContent('.tg-ritual'), /Heart to Heart/i);
-  for (const n of ['Arrival', 'Heart Connection', 'Shared Breathing', 'Deepening Connection', 'Integration']) assert.match(await p.page.textContent('.tg-phases'), new RegExp(n));
+  // the ritual is only listened to: nothing of it is written out
+  assert.equal(await p.page.locator('.tg-phases').count(), 0);
+  assert.doesNotMatch(await p.page.textContent('.tg-ritual'), /Arrival|Heart Connection|Shared Breathing|Deepening|Integration|hand over your/i);
   assert.match(await p.page.textContent('.tg-ritual'), /always optional/);
   assert.match(await p.page.textContent('.tg-ritual'), /Invite Your Partner/);
   assert.match(await p.page.textContent('.tg-ritual'), /Listen Together on One Device/);

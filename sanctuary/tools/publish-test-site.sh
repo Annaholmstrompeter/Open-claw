@@ -9,9 +9,10 @@
 #   https://<owner>.github.io/<repo>/
 # The branch is a build product: never edit it by hand, run this script again instead.
 #
-# The optional mp3 is put in as the Together recording (assets/audio/together/heart-to-heart.mp3). Use it for a
-# click-track test file so that you can HEAR whether two phones are in step. It goes into the test site only, never
-# into the sanctuary's own branch. Without it Together says that the recording is being prepared.
+# The optional mp3 is put in as the Together recording (assets/audio/together/heart-to-heart.mp3). Use any recording
+# (for example one of the five rituals) so that you can HEAR whether two phones are in step: a voice that is out of
+# step makes an echo. It goes into the test site only, never into the sanctuary's own branch. Without it Together
+# says that the recording is being prepared.
 #
 # One-time, in the GitHub repository (needs an owner): Settings -> Pages -> "Deploy from a branch" -> gh-pages, / (root).
 set -euo pipefail

@@ -116,15 +116,11 @@ def main():
     together = json.loads(TOGETHER.read_text(encoding="utf-8"))
     together.pop("_note", None)
     for t in together["rituals"]:
-        for key in ("id", "title", "subtitle", "minutes", "lead", "phases", "consent", "disclaimer", "audio"):
+        for key in ("id", "title", "subtitle", "minutes", "lead", "consent", "disclaimer", "audio"):
             if key not in t:
                 problems.append("together %s: missing %s" % (t.get("id", "?"), key))
-        t["audio"].pop("_cues", None)
         if not (ROOT / "public" / t["audio"]["src"]).exists():
             warnings.append("TOGETHER recording not added yet: " + t["audio"]["src"])
-        cues = t["audio"].get("cues")
-        if cues and any(c["phase"] >= len(t["phases"]) for c in cues):
-            problems.append("together %s: a cue points at a phase that does not exist" % t["id"])
 
     # The shared introduction, for the Sensory Enrichment page. The sanctuary is closed,
     # so a line sending guests to a website is left out.
