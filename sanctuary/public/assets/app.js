@@ -554,8 +554,10 @@
       if (themeMeta) themeMeta.setAttribute('content', PAPER);
     }
     root.setAttribute('data-page', page.kind);
-    if (page.kind === 'together') window.BMETogether.enter(page);
-    else if (window.BMETogether) window.BMETogether.clear();
+    try {
+      if (page.kind === 'together') window.BMETogether.enter(page);
+      else if (window.BMETogether) window.BMETogether.clear();
+    } catch (e) { /* TOGETHER can never take the rest of the sanctuary down */ }
     if (coloured) root.setAttribute('data-ground', ''); else root.removeAttribute('data-ground');
     document.title = page.title;
     stage.innerHTML = page.html;
@@ -565,7 +567,7 @@
     bindPlayer();
     bindInstall();
     activePage = page;
-    if (page.mount) page.mount(stage);
+    if (page.mount) { try { page.mount(stage); } catch (e) { /* the screen stays; the fade-out must not be left on */ } }
   }
 
   function setMenuClosed() {

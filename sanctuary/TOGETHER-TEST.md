@@ -37,6 +37,8 @@ Skriv ner ett kryss eller en rad för varje punkt.
 | 13 | Ladda om sidan på B mitt i. | B visar **Your ritual is under way** med **Tap to join your partner**. Efter trycket hamnar B rätt. |
 | 14 | Stäng fliken på B. | A får en stilla rad om att B har lämnat, och A:s inspelning fortsätter. |
 | 15 | Låt det spela klart (eller hoppa till slutet). | Båda får **Take a moment.** |
+| 15b | Medan det spelar: öppna **inbjudningslänken** på en tredje telefon (eller i en privat flik). | Den tredje får *This ritual already has two people* och påverkar ingenting; A och B spelar vidare. |
+| 15c | Ta ur och sätt tillbaka en hörlur på B medan det spelar, och tryck sedan **Resume**. | B:s ljud kommer inte plötsligt ur högtalaren: B visar *Tap to join your partner* och efter ett tryck hamnar B rätt. |
 | 16 | Telefon A: **Listen Together on One Device**. | Vanlig spelare. Går att pausa, söka och backa 15 sekunder. Ljudet fortsätter med låst skärm. Vattenljuset syns bara medan det spelas. |
 
 ## Om något inte stämmer

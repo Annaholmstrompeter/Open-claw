@@ -128,6 +128,13 @@ När inspelningen är klar kan du fylla i `cues` i `content/together.json` (seku
 - **Gränser, ärligt:** webbläsare ger inte sampelexakt tid. Räkna med att ni ligger i takt inom ett tiotal till ett hundratal millisekunder, i testerna 0 till ca 100. Bluetooth-hörlurar har egen fördröjning (ofta 100 till 300 ms, olika för olika modeller) som webbplatsen inte kan mäta. Det räcker för en guidad ritual med en röst, men det är inte perfekt synk, och sidan lovar det inte.
 - **iPhone/Safari** tillåter bara ljud som en människa har bett om. Därför är *I'm Ready* ett eget tryck på varje telefon. Släpper telefonen ändå inte igenom den nätverksstyrda starten visar sidan *Tap to join your partner*; ett tryck, och telefonen hamnar på rätt ställe. Hur just din iPhone beter sig kan bara provas på en riktig iPhone (`TOGETHER-TEST.md`).
 
+### Två personer, och ingen annan
+
+Rummet tar emot en värd och en gäst. Länken är nyckeln, så den som har den kan ansluta, men:
+- Varje telefon får ett slumpat **säte** som står sist i sin egen adress (inte i inbjudningslänken, inget lagras). En omladdning behåller sätet och tar tillbaka platsen; ett nytt fönster med samma adress ersätter det gamla (som säger det och tystnar).
+- Kommer någon **annan** med inbjudningslänken när platsen redan är tagen visas *This ritual already has two people* och personen störs inte in i pågående ritual: telefonerna lyssnar bara på sin partner.
+- Öppnar du inbjudningslänken på en ny telefon medan den gamla ännu syns som ansluten (upp till en minut efter att den stängts av) får du samma besked: vänta en stund och tryck *Try again*.
+
 ### Integritet
 
 Inga namn, ingen inloggning, inga profiler. Sidan ber aldrig om mikrofon, kamera, plats eller Bluetooth (och säkerhetshuvudet stänger de tre första). Rummet heter något långt och slumpmässigt (130 bitar) som bara finns i länken, efter `#`: webbhotellet (Cloudflare) ser därför aldrig rumsnamnet. Länken har ett slutdatum inbyggt (3 timmar). Supabase får rumsnamnet (som kanalnamn), ett slumpat id per telefon, "redo"-flaggor och tidsiffror, och **inget sparas**: rummet finns bara medan telefonerna är med. Precis som alla som tar emot en uppkoppling ser Supabase de anslutande telefonernas IP-adresser. Ingen analyserar eller spelar in andning.

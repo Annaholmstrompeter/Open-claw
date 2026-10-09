@@ -94,6 +94,8 @@
     errBadText: 'Ask your partner to send it again.',
     errUnavailTitle: 'We cannot reach the shared space.',
     errUnavailText: 'Check your connection and try again.',
+    errFullTitle: 'This ritual already has two people.',
+    errFullText: 'If one of them is you, on another phone, close it there and try again.',
     errReplacedTitle: 'This ritual is open in another window.',
     errReplacedText: 'Continue there, or return to Together.',
     errMissingTitle: 'The recording is being prepared.',
@@ -371,6 +373,7 @@
       invalid: [UI.errBadTitle, UI.errBadText],
       unavailable: [UI.errUnavailTitle, UI.errUnavailText],
       replaced: [UI.errReplacedTitle, UI.errReplacedText],
+      full: [UI.errFullTitle, UI.errFullText],
       missing: [UI.errMissingTitle, UI.errMissingText],
       network: [UI.errNetworkTitle, UI.errNetworkText]
     };
@@ -379,11 +382,11 @@
       rings('here', 'none') +
       '<h1 class="tg-wait">' + m[0] + '</h1><p class="text">' + m[1] + '</p>' +
       '<div class="actions">' +
-      (code === 'unavailable' || code === 'network' ? '<button class="btn primary" type="button" data-act="retry"><span>' + UI.retry + '</span></button>' : '') +
+      (code === 'unavailable' || code === 'network' || code === 'full' ? '<button class="btn primary" type="button" data-act="retry"><span>' + UI.retry + '</span></button>' : '') +
       '<a class="btn ghost" href="#/together' + (r ? '/' + r.id : '') + '"><span>' + UI.returnTogether + '</span></a></div>';
   }
 
-  function sessionPage(role, r, room) {
+  function sessionPage(role, r, room, seat) {
     var parsed = Core.parseRoomId(room);
     var choice = window.BMETransport ? window.BMETransport.choose() : { kind: 'none' };
     var fatal = null;
@@ -399,31 +402,38 @@
       kind: 'together',
       look: 'light',
       scene: !fatal,
-      mount: function (stage) { if (!fatal) sessionMount(role, r, room, choice, stage, ctl); },
+      mount: function (stage) { if (!fatal) sessionMount(role, r, room, seat, choice, stage, ctl); },
       unmount: function () { sessionUnmount(ctl); },
       html: '<section class="screen tg tg-session"><div class="tg-live" data-live aria-live="polite">' + inner + '</div></section>'
     };
   }
 
-  function sessionMount(role, r, room, choice, stage, ctl) {
+  function sessionMount(role, r, room, seatIn, choice, stage, ctl) {
     var live = stage.querySelector('[data-live]');
+    // A seat is a random word that lives in this phone's address bar only. A reload keeps it (same person, takes the
+    // seat back); the invitation link has none, so someone else with the link gets a different one and is turned away.
+    var seat = /^[a-z2-7]{6,20}$/.test(seatIn || '') ? seatIn : Core.randomText(10);
+    if (seat !== seatIn && /^#\/together\/(host|join)\//.test(location.hash)) {
+      try { history.replaceState(null, '', location.pathname + location.search + location.hash.replace(/\/+$/, '') + '/' + seat); } catch (e) { /* kept in memory only */ }
+    }
     var base = (window.BME_TOGETHER && window.BME_TOGETHER.base) || 'assets/together/';
     var link = location.href.split('#')[0] + '#/together/join/' + r.id + '/' + room;
 
-    var session = new Core.Session({ role: role, room: room, transport: choice.make() });
+    var session = new Core.Session({ role: role, room: room, seat: seat, transport: choice.make() });
     var player = new P.SyncedPlayer({ src: r.audio.src, sharedNow: function () { return session.sharedNow(); } });
     ctl.session = session; ctl.player = player;
-    var ui = { sig: '', prep: 0, prepErr: null, unlocking: false, ended: false, copied: false, qr: null, started: false, wake: null };
+    var ui = { sig: '', prep: 0, prepErr: null, unlocking: false, ended: false, copied: false, qr: null, started: false, wake: null, wakeBusy: false, phaseId: '' };
     ctl.ui = ui;
     if (window.BME_TOGETHER && window.BME_TOGETHER.debug) window.__tg = { session: session, player: player, ui: ui };
 
     addScene();
     document.addEventListener('visibilitychange', onVisibility);
-    requestWake(ui);
+    requestWake(ui, ctl);
 
     /* what is on screen right now */
     function phase() {
       var v = session.view();
+      if (v.refused) return { id: 'error', code: 'full' };
       if (v.replaced) return { id: 'error', code: 'replaced' };
       if (v.error) return { id: 'error', code: v.error.code };
       if (ui.prepErr) return { id: 'error', code: ui.prepErr, soft: true };
@@ -538,6 +548,13 @@
     function render() {
       if (ctl.destroyed) return;
       var v = session.view(), ph = phase();
+      if ((v.replaced || v.refused) && !ctl.dead) {      // not our seat any more: stop listening, stop playing, say so
+        ctl.dead = true;
+        session.destroy(); player.destroy(); releaseWake(ui);
+      }
+      ui.phaseId = ph.id;
+      // awake while waiting (the phone must not lock before the ritual starts), free to sleep while it plays
+      if (ph.id === 'playing' || ph.id === 'ended' || ph.id === 'error') releaseWake(ui); else if (!document.hidden) requestWake(ui, ctl);
       var sig = ph.id + '|' + (ph.code || '') + '|' + v.self.ready + v.self.prep + '|' + v.peer.present + v.peer.ready + v.peer.away + v.peer.left + '|' +
         v.canBegin + '|' + ui.unlocking + ui.copied + '|' + v.tl.status + v.tl.by + '|' + (ph.id === 'ready' ? player.prepared : '') + '|' + role;
       setLook(ph.id === 'countdown' || ph.id === 'playing' || ph.id === 'paused' || ph.id === 'rejoin' || ph.id === 'ended' ? 'scene' : 'light');
@@ -639,6 +656,12 @@
 
     ctl.timer = setInterval(tick, 250);
     window.addEventListener('pagehide', ctl.onHide = function () { try { session.leave(); } catch (e) { /* closing */ } });
+    // a page brought back from the browser's memory has lost its session: start afresh
+    window.addEventListener('pageshow', ctl.onShow = function (e) { if (e.persisted) location.reload(); });
+    // the screen lock is let go whenever the page is hidden; take it again when it is back (while waiting)
+    document.addEventListener('visibilitychange', ctl.onWake = function () {
+      if (!document.hidden && !ctl.destroyed && ui.phaseId !== 'playing' && ui.phaseId !== 'ended' && ui.phaseId !== 'error') requestWake(ui, ctl);
+    });
 
     player.prepare(function (p) { ui.prep = p; tick(); }).then(function () {
       session.setPrepared(true); render();
@@ -654,6 +677,8 @@
     ctl.destroyed = true;
     clearInterval(ctl.timer);
     if (ctl.onHide) window.removeEventListener('pagehide', ctl.onHide);
+    if (ctl.onShow) window.removeEventListener('pageshow', ctl.onShow);
+    if (ctl.onWake) document.removeEventListener('visibilitychange', ctl.onWake);
     if (ctl.session) ctl.session.leave();
     if (ctl.player) ctl.player.destroy();
     if (ctl.ui) releaseWake(ctl.ui);
@@ -666,15 +691,20 @@
     clearLook();
   }
 
-  function requestWake(ui) {
+  function requestWake(ui, ctl) {
     try {
-      if (navigator.wakeLock && navigator.wakeLock.request) {
-        navigator.wakeLock.request('screen').then(function (l) { ui.wake = l; }, function () { /* fine without */ });
-      }
-    } catch (e) { /* fine without */ }
+      if (ui.wake || ui.wakeBusy || !(navigator.wakeLock && navigator.wakeLock.request)) return;
+      ui.wakeBusy = true;
+      navigator.wakeLock.request('screen').then(function (l) {
+        ui.wakeBusy = false;
+        if (ctl && ctl.destroyed) { try { l.release(); } catch (e) { /* ok */ } return; }   // the screen was left meanwhile
+        ui.wake = l;
+        l.addEventListener('release', function () { if (ui.wake === l) ui.wake = null; });
+      }, function () { ui.wakeBusy = false; /* fine without */ });
+    } catch (e) { ui.wakeBusy = false; }
   }
   function releaseWake(ui) {
-    try { if (ui.wake) { ui.wake.release(); ui.wake = null; } } catch (e) { /* ok */ }
+    try { if (ui.wake) { var l = ui.wake; ui.wake = null; l.release(); } } catch (e) { /* ok */ }
   }
 
   function copyText(text, done) {
@@ -683,8 +713,10 @@
       t.value = text; t.setAttribute('readonly', '');
       t.className = 'tg-offscreen';
       document.body.appendChild(t); t.select();
-      try { document.execCommand('copy'); done(); } catch (e) { /* nothing more to try */ }
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { /* nothing more to try */ }
       t.remove();
+      if (ok) done();
     }
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback);
     else fallback();
@@ -703,7 +735,7 @@
     if (a === 'host' || a === 'join') {
       var rr = ritual(parts[2]);
       if (!rr) return choose();
-      return sessionPage(a === 'host' ? 'host' : 'guest', rr, parts[3] || '');
+      return sessionPage(a === 'host' ? 'host' : 'guest', rr, parts[3] || '', parts[4] || '');
     }
     var r = ritual(a);
     return r ? ritualPage(r) : landing();
@@ -718,5 +750,5 @@
   // Called by app.js when any other screen is shown: put the sanctuary's own look back.
   function clear() { clearLook(); removeScene(); document.removeEventListener('visibilitychange', onVisibility); }
 
-  window.BMETogether = { screen: screen, tabs: tabs, enter: enter, clear: clear, available: function () { return !!data(); } };
+  window.BMETogether = { screen: screen, tabs: tabs, enter: enter, clear: clear, available: function () { return !!data() && !!Core && !!P; } };
 })();

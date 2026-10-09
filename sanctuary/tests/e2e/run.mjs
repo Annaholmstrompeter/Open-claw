@@ -269,14 +269,34 @@ test('a phone that reloads in the middle comes back to the right place; a partne
   noErrors(host, guest); await closeAll(host, guest);
 });
 
-test('a third window with the same role replaces the older one', { timeout: 60000 }, async () => {
+test('someone else with the link is turned away without disturbing the ritual; the same person in a new window takes the seat back', { timeout: 90000 }, async () => {
   const { host, guest, link } = await pairUp();
-  const guest2 = await phone({ skew: 120 });
-  await open(guest2, link.slice(link.indexOf('#')));
-  await waitPhase(guest2, 'ready');
-  await waitPhase(guest, 'error', 15000);
+  assert.match(guest.page.url(), /#\/together\/join\/heart-to-heart\/[0-9a-z]+-[a-z2-7]{26}\/[a-z2-7]{10}$/, 'a reload will find its own seat in the address');
+  await bothReady(host, guest);
+  await host.page.click('[data-act="begin"]');
+  await waitPhase(host, 'playing', 15000); await waitPhase(guest, 'playing', 15000);
+
+  // a stranger opens the invitation link while the ritual is under way
+  const stranger = await phone({ skew: 120 });
+  await open(stranger, link.slice(link.indexOf('#')));
+  await waitPhase(stranger, 'error', 15000);
+  assert.match(await stranger.page.textContent('[data-live]'), /already has two people/);
+  await shot(stranger, 'm-stranger-turned-away');
+  await sleep(1500);
+  assert.equal(await phase(guest), 'playing', 'the guest is left alone');
+  assert.equal(await phase(host), 'playing', 'and so is the host');
+  const err = await syncError(host, guest);
+  assert.ok(Math.abs(err) < 150, 'still in step: ' + err);
+
+  // the same person opens their own address in a new window: that window takes the seat, the old one steps aside
+  const again = await phone({ skew: SKEW });
+  await open(again, guest.page.url().slice(guest.page.url().indexOf('#')));
+  await waitPhase(guest, 'error', 20000);
   assert.match(await guest.page.textContent('[data-live]'), /open in another window/);
-  noErrors(host); await closeAll(host, guest, guest2);
+  assert.ok((await audioNow(guest)).paused, 'the old window is silent');
+  await waitPhase(again, 'rejoin', 20000);
+  assert.equal(await phase(host), 'playing', 'the host keeps playing');
+  noErrors(host); await closeAll(host, guest, stranger, again);
 });
 
 test('bad, expired and unconfigured invitations explain themselves; a missing recording closes the invitation', async () => {

@@ -271,3 +271,123 @@ test('a newer window wins even when its phone\'s clock is far behind', async () 
   assert.equal(second.view().replaced, false, 'the window that arrived last stays');
   host.destroy(); first.destroy(); second.destroy();
 });
+
+/* ——— found by an independent review: each of these failed before it was fixed ——— */
+
+async function running(opts = {}) {
+  const net = new Net(opts.delay || 5);
+  const host = new Session({ role: 'host', room: 'r', transport: net.transport(), seat: 'HOSTSEAT' });
+  const guest = new Session({ role: 'guest', room: 'r', transport: net.transport(), seat: 'S1', now: () => Date.now() + (opts.skew || 0) });
+  host.start(); guest.start();
+  await until(() => host.view().peer.present && guest.view().clockSynced);
+  host.setPrepared(true); host.setReady(true); guest.setPrepared(true); guest.setReady(true);
+  await until(() => host.view().canBegin);
+  host.begin();
+  await until(() => guest.tl.seq === 1);
+  return { net, host, guest };
+}
+
+test('a command made while this phone is offline reaches the other one when the line is back', async () => {
+  const { net, host, guest } = await running();
+  const gt = net.clients.find((c) => c.id === guest.id);
+  gt.drop();
+  assert.equal(guest.pause(), true);              // the guest pauses into a dead line
+  await wait(60);
+  assert.equal(host.tl.status, 'playing', 'the host has not heard');
+  gt.restore();
+  await until(() => host.tl.status === 'paused');  // and now it has: the guest says where it is
+  assert.equal(host.tl.seq, guest.tl.seq);
+  host.destroy(); guest.destroy();
+});
+
+test('the timeline is repeated now and then, so one lost message is not lost for good', async () => {
+  C.RESEND = 60;
+  const { net, host, guest } = await running();
+  // the guest's phone silently loses what it sends for a moment (the host did not hear the pause)
+  const gt = net.clients.find((c) => c.id === guest.id);
+  gt.up = false; guest.pause(); gt.up = true;
+  await until(() => host.tl.status === 'paused', 2000);
+  host.destroy(); guest.destroy();
+  C.RESEND = 15000;
+});
+
+test('a slow start that got there in the end is no longer an error', async () => {
+  const net = new Net(0);
+  const host = new Session({ role: 'host', room: 'r', transport: net.transport() });
+  host.start();
+  await until(() => host.status === 'online');
+  host._onStatus('error', { code: 'unavailable' });
+  assert.deepEqual(host.view().error, { code: 'unavailable' });
+  host._onStatus('lost'); host._onStatus('online');
+  assert.equal(host.view().error, null);
+  host.destroy();
+});
+
+test('what the other phone sends is checked before it is believed', async () => {
+  const { host, guest } = await running();
+  const real = { ...host.tl };
+  const bad = [
+    { seq: 1e300, by: 'x', status: 'paused', refTime: Date.now(), pos: 1 },
+    { seq: 5, by: 'x', status: 'paused', refTime: Date.now(), pos: 'abc' },
+    { seq: 5, by: 'x', status: 'paused', refTime: Date.now(), pos: NaN },
+    { seq: 5, by: 'x', status: 'paused', refTime: Date.now(), pos: -3 },
+    { seq: 5, by: 'x', status: 'exploding', refTime: Date.now(), pos: 1 },
+    { seq: 5.5, by: 'x', status: 'paused', refTime: Date.now(), pos: 1 },
+    { seq: 5, by: 'x', status: 'playing', refTime: Date.now() + 3600e3, pos: 1 },   // a countdown an hour long
+    { seq: 5, by: { evil: 1 }, status: 'paused', refTime: Date.now(), pos: 1 },
+    null, 'x', 7
+  ];
+  for (const tl of bad) host._onMessage({ v: 1, id: guest.id, k: 'tl', tl });
+  assert.deepEqual(host.tl, real, 'none of them was adopted');
+  host._onMessage({ v: 1, id: guest.id, k: 'tl', tl: { seq: 2, by: guest.id, status: 'paused', refTime: host.sharedNow(), pos: 4 } });
+  assert.equal(host.tl.seq, 2, 'while a proper one is');
+  host.destroy(); guest.destroy();
+});
+
+test('a guest cannot act on shared time before its clock is measured', () => {
+  const net = new Net(0);
+  const guest = new Session({ role: 'guest', room: 'r', transport: net.transport(), now: () => Date.now() + 3600e3 });
+  guest.tl = { seq: 1, by: 'h', status: 'playing', refTime: Date.now(), pos: 0 };
+  assert.equal(guest.pause(), false);
+  assert.equal(guest.tl.seq, 1);
+});
+
+test('three slow round trips do not count as a measured clock', () => {
+  const net = new Net(0);
+  const guest = new Session({ role: 'guest', room: 'r', transport: net.transport() });
+  for (let i = 0; i < 4; i++) guest._onMessage({ v: 1, id: 'host', k: 'pong', to: guest.id, n: i, t0: guest.now() - 3000, t1: guest.now() - 1500 });
+  assert.equal(guest.clk, false);
+});
+
+test('someone else with the link cannot take the guest\'s seat, nor give the host orders', async () => {
+  const { net, host, guest } = await running();
+  const stranger = new Session({ role: 'guest', room: 'r', transport: net.transport(), seat: 'S2' });
+  stranger.start();
+  await until(() => stranger.view().refused);
+  assert.equal(guest.view().replaced, false, 'the guest stays');
+  assert.equal(guest.view().refused, false);
+  assert.equal(host.partnerId, guest.id, 'the host still listens to the guest');
+  stranger._send({ k: 'tl', tl: { seq: 99, by: stranger.id, status: 'paused', refTime: host.sharedNow(), pos: 10 } });
+  await wait(80);
+  assert.equal(host.tl.status, 'playing', 'orders from the stranger are not followed');
+  assert.equal(stranger.pause(), false, 'and the stranger cannot give any');
+  host.destroy(); guest.destroy(); stranger.destroy();
+});
+
+test('the same person reloading takes over the seat, and the old copy is ignored from then on', async () => {
+  const { net, host, guest } = await running();
+  const again = new Session({ role: 'guest', room: 'r', transport: net.transport(), seat: 'S1' });
+  const got = [];
+  again.on('timeline', (t) => got.push(t));
+  again.start();
+  await until(() => guest.view().replaced);
+  assert.equal(again.view().replaced, false);
+  assert.equal(again.view().refused, false);
+  await until(() => host.partnerId === again.id);
+  guest._send({ k: 'tl', tl: { seq: 50, by: guest.id, status: 'paused', refTime: host.sharedNow(), pos: 3 } });   // the stale copy speaks
+  await wait(80);
+  assert.equal(host.tl.status, 'playing', 'the old copy is not obeyed');
+  await until(() => got.length === 1);             // the new copy is told where the ritual is, without having to ask twice
+  assert.equal(got[0].status, 'playing');
+  host.destroy(); guest.destroy(); again.destroy();
+});

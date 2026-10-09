@@ -56,6 +56,9 @@
     this._timer = null;
     this._tick = null;
     this._nudging = false;
+    this._needTap = false;     // after the system paused us (a call, headphones out): sound waits for a tap
+    this._jumps = 0;
+    this._destroyed = false;
     this._wire();
   }
 
@@ -82,16 +85,22 @@
     });
     a.addEventListener('pause', function () {
       if (self._expectPause > 0) { self._expectPause--; return; }
+      // the very end of the recording pauses the element too; that is not an interruption
+      if (a.ended || (isFinite(a.duration) && a.currentTime >= a.duration - 0.5)) return;
       // Paused by someone else: a call, headphones taken out, the lock screen. Tell the session.
-      if (self.attached && self.tl && self.tl.status === 'playing' && self._started && !a.ended) {
+      if (self.attached && self.tl && self.tl.status === 'playing' && self._started) {
         self._started = false;
+        self._needTap = true;             // when the others carry on, ask for a tap first: sound must not suddenly come out of the speaker
         self._stopTimers();
         self._emit('interrupted');
       }
     });
-    document.addEventListener('visibilitychange', function () {
-      if (!document.hidden) self.check();
+    a.addEventListener('play', function () {
+      // sound that starts by itself while the timeline says "paused" (the system resuming after a call) is stopped again
+      if (self.attached && self.tl && self.tl.status === 'paused') self._pause();
     });
+    this._onVisible = function () { if (!document.hidden) self.check(); };
+    document.addEventListener('visibilitychange', this._onVisible);
   };
 
   SyncedPlayer.prototype._pause = function () {
@@ -110,10 +119,13 @@
   /* 1. fetch the whole recording into memory */
   SyncedPlayer.prototype.prepare = function (onProgress) {
     var self = this;
-    return fetch(this.src).then(function (res) {
+    this._ac = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    return fetch(this.src, this._ac ? { signal: this._ac.signal } : undefined).then(function (res) {
       // a missing file can come back as the home page: that is not a recording
       var type = res.headers.get('content-type') || '';
       if (!res.ok || !/^(audio\/|video\/mp4|application\/(ogg|octet-stream))/i.test(type)) throw fail('missing');
+      // a phone is picky about what a generic type holds: an .mp3 is audio/mpeg whatever the server called it
+      if (/\.mp3(\?|#|$)/i.test(self.src)) type = 'audio/mpeg';
       var total = +res.headers.get('content-length') || 0;
       if (res.body && res.body.getReader && total) {
         var reader = res.body.getReader(), chunks = [], got = 0;
@@ -127,8 +139,9 @@
         };
         return pump();
       }
-      return res.blob();
+      return res.blob().then(function (b) { return b.type === type ? b : new Blob([b], { type: type }); });
     }).then(function (blob) {
+      if (self._destroyed) throw fail('closed');
       self._blob = URL.createObjectURL(blob);
       self.prepared = true;
       if (onProgress) onProgress(1);
@@ -146,11 +159,19 @@
     if (this.attached || !this._blob) return Promise.resolve();
     return new Promise(function (resolve, reject) {
       var done = false;
-      function ok() { if (done) return; done = true; cleanup(); self.attached = true; self._emit('attached'); if (self.tl) self.apply(self.tl); resolve(); }
+      function ok() {
+        if (done) return; done = true; cleanup();
+        if (self._silent) { URL.revokeObjectURL(self._silent); self._silent = null; }
+        self.attached = true; self._emit('attached'); if (self.tl) self.apply(self.tl); resolve();
+      }
       function bad() { if (done) return; done = true; cleanup(); reject(fail('decode')); }
-      function cleanup() { a.removeEventListener('canplay', ok); a.removeEventListener('error', bad); clearTimeout(to); }
-      var to = setTimeout(ok, 15000); // some phones stay quiet about it; carry on
-      a.addEventListener('canplay', ok);
+      function cleanup() {
+        ['canplay', 'loadeddata', 'loadedmetadata'].forEach(function (ev) { a.removeEventListener(ev, ok); });
+        a.removeEventListener('error', bad); clearTimeout(to);
+      }
+      // iPhone may hold back "can play" until playback starts, so any sign of life will do, and so will a short wait
+      var to = setTimeout(ok, 4000);
+      ['canplay', 'loadeddata', 'loadedmetadata'].forEach(function (ev) { a.addEventListener(ev, ok); });
       a.addEventListener('error', bad);
       a.src = self._blob;
       a.load();
@@ -162,18 +183,21 @@
     var self = this, a = this.audio;
     if (this.unlocked) return Promise.resolve(true);
     try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) { /* not everywhere */ }
-    if (!this.attached) a.src = silentWavUrl();
+    if (!this.attached) { this._silent = silentWavUrl(); a.src = this._silent; }
     var t0 = performance.now();
     var p;
     try { p = a.play(); } catch (e) { p = Promise.reject(e); }
-    return Promise.resolve(p).then(function () {
-      self.startLatency = Math.max(0, Math.min(350, performance.now() - t0));
-      self._pause();
-      self.unlocked = true;
-      return self._attach().then(function () { return true; });
-    }, function () {
-      self._unlockFailed = true;   // the start will ask for one more tap
-      return self._attach().then(function () { return false; });
+    return new Promise(function (resolve) {
+      var settled = false;
+      function finish(ok) {
+        if (settled) { if (ok) { self._pause(); self.unlocked = true; } return; }   // a late answer: make sure the silence stops
+        settled = true; clearTimeout(to);
+        if (ok) { self.startLatency = Math.max(0, Math.min(350, performance.now() - t0)); self._pause(); self.unlocked = true; }
+        else self._unlockFailed = true;      // the start will ask for one more tap
+        self._attach().then(function () { resolve(ok); });
+      }
+      var to = setTimeout(function () { finish(false); }, 2500);   // a phone that never answers must not leave the screen waiting
+      Promise.resolve(p).then(function () { finish(true); }, function () { finish(false); });
     });
   };
 
@@ -207,8 +231,9 @@
   SyncedPlayer.prototype._fireAt = function (when) {
     var self = this;
     (function spin() {
-      if (self.sharedNow() >= when || when - self.sharedNow() > 200) return self._startNow();
-      self._timer = setTimeout(spin, 2);
+      var left = when - self.sharedNow();
+      if (left <= 0) return self._startNow();
+      self._timer = setTimeout(spin, left > 60 ? left - 50 : 2);   // if the shared clock moved meanwhile, keep waiting, never start early
     })();
   };
   SyncedPlayer.prototype._startNow = function () {
@@ -216,6 +241,7 @@
     if (!tl || tl.status !== 'playing') return;
     var exp = Core.positionAt(tl, this.sharedNow());
     if (isFinite(a.duration) && exp >= a.duration - 0.25) { this._set('ended'); return; }
+    if (this._needTap) { this._started = false; this._set('blocked'); return; }
     if (Math.abs(a.currentTime - exp) > 0.15 || a.readyState < 1) this._seek(exp);
     var p;
     try { p = a.play(); } catch (e) { p = Promise.reject(e); }
@@ -235,6 +261,7 @@
   /* one tap from the person, when the phone refused: join where the others are */
   SyncedPlayer.prototype.rejoin = function () {
     var self = this;
+    this._needTap = false;                // this tap is the person's own
     if (!this.attached) return this.unlock().then(function () { if (self.tl) self.apply(self.tl); });
     if (this.tl && this.tl.status === 'playing') this._startNow();
     return Promise.resolve();
@@ -248,8 +275,8 @@
     this.drift = d;
     var ad = Math.abs(d);
     var t = Date.now();
-    if (ad > 0.6 && t - (this._lastJump || 0) > 4000) {
-      this._lastJump = t;                 // a jump (not more often than every few seconds), allowing for its own duration
+    if (ad > 0.6 && t - (this._lastJump || 0) > 4000 && this._jumps < 8) {
+      this._lastJump = t; this._jumps++;   // (a recording that cannot be positioned exactly would otherwise stutter for ever)                 // a jump (not more often than every few seconds), allowing for its own duration
       this._seek(exp + 0.08);
       a.playbackRate = 1; this._nudging = false;
     } else if (ad > 0.06 || (this._nudging && ad > 0.02)) {
@@ -263,6 +290,10 @@
   SyncedPlayer.prototype.position = function () { return this.audio.currentTime || 0; };
 
   SyncedPlayer.prototype.destroy = function () {
+    this._destroyed = true;
+    if (this._ac) { try { this._ac.abort(); } catch (e) { /* done anyway */ } }
+    if (this._onVisible) document.removeEventListener('visibilitychange', this._onVisible);
+    if (this._silent) { URL.revokeObjectURL(this._silent); this._silent = null; }
     this._stopTimers();
     try { this._expectPause++; this.audio.pause(); this.audio.removeAttribute('src'); this.audio.load(); } catch (e) { /* leaving */ }
     if (this._blob) URL.revokeObjectURL(this._blob);

@@ -28,6 +28,8 @@
     CLOCK_MIN_SAMPLES: 3,    // rounds needed before the clock counts as measured
     PEER_GRACE: 9000,        // ms a partner may be silent before we say they have left
     CONNECT_TIMEOUT: 14000,  // ms before "we cannot reach the service" is shown
+    RESEND: 15000,           // ms between repeats of the current timeline, so a command sent into a dead line is not lost
+    CLOCK_MAX_RTT: 1500,     // a measurement with a slower round trip does not count as "measured"
     ROOM_TTL: 3 * 60 * 60 * 1000, // an invitation lives three hours
     EVENT: 'm'
   };
@@ -87,11 +89,34 @@
     return a.seq > b.seq || (a.seq === b.seq && String(a.by) < String(b.by));
   }
 
+  /* ——— what a phone is willing to believe about the other one ——— */
+  function isNum(x) { return typeof x === 'number' && isFinite(x); }
+  // A timeline from the other phone. Times are checked against the shared clock only once it is measured.
+  function validTl(tl, now, timeIsKnown) {
+    if (!tl || typeof tl !== 'object') return false;
+    if (tl.status !== 'playing' && tl.status !== 'paused') return false;
+    if (!isNum(tl.seq) || tl.seq % 1 !== 0 || tl.seq < 1 || tl.seq > 100000) return false;
+    if (typeof tl.by !== 'string' || tl.by.length > 40) return false;
+    if (!isNum(tl.pos) || tl.pos < 0 || tl.pos > 86400) return false;
+    if (!isNum(tl.refTime)) return false;
+    if (timeIsKnown && (tl.refTime > now + 120000 || tl.refTime < now - 12 * 3600 * 1000)) return false;
+    return true;
+  }
+  function cleanMeta(p) {
+    if (!p || typeof p.id !== 'string' || !p.id || p.id.length > 40) return null;
+    if (p.role !== 'host' && p.role !== 'guest') return null;
+    return {
+      id: p.id, role: p.role, ready: p.ready === true, prep: p.prep === true, clk: p.clk === true,
+      t: isNum(p.t) ? p.t : 0, seat: typeof p.seat === 'string' ? p.seat.slice(0, 40) : ''
+    };
+  }
+
   /* ——— the session ——— */
   function Session(o) {
     this.role = o.role;                       // 'host' | 'guest'
     this.room = o.room;
     this.id = o.id || randomText(12);
+    this.seat = o.seat || '';                 // tells "the same person, reloaded" from "someone else with the link"
     this.tx = o.transport;
     this.now = o.now || function () { return Date.now(); };
     this.clock = new ClockSync();
@@ -106,7 +131,9 @@
     this.peerHere = false;                    // ... and whether they are in the room right now
     this.peerSeen = false;
     this.peerLeft = false;
-    this.replaced = false;
+    this.replaced = false;                    // a newer copy of this same person took over
+    this.refused = false;                     // someone else already holds this seat
+    this.partnerId = null;                    // the phone whose commands are listened to
     this._order = {};                         // who showed up in which order, as seen by this phone (clocks are not compared)
     this._seq = 0;
     this._h = {};
@@ -131,7 +158,7 @@
   Session.prototype.sharedNow = function () { return this.now() + this.offset; };
 
   Session.prototype.meta = function () {
-    return { id: this.id, role: this.role, ready: this.self.ready, prep: this.self.prep, clk: this.clk, t: this.joinedAt };
+    return { id: this.id, role: this.role, ready: this.self.ready, prep: this.self.prep, clk: this.clk, t: this.joinedAt, seat: this.seat };
   };
 
   Session.prototype.start = function () {
@@ -162,9 +189,18 @@
     if (s === 'online') {
       var again = this.status === 'lost';
       this.status = 'online';
+      this.error = null;                      // a slow start that got there in the end is not an error
       this._track();
       this._send({ k: 'hello' });
+      // Something said while the line was dead was lost; say where we are, so the other side can catch up.
+      if (this.tl.status !== 'lobby') this._send({ k: 'tl', tl: this.tl });
       if (this.role === 'guest') this._startClock(again);
+      if (!this._syncLoop) {
+        var me = this;
+        this._syncLoop = setInterval(function () {
+          if (me.status === 'online' && me.tl.status !== 'lobby') me._send({ k: 'tl', tl: me.tl });
+        }, C.RESEND);
+      }
     } else if (s === 'lost') {
       // while still connecting the connection keeps trying by itself; the screen shows an error after a while
       if (this.status === 'online') this.status = 'lost';
@@ -192,17 +228,21 @@
   };
 
   Session.prototype._onMessage = function (m) {
-    if (!m || m.v !== 1 || m.id === this.id) return;
+    if (!m || typeof m !== 'object' || m.v !== 1 || typeof m.id !== 'string' || m.id === this.id) return;
+    // Only the partner is listened to (a stale copy of ourselves, or a stranger with the link, is not).
+    // Before presence has said who the partner is, everyone is heard: the first words can come before it.
+    if (this.partnerId && m.id !== this.partnerId) return;
     if (m.k === 'ping') {
-      if (this.role === 'host') this._send({ k: 'pong', to: m.id, n: m.n, t0: m.t0, t1: this.now() });
+      if (this.role === 'host' && isNum(m.t0)) this._send({ k: 'pong', to: m.id, n: m.n, t0: m.t0, t1: this.now() });
     } else if (m.k === 'pong') {
-      if (m.to !== this.id || this.role !== 'guest') return;
+      if (m.to !== this.id || this.role !== 'guest' || !isNum(m.t0) || !isNum(m.t1)) return;
+      if (this._hostId !== m.id) { this._hostId = m.id; this.clock = new ClockSync(); }   // a different host phone: start measuring afresh
       this.clock.add(m.t0, m.t1, this.now());
       var est = this.clock.estimate();
       if (est) {
         this.offset = est.offset;
         this.rtt = est.rtt;
-        if (!this.clk && est.n >= C.CLOCK_MIN_SAMPLES) {
+        if (!this.clk && est.n >= C.CLOCK_MIN_SAMPLES && est.rtt < C.CLOCK_MAX_RTT) {
           this.clk = true;
           this._track();
           if (this._pendingTl) { var p = this._pendingTl; this._pendingTl = null; this._emit('timeline', p); }
@@ -221,7 +261,7 @@
   };
 
   Session.prototype._adopt = function (tl) {
-    if (!tl || typeof tl.seq !== 'number' || !isNewer(tl, this.tl)) return;
+    if (!validTl(tl, this.sharedNow(), this.clk) || !isNewer(tl, this.tl)) return;
     this.tl = { seq: tl.seq, by: tl.by, status: tl.status, refTime: tl.refTime, pos: tl.pos };
     // a guest whose clock is not measured yet must not act on shared time
     if (this.role === 'guest' && !this.clk) this._pendingTl = this.tl;
@@ -232,23 +272,42 @@
   /* presence: who is here */
   Session.prototype._onPresence = function (list) {
     var me = this, gone = this._goneIds || {};
-    var others = (list || []).filter(function (p) { return p && p.id && p.id !== me.id && !gone[p.id]; });
-    // Two people only: one host and one guest. If the same role turns up again (a reload, or another
-    // window) the newest one stays and the older one is told it has been replaced. "Newest" is the one
-    // this phone saw arrive last: phones' clocks can differ by seconds, so they are not compared.
+    var all = [];
+    (list || []).forEach(function (p) { var c = cleanMeta(p); if (c) all.push(c); });
+    // Order of arrival, as this phone saw it (phones' clocks can differ by seconds, so they are not compared).
     var batch = null;
-    (list || []).forEach(function (p) {
-      if (p && p.id && !me._order[p.id]) { batch = batch || ++me._seq; me._order[p.id] = batch; }
+    all.forEach(function (p) {
+      if (!me._order[p.id]) { batch = batch || ++me._seq; me._order[p.id] = batch; }
     });
+    var others = all.filter(function (p) { return p.id !== me.id && !gone[p.id]; });
     var mine = this._order[this.id] || 0;
-    this.replaced = !!mine && others.some(function (p) {
+    function after(p) {   // did p arrive after me?
       var o = me._order[p.id];
-      return p.role === me.role && (o > mine || (o === mine && ((p.t > me.joinedAt) || (p.t === me.joinedAt && p.id > me.id))));
+      return o > mine || (o === mine && ((p.t > me.joinedAt) || (p.t === me.joinedAt && p.id > me.id)));
+    }
+    // Two people only: one host and one guest.
+    //  - The same person again (a reload; the same seat): the newest copy stays, the older is told it was replaced.
+    //  - Someone else for a seat that is taken (another seat): they were later, so they are refused.
+    //  - No seat information at all: the newest stays, as for a reload.
+    var replaced = false, refused = false;
+    if (mine) others.forEach(function (p) {
+      if (p.role !== me.role) return;
+      var same = me.seat && p.seat && p.seat === me.seat;
+      if (same || !me.seat || !p.seat) { if (after(p)) replaced = true; }
+      else if (!after(p)) refused = true;
     });
-    // the partner is whoever has the other role
+    this.replaced = replaced;
+    this.refused = refused;
+    // the partner: the first to arrive with the other role, and that person's newest copy
     var partners = others.filter(function (p) { return p.role !== me.role; });
-    partners.sort(function (a, b) { return b.t - a.t; });
-    var peer = partners[0] || null;
+    var peer = null;
+    if (partners.length) {
+      partners.sort(function (a, b) { return (me._order[a.id] - me._order[b.id]) || (a.id < b.id ? -1 : 1); });
+      var first = partners[0];
+      var person = partners.filter(function (p) { return !first.seat || !p.seat || p.seat === first.seat; });
+      person.sort(function (a, b) { return (me._order[b.id] - me._order[a.id]) || (b.t - a.t); });
+      peer = person[0];
+    }
     if (peer) {
       clearTimeout(this._graceTimer);
       this._graceTimer = null;
@@ -256,6 +315,12 @@
       this.peerLeft = false;
       this.peer = peer;
       this.peerHere = true;
+      if (this.partnerId !== peer.id) {
+        var had = this.partnerId;
+        this.partnerId = peer.id;
+        // a new copy of the partner (a reload): its first words were not heard yet, so tell it where we are
+        if (had && this.status === 'online' && this.tl.status !== 'lobby') this._send({ k: 'tl', tl: this.tl });
+      }
     } else if (this.peerHere) {
       // gone for the moment; a flicker should not be announced, so there is a short grace period
       var self = this;
@@ -282,6 +347,7 @@
       status: this.status,
       error: this.error,
       replaced: this.replaced,
+      refused: this.refused,
       reconnecting: this.status === 'lost',
       clockSynced: this.clk,
       rtt: this.rtt,
@@ -310,6 +376,10 @@
   Session.prototype.setReady = function (v) { this.self.ready = !!v; this._track(); this._changed(); };
 
   Session.prototype._command = function (f) {
+    // not before this phone knows the shared time, and not from a window that has been replaced or refused
+    if (this.replaced || this.refused || this.status === 'closed') return false;
+    if (this.role === 'guest' && !this.clk) return false;
+    this._pendingTl = null;
     var tl = { seq: this.tl.seq + 1, by: this.id, status: f.status, refTime: f.refTime, pos: f.pos };
     this.tl = tl;
     this._send({ k: 'tl', tl: tl });
@@ -341,12 +411,13 @@
     this._timers.forEach(clearTimeout);
     this._timers = [];
     clearInterval(this._clockLoop);
+    clearInterval(this._syncLoop);
     clearTimeout(this._graceTimer);
     try { this.tx.close(); } catch (e) { /* closing anyway */ }
   };
 
   return {
     C: C, makeRoomId: makeRoomId, parseRoomId: parseRoomId, randomText: randomText,
-    ClockSync: ClockSync, positionAt: positionAt, isNewer: isNewer, Session: Session
+    ClockSync: ClockSync, positionAt: positionAt, isNewer: isNewer, validTl: validTl, Session: Session
   };
 });
