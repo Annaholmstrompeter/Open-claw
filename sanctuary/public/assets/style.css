@@ -126,7 +126,7 @@ button { font: inherit; color: inherit; }
 }
 html[data-ground] .waves { opacity: 1; }
 html[data-page="player"] .waves { opacity: .35; }
-html[data-page="list"] .waves, html[data-page="about"] .waves {
+html[data-page="about"] .waves {
   background-image: url("img/waves-gold.webp");
   opacity: .3;
   -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 30%, transparent 75%);
@@ -556,15 +556,15 @@ details.formula summary:hover { color: var(--accent); }
 .nojs { padding: 2rem; text-align: center; font-style: italic; }
 
 /* ——— The front page: a calm header, one photograph, a few words, one door ——— */
-html[data-page="welcome"] .top {
+html[data-page="welcome"] .top, html[data-page="list"] .top {
   justify-content: center;
   height: calc(80px + env(safe-area-inset-top));
   padding: calc(env(safe-area-inset-top) + 8px) 56px 6px;
   background: var(--paper);
 }
-html[data-page="welcome"] .head-brand { flex-direction: column; gap: .3rem; text-align: center; font-size: .72rem; letter-spacing: .34em; margin-right: -.34em; }
-html[data-page="welcome"] .head-logo { width: 2.7rem; height: 2.7rem; }
-html[data-page="welcome"] .menu-btn { position: absolute; left: 6px; top: calc(env(safe-area-inset-top) + 16px); }
+html[data-page="welcome"] .head-brand, html[data-page="list"] .head-brand { flex-direction: column; gap: .3rem; text-align: center; font-size: .72rem; letter-spacing: .34em; margin-right: -.34em; }
+html[data-page="welcome"] .head-logo, html[data-page="list"] .head-logo { width: 2.7rem; height: 2.7rem; }
+html[data-page="welcome"] .menu-btn, html[data-page="list"] .menu-btn { position: absolute; left: 6px; top: calc(env(safe-area-inset-top) + 16px); }
 
 .front { justify-content: flex-start; padding: calc(80px + env(safe-area-inset-top)) 0 calc(40px + env(safe-area-inset-bottom)); }
 .front-photo { width: 100%; aspect-ratio: 941 / 873; background: url("img/welcome-hero.webp") center / cover no-repeat; }
@@ -573,16 +573,20 @@ html[data-page="welcome"] .menu-btn { position: absolute; left: 6px; top: calc(e
 .front-copy .text { max-width: 23rem; margin: 0 0 1.7rem; font-size: 1.3rem; line-height: 1.4; text-wrap: balance; }
 @media (max-height: 700px) { .front-copy { padding-top: 1.5rem; } .front-copy .text { margin-bottom: 1.3rem; } }
 
-/* ——— Choose your ritual: one large picture at a time, in a thin pale frame ——— */
+/* ——— Choose your ritual: one large picture at a time, in a thin pale frame. Quiet and plain, nothing else. ——— */
 .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-.rituals-screen { justify-content: flex-start; padding-bottom: calc(112px + env(safe-area-inset-bottom)); }
-.rc { width: calc(100% + 56px); margin: 0 -28px; }
+html[data-page="list"] { --bg: #faf7f1; --bg-outer: #faf7f1; }
+html[data-page="list"] .top { background: #f4efe6; }
+html[data-page="list"] body::before, html[data-page="list"] body::after { display: none; }   /* no glow, no paper grain */
+
+.rituals-screen { justify-content: flex-start; padding: calc(80px + env(safe-area-inset-top) + 22px) 0 calc(104px + env(safe-area-inset-bottom)); }
+.rc { width: 100%; }
 .rc-track {
   position: relative;
   display: flex;
   gap: 12px;
   margin: 0;
-  padding: 2px 22px 8px;
+  padding: 0 22px;
   list-style: none;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
@@ -594,41 +598,56 @@ html[data-page="welcome"] .menu-btn { position: absolute; left: 6px; top: calc(e
 .rc-track::-webkit-scrollbar { display: none; }
 .rc-track:focus-visible { outline-offset: -4px; }
 .rc-slide { flex: 0 0 100%; scroll-snap-align: start; scroll-snap-stop: always; }
-.rc-frame { display: block; padding: 12px; background: #efe5d6; border-radius: 3px; text-decoration: none; color: inherit; }
+.rc-frame { display: block; padding: 13px; background: #efe6d9; text-decoration: none; color: inherit; }
 .rc-photo { position: relative; display: block; aspect-ratio: 4 / 5; overflow: hidden; background: #e8dcc6; }
 .rc-photo img { width: 100%; height: 100%; object-fit: cover; }
+/* a soft dark veil at the top, so that the name can be white as on the reference */
+.rc-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(52, 38, 24, .5) 0, rgba(52, 38, 24, .22) 22%, transparent 42%); pointer-events: none; }
 .rc-name {
   position: absolute;
-  left: 0; right: 0; top: 6.5%;
+  z-index: 1;
+  left: 0; right: 0; top: 7%;
   text-align: center;
-  font-size: clamp(2.1rem, 10.4vw, 2.9rem);
+  font-size: clamp(2rem, 9.6vw, 2.7rem);
   font-weight: 500;
-  letter-spacing: .2em;
-  margin-right: -.2em;
+  letter-spacing: .16em;
+  margin-right: -.16em;
   text-transform: uppercase;
   line-height: 1.1;
-  color: #33291d;
-  text-shadow: 0 0 22px rgba(255, 244, 224, .75);
+  color: #fffdf8;
 }
-.rc-kind { margin: .9rem 0 0; text-align: center; font-style: italic; font-size: 1.22rem; color: var(--soft); }
-.rc-dots { display: flex; justify-content: center; gap: 0; margin: .5rem 0 .6rem; }
+.rc-kind { margin: 1.15rem 22px 0; text-align: center; font-family: var(--sans); font-size: .98rem; letter-spacing: .03em; color: #2b221a; }
+.rc-dots { display: flex; justify-content: center; margin: .55rem 0 0; }
 .rc-dot { position: relative; width: 22px; height: 22px; padding: 0; border: 0; background: none; cursor: pointer; }
-.rc-dot::after { content: ""; position: absolute; left: 50%; top: 50%; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: rgba(51, 41, 29, .18); transition: background-color .5s var(--ease); }
-.rc-dot[aria-current="true"]::after { background: #7a6a55; }
-.rituals-screen .quiet { margin-top: .6rem; }
-/* the one button, always in reach at the bottom of the screen */
+.rc-dot::after { content: ""; position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: #e6dccd; transition: background-color .5s var(--ease); }
+.rc-dot[aria-current="true"]::after { background: #b9a78f; }
+/* the one button: flat, in reach at the bottom of the screen */
 .rc-cta {
   position: fixed;
   z-index: 8;
   left: 0; right: 0;
   bottom: calc(18px + env(safe-area-inset-bottom));
-  width: min(calc(100% - 44px), 25rem);
-  max-width: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .8rem;
+  width: min(calc(100% - 44px), 28rem);
+  min-height: 58px;
   margin: 0 auto;
+  border-radius: 7px;
+  background: #a88b30;
+  color: #fffdf8;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: .86rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  text-decoration: none;
   animation: none;
-  box-shadow: 0 14px 30px -12px rgba(80, 55, 8, .55);
 }
-@media (max-height: 740px) { .rc-name { top: 5%; font-size: clamp(1.8rem, 8.6vw, 2.4rem); } }
+.rc-cta .arr { width: 1.2rem; height: .6rem; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.rc-cta:hover { background: #9a7e29; }
+@media (max-height: 740px) { .rc-name { top: 5%; } .rc-kind { margin-top: .8rem; } }
 
 /* ——— Reduced motion: keep it still, keep it kind ——— */
 @media (prefers-reduced-motion: reduce) {

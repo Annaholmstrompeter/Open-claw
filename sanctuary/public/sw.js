@@ -1,6 +1,6 @@
 /* Offline support: after the first visit the whole sanctuary works without signal.
    Bump VERSION whenever files change so guests receive the update on their next visit. */
-var VERSION = 'bme-sanctuary-f3c358bed6';
+var VERSION = 'bme-sanctuary-39f05c284d';
 var FILES = [
   './',
   'assets/app.js',

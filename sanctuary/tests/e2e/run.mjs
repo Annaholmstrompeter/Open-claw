@@ -123,10 +123,9 @@ const noErrors = (...ps) => ps.forEach((p) => assert.deepEqual(p.errors.filter((
 
 /* ——— the tests ——— */
 
-test('Together is a tab on the rituals page and in the menu; the five rituals are still there', async () => {
+test('Together is in the menu (and its own pages have the Rituals | Together tabs); the five rituals are still there', async () => {
   const p = await phone();
   await open(p, '#/rituals');
-  assert.equal(await p.page.locator('.tg-tabs a').count(), 2);
   assert.equal(await p.page.locator('.rc-slide').count(), 5);
   await p.page.click('#menu-btn');
   assert.ok(await p.page.locator('#menu a[href="#/together"]').isVisible());
@@ -136,6 +135,7 @@ test('Together is a tab on the rituals page and in the menu; the five rituals ar
   assert.match(await p.page.textContent('.tg-landing'), /A Ritual for Two/);
   assert.match(await p.page.textContent('.tg-landing'), /Begin Your Ritual/);
   assert.match(await p.page.textContent('.tg-landing'), /side by side, or facing each other/);
+  assert.equal(await p.page.locator('.tg-tabs a').count(), 2);
   await p.page.click('a[href="#/together/rituals"]');
   await p.page.click('a[href="#/together/heart-to-heart"]');
   await p.page.waitForSelector('.tg-ritual');

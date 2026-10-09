@@ -321,6 +321,7 @@
   var lastSlide = 0;
 
   // Choose your ritual: one large picture at a time in a thin pale frame, the name over it, dots below, one button.
+  // Nothing else on the page (the menu has the rest).
   function rituals() {
     var slides = DATA.rituals.map(function (r, i) {
       return '<li class="rc-slide" data-c="' + r.id + '">' +
@@ -339,16 +340,11 @@
       mount: bindCarousel,
       html:
         '<section class="screen top-aligned rituals-screen">' +
-        tgTabs('rituals') +
         '<h1 class="sr-only">' + UI.chooseTitle + '</h1>' +
         '<div class="rc" role="region" aria-roledescription="carousel" aria-label="' + UI.chooseTitle + '">' +
         '<ul class="rc-track" data-rc-track tabindex="0">' + slides + '</ul>' +
         '<div class="rc-dots" data-rc-dots>' + dots + '</div></div>' +
-        '<nav class="quiet">' +
-        '<a href="#/about"><span>' + UI.aboutLink + '</span></a>' +
-        '<a href="#/close"><span>' + UI.closeLink + '</span></a>' +
-        '</nav>' +
-        '<a class="btn primary rc-cta" data-rc-cta href="#/r/' + DATA.rituals[0].id + '"><span>' + UI.enterRitual + '</span>' + arrow() + '</a>' +
+        '<a class="rc-cta" data-rc-cta href="#/r/' + DATA.rituals[0].id + '"><span>' + UI.enterRitual + '</span>' + arrow() + '</a>' +
         '</section>'
     };
   }
