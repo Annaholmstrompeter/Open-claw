@@ -164,6 +164,8 @@ html[data-page="close"] .head-brand { visibility: hidden; }
   font-size: .78rem;
   letter-spacing: .3em;
   text-transform: uppercase;
+  color: inherit;
+  text-decoration: none;
 }
 .head-brand i, .brand-name i, .footline i { font-style: normal; color: #cfa42a; }
 html[data-ground] .head-brand i, html[data-page="intro"] .head-brand i { color: #f4d874; }

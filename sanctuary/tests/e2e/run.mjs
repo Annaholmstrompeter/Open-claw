@@ -395,6 +395,24 @@ test('the front page: one photograph, one door, and no shop', async () => {
   noErrors(p); await closeAll(p);
 });
 
+test('the way back to the front page: the logo and the menu\'s Home, from the rituals and from a ritual', async () => {
+  const p = await phone();
+  await open(p, '#/rituals');                                  // an address that goes straight past the front page
+  await p.page.waitForSelector('.rc-track');
+  await p.page.click('a.head-brand');
+  await p.page.waitForSelector('.front');
+  assert.equal(await p.page.evaluate(() => document.documentElement.getAttribute('data-page')), 'welcome');
+  await p.page.click('.front a.btn');
+  await p.page.waitForSelector('.rc-track');
+  await p.page.click('.rc-frame');                             // into a ritual
+  await p.page.waitForSelector('.screen:not(.rituals-screen)');
+  await p.page.click('#menu-btn');
+  await p.page.click('#menu a[href="#/"]');                    // Home in the menu
+  await p.page.waitForSelector('.front');
+  assert.equal(await p.page.evaluate(() => location.hash), '#/');
+  noErrors(p); await closeAll(p);
+});
+
 test('the sanctuary\'s own five rituals play as before', { timeout: 60000 }, async () => {
   const p = await phone();
   await open(p, '#/r/balance/s');

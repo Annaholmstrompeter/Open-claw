@@ -4,7 +4,7 @@
 //
 //   node e2e/regression.mjs [older git revision]        default: origin/ccr-b32990fc-q1bykk (the sanctuary before TOGETHER)
 //
-// Expected, and only this: the list of rituals gains the Rituals | Together tabs, the menu gains "Together",
+// Expected, and only this: the list of rituals gains the Rituals | Together tabs, the menu gains "Together" and "Home" (the way back to the front page; the logo is a link there too),
 // the front page ('#/') is redesigned on purpose (2026-10-09, from Anna's mockup; no shop), and so is the list of rituals
 // ('#/rituals': a carousel of five large pictures, 2026-10-09).
 import { execFileSync } from 'node:child_process';
@@ -61,7 +61,7 @@ for (const k of Object.keys(a)) {
   if (k === '#/') { console.log('on purpose', k, '(the front page, redesigned)'); continue; }
   if (k === '#/rituals') { console.log('on purpose', k, '(the list of rituals, now a carousel)'); continue; }
   if (false && tabs(b[k].stage) === a[k].stage && ['page', 'c', 'ground', 'title', 'theme'].every((f) => a[k][f] === b[k][f])) { console.log('tabs only', k); continue; }
-  if (k === '__menu' && b[k].replace(/\s*<a href="#\/together">Together<\/a>/, '') === a[k]) { console.log('menu +1  ', k, '(the Together link)'); continue; }
+  if (k === '__menu' && b[k].replace(/\s*<a href="#\/together">Together<\/a>/, '').replace(/\s*<a href="#\/">Home<\/a>/, '') === a[k]) { console.log('menu +2  ', k, '(the Together link, and a way back to the front page)'); continue; }
   unexpected++;
   console.log('DIFFERENT', k);
 }
