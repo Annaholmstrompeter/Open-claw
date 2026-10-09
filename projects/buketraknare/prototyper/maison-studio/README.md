@@ -1,115 +1,108 @@
 # Maison Studio: designprototyp för Buketträknaren
 
-> **Prototyp för granskning. Inte den riktiga appen.** Ingen applikationskod är ändrad, och grenen ska inte mergas. PR #9, #10, #11 och master är orörda. Inget implementeras i appen förrän riktning är godkänd.
+> **Prototyp för granskning. Inte den riktiga appen.** Ingen applikationskod är ändrad. Grenen ska inte mergas. master, PR #9, #10 och #11 är orörda och PR #13 är inte mergad. Inget implementeras i appen förrän designen uttryckligen godkänts.
+>
+> Den här versionen är **ett omtag**, inte en ny CSS-justering. Skälet och orsakerna står i [GRANSKNING.md](GRANSKNING.md).
 
-En fungerande HTML/CSS/JS-prototyp med två vyer: **Hem** (med sparade arbeten) och **Bukettbyggaren** (med blom- och prisuppgifter), i mobil- och datorlayout. Dessutom en **inköpsöversikt**, eftersom inköpsenheten ska visas på samma sätt överallt. Skärmbilderna nedan är tagna i riktig Chromium 141.
+## Tre vyer, ett arbetsflöde
+
+| Vy | Vad floristen gör där |
+| --- | --- |
+| **Hem** | Ser senaste arbeten med kundpris, och trycker **Ny bukett** (knappen syns utan rullning). |
+| **Bukett** | Arbetsflödets centrum. Väljer blommor, ändrar antal stjälkar och ser kundpriset hela tiden. |
+| **Inköp** | Ser vad som ska köpas hem för jobbet, i hela förpackningar, med summa och överskott. |
+
+Huvudmenyn har bara de tre och ingen av dem är en återvändsgränd. Prisfältet i Bukett och Inköp ligger alltid längst ned.
+
+### Så skapar floristen en ny bukett
+
+1. **Ny bukett** på Hem öppnar blomvalet direkt, på **Mina favoriter** (ingen tom bukettvy att ta sig förbi). Sökfältet ligger överst och söker i hela sortimentet.
+2. **Byt kategori** med ett tryck på listväljaren *Visa* (sju kategorier + Alla blommor; på bred skärm ligger de som knappar hela tiden).
+3. **Markera flera sorter**: ett tryck per blomma lägger 1 stjälke, ett tryck till tar bort (med *Ångra*). Hjärtat sparar en favorit och väljer ingenting.
+4. **Tillbaka till buketten** med det stora kommandot i prisfältet, **Visa min bukett (5)**. Kommandot ligger på samma plats som **Lägg till blommor** i den andra vyn.
+5. **Ändra antal** stjälkar med plus och minus. Kundpriset i prisfältet och inköpet (*Köper 1 × 10-pack · 99 kr*) räknas om direkt.
+6. **Fortsätt lägga till** med **Lägg till blommor**. Det som är valt är fortfarande markerat och inget går förlorat.
+
+På bred skärm (≥ 900 px) ligger bukett och blomval **sida vid sida**, så steg 4 och 6 behövs inte. På riktigt bred skärm (≥ 1180 px) tillkommer en jobbpanel med arrangemang och jobbets kundpris.
+
+## Hur layouten är byggd (varför den inte kan överlappa)
+
+- **Appskal.** Sidan rullar aldrig. Rubrikrad, innehåll, prisfält och meddelanden är vanliga delar i en kolumn och bara listorna rullar. Det finns **ingen `position:fixed` eller `sticky`**, så inget lager kan hamna ovanpå något annat, och prisfältet får aldrig bero på gissade höjder.
+- **All text radbryts.** Inga fasta höjder på text, inga rader som rullar i sidled, rubriker är rubriker (inte fält).
+- **Ökad teckenstorlek** och låg skärmhöjd (tangentbord uppe, liggande telefon) har egna regler och är med i testmatrisen.
 
 ## Vad som är på riktigt och vad som är mockat
 
 | Del | Status |
 | --- | --- |
-| Priser, moms, förpackningar, avrundning, ≈ och ✓ | **Riktigt.** Prototypen använder appens egna prismotor (`js/engine/` är oförändrade kopior av `projects/buketraknare/public/js/core/`) och räknar inget själv. Siffrorna är identiska med appens (till exempel Brudbukett 1 615 kr, hela bröllopsjobbet ≈ 5 115 kr, inköp 1 611 kr). |
-| Gränssnittet (layout, typografi, färger, interaktion) | Nytt designförslag i HTML/CSS/JS. |
-| Testdata | Påhittade kunder, jobb, blommor och priser (samma som i granskningsbilderna). |
-| Sparande | **Inget sparas.** Allt ligger i minnet och återställs vid omladdning. |
-| Blommor, Snabbkalkyl, Inställningar, Uppdatera priser, formuläret för nytt jobb | Ingår inte i prototypen. Knapparna visar ett meddelande. |
-| Fotografier | **Inga ingår.** Det finns en plats för ett fotografi på Hem (`?foto=1`), som visar en markerad ruta. Ingen bild ingår, och inga blomillustrationer är ritade. |
+| Priser, moms, förpackningar, avrundning, ≈ och ✓, inköpsplan | **Riktigt.** Buketträknarens prismotor (`js/engine/`, oförändrad mot förra versionen och mot PR #13; `git diff` visar inga ändringar). Jobbpriserna är desamma som förut: 5 115 / 1 615 / 705 kr inkl. moms och 448 kr exkl. moms. Inköp för Emma & Johan: 1 611 kr, 36 stjälkar över, värde 365 kr. |
+| Gränssnitt | Nytt designförslag i HTML/CSS/JS. |
+| Testdata | Påhittade kunder, jobb, florister, 82 blommor och priser. |
+| Favoriter | Sparas lokalt per florist (nedan). |
+| Övrigt sparande | **Inget sparas.** Bukettval och jobb ligger i minnet och återställs vid omladdning. |
+| Fotografier | Inga ingår. Färgrutorna är artikelns färg i prislistan. |
+
+### Kategorier: en blomma, ett hem
+
+Varje artikel har exakt en kategori och en undergrupp, så man vet var man ska titta. Färg och säsong är inga kategorier (de hittas med sök). Gränsfall avgörs av första raden som stämmer: 1 Torkad eller konserverad → **Torkat**. 2 En rosblomma → **Rosor**. 3 Gröna blad, gräs eller ormbunke → **Grönt**. 4 Gren, kvist, bär eller barr → **Kvistar & bär**. 5 Växer från lök eller knöl → **Lökblommor**. 6 Liten, grenad, luftig eller en spirform → **Utfyllnad**. 7 Övriga stora blommor → **Huvudblommor**. Sök hittar alla på namn (utan versaler och utan å, ä, ö) och många på synonymer; träffen visar sin kategori.
+
+### Favoriter per florist
+
+I prototypen sparas favoriter lokalt i webbläsaren, en lista per florist (påhittade Elsa och Mia har varsin). Under **Mina favoriter → Så sparas favoriter** finns förklaringen och en växlare för att prova florister. I den riktiga appen hör listan till **floristens konto**, följer med mellan telefon och dator, och pekar på artikeln (aldrig på en kopia av priset). Konton och synk byggs inte i prototypen. Där lagring inte är tillåten (till exempel i artefaktvisaren) finns favoriterna bara medan sidan är öppen, och förklaringen säger det.
 
 ## Öppna prototypen
 
-- **Enklast:** öppna [`maison-studio-enfil.html`](https://github.com/Annaholmstrompeter/Open-claw/blob/design-prototype/maison-studio-2026-10-08/projects/buketraknare/prototyper/maison-studio/maison-studio-enfil.html) på GitHub, tryck på nedladdningsknappen (Download raw file) och dubbelklicka på filen. Allt är inbyggt i en fil. Typsnitten (Bodoni Moda och Jost) hämtas från Google Fonts, så det behövs nätverk för rätt utseende. Utan nätverk används reservtypsnitt.
-- **Från repot:** klona grenen och öppna `index.html` i en webbläsare. Ingen installation behövs.
-- **Direkt på GitHub:** `index.html` kan **inte** visas direkt via GitHub (filer visas som text). En klickbar förhandsvisning kräver en separat publicering. Se avsnittet "Förhandsvisning" nedan.
+- **Länk:** se pull requesten (en enda länk, till den senaste testade versionen).
+- **Från repot:** öppna `index.html` i en webbläsare. Ingen installation. Typsnitten (Bodoni Moda, Jost) hämtas från Google Fonts, utan nätverk används reservtypsnitt.
+- **En fil:** [`maison-studio-enfil.html`](maison-studio-enfil.html) är samma kod med allt inbyggt.
+- Adressparametrar för granskning (gäller filen och repot): `?ny=1` Ny bukett, `?bukett=1` Bukett, `?blommor=1` blomvalet, `?inkop=1` Inköp.
 
-Adressparametrar som underlättar granskning: `?bygg=1` öppnar bukettbyggaren, `?inkop=1` inköpsöversikten, `?foto=1` visar fotoplatsen på Hem. Fönstret kan göras smalare än 1000 px för mobillayouten.
+**Två minuters test:** tryck *Ny bukett*, markera fem favoriter, tryck *Visa min bukett*, ändra antal på två sorter, tryck *Lägg till blommor*, öppna *Visa → Grönt* och lägg till en sort, tryck *Inköp för jobbet*.
 
-## Skärmbilder (15 st, originalupplösning)
+## Skärmbilder
 
-Mobil är 390 px bred med dubbel skärpa (bilderna är 780 px breda). Dator är 1440 px med enkel skärpa. "Hela sidan" betyder att fönstret gjorts lika högt som sidan, så det fasta prisfältet och menyn hamnar längst ned i bilden.
-
-| Vad | Enhet | Storlek (px) | Länk |
-| --- | --- | --- | --- |
-| Hem med sparade arbeten | Dator 1440 px | 1440×900 | [Visa](skarmbilder/hem-desktop-1440.png) · [Rå fil](https://raw.githubusercontent.com/Annaholmstrompeter/Open-claw/design-prototype/maison-studio-2026-10-08/projects/buketraknare/prototyper/maison-studio/skarmbilder/hem-desktop-1440.png) |
-| Hem med sparade arbeten | Mobil 390 px (hela sidan) | 780×2338 | [Visa](skarmbilder/hem-mobil-390.png) · [Rå fil](https://raw.githubusercontent.com/Annaholmstrompeter/Open-claw/design-prototype/maison-studio-2026-10-08/projects/buketraknare/prototyper/maison-studio/skarmbilder/hem-mobil-390.png) |
-| Hem med plats för ett fotografi (ingen bild ingår) | Dator 1440 px | 1440×900 | [Visa](skarmbilder/hem-desktop-1440-med-fotoplats.png) · [Rå fil](https://raw.githubusercontent.com/Annaholmstrompeter/Open-claw/design-prototype/maison-studio-2026-10-08/projects/buketraknare/prototyper/maison-studio/skarmbilder/hem-desktop-1440-med-fotoplats.png) |
-| Hem med plats för ett fotografi (ingen bild ingår) | Mobil 390 px (hela sidan) | 780×3008 | [Visa](skarmbilder/hem-mobil-390-med-fotoplats.png) · [Rå fil](https://raw.githubusercontent.com/Annaholmstrompeter/Open-claw/design-prototype/maison-studio-2026-10-08/projects/buketraknare/prototyper/maison-studio/skarmbilder/hem-mobil-390-med-fotoplats.png) |
-| Bukettbyggaren: Brudbukett, tre paneler | Dator 1440 px | 1440×900 | [Visa](skarmbilder/bygg-desktop-1440.png) · [Rå fil](https://raw.githubusercontent.com/Annaholmstrompeter/Open-claw/design-prototype/maison-studio-2026-10-08/projects/buketraknare/prototyper/maison-studio/skarmbilder/bygg-desktop-1440.png) |
-| Bukettbyggaren: första skärmen med fast prisfält | Mobil 390 px (som på telefonen) | 780×1688 | [Visa](skarmbilder/bygg-mobil-390.png) · [Rå fil](https://raw.githubusercontent.com/Annaholmstrompeter/Open-claw/design-prototype/maison-studio-2026-10-08/projects/buketraknare/prototyper/maison-studio/skarmbilder/bygg-mobil-390.png) |
-| Bukettbyggaren: hela sidan | Mobil 390 px (hela sidan) | 780×2858 | [Visa](skarmbilder/bygg-mobil-390-hela-sidan.png) · [Rå fil](https://raw.githubusercontent.com/Annaholmstrompeter/Open-claw/design-prototype/maison-studio-2026-10-08/projects/buketraknare/prototyper/maison-studio/skarmbilder/bygg-mobil-390-hela-sidan.png) |
-| Blomvalet som egen skärm | Mobil 390 px | 780×1688 | [Visa](skarmbilder/bygg-mobil-390-blomval.png) · [Rå fil](https://raw.githubusercontent.com/Annaholmstrompeter/Open-claw/design-prototype/maison-studio-2026-10-08/projects/buketraknare/prototyper/maison-studio/skarmbilder/bygg-mobil-390-blomval.png) |
-| Så räknades priset (öppet) | Dator 1440 px | 1440×900 | [Visa](skarmbilder/bygg-desktop-1440-kvitto.png) · [Rå fil](https://raw.githubusercontent.com/Annaholmstrompeter/Open-claw/design-prototype/maison-studio-2026-10-08/projects/buketraknare/prototyper/maison-studio/skarmbilder/bygg-desktop-1440-kvitto.png) |
-| Så räknades priset (öppet) | Mobil 390 px | 780×1688 | [Visa](skarmbilder/bygg-mobil-390-kvitto.png) · [Rå fil](https://raw.githubusercontent.com/Annaholmstrompeter/Open-claw/design-prototype/maison-studio-2026-10-08/projects/buketraknare/prototyper/maison-studio/skarmbilder/bygg-mobil-390-kvitto.png) |
-| 11 rosor kräver två 10-pack | Dator 1440 px | 1440×900 | [Visa](skarmbilder/bygg-desktop-1440-11-rosor.png) · [Rå fil](https://raw.githubusercontent.com/Annaholmstrompeter/Open-claw/design-prototype/maison-studio-2026-10-08/projects/buketraknare/prototyper/maison-studio/skarmbilder/bygg-desktop-1440-11-rosor.png) |
-| 11 rosor kräver två 10-pack | Mobil 390 px (hela sidan) | 780×2858 | [Visa](skarmbilder/bygg-mobil-390-11-rosor.png) · [Rå fil](https://raw.githubusercontent.com/Annaholmstrompeter/Open-claw/design-prototype/maison-studio-2026-10-08/projects/buketraknare/prototyper/maison-studio/skarmbilder/bygg-mobil-390-11-rosor.png) |
-| Ny bukett, tomt läge | Mobil 390 px | 780×1688 | [Visa](skarmbilder/bygg-mobil-390-ny-bukett.png) · [Rå fil](https://raw.githubusercontent.com/Annaholmstrompeter/Open-claw/design-prototype/maison-studio-2026-10-08/projects/buketraknare/prototyper/maison-studio/skarmbilder/bygg-mobil-390-ny-bukett.png) |
-| Inköp för jobbet | Dator 1440 px | 1440×900 | [Visa](skarmbilder/inkop-desktop-1440.png) · [Rå fil](https://raw.githubusercontent.com/Annaholmstrompeter/Open-claw/design-prototype/maison-studio-2026-10-08/projects/buketraknare/prototyper/maison-studio/skarmbilder/inkop-desktop-1440.png) |
-| Inköp för jobbet | Mobil 390 px (hela sidan) | 780×3422 | [Visa](skarmbilder/inkop-mobil-390.png) · [Rå fil](https://raw.githubusercontent.com/Annaholmstrompeter/Open-claw/design-prototype/maison-studio-2026-10-08/projects/buketraknare/prototyper/maison-studio/skarmbilder/inkop-mobil-390.png) |
-
-## Designprinciper och hur de är lösta
-
-1. **Maison som grund.** Bodoni Moda bara i stora storlekar (rubriker och priser), Jost i tydliga vikter (400 till 600) för all annan text. Varm ljus färgskala. Minsta text är 12 px och Bodoni används aldrig under 20 px.
-2. **Arbetsyta på dator.** Tre paneler: jobb och arrangemang (vänster), aktiv bukett med sammansättning och ingredienser (mitten), blomval (höger). Prisfältet sitter fast längst ned i mitten.
-3. **Enkelt blomval.** Sök, filter och ett plus- och minus-steg per blomma. Inga färgade kort.
-4. **Ingen administrationskänsla.** Hårfina linjer i stället för inramade kort, ett enda mörkt element på Hem och tydlig hierarki.
-5. **Fotografier sparsamt.** En plats på Hem. Fotografier representerar aldrig specifika grossistartiklar.
-6. **Inga ritade blommor.** Sammansättningen visas som ett färgband med tal. Färgen i bandet är artikelns färg i prislistan.
-7. **Mobil.** Fast prisfält med "Klart" längst ned, blomvalet som egen skärm, arrangemang som flikar överst, alla tryckytor minst 44 px.
-8. **Funktionalitet bevarad.** Pris, moms, förpackningsberäkning, prisstatus (≈ och ✓) och sparstatus finns kvar. Sparstatus är bara en markering här, eftersom inget sparas.
-
-## Prispresentation: inköpsenheten först
-
-Det floristen köper är en hel förpackning, så förpackningens pris är alltid tydligast. Styckpriset är ett **räknat värde i parentes** och visas aldrig som grossistens pris.
-
-| Artikel | Visas som |
-| --- | --- |
-| Pion | **165 kr/bunt**, Bunt om 5 st · (33 kr/st) |
-| Rosa ros 50 cm | **99 kr/10-pack**, (9,90 kr/st) |
-| Hortensia | **39 kr/st**, Säljs styckvis |
-| En artikel där styckpriset inte går jämnt upp (till exempel 100 kr för 3 st) | **100 kr/bunt**, Bunt om 3 st · (≈ 33,33 kr/st) |
-
-- **Plus och minus gäller antal stjälkar** som används i arrangemanget, och det står "Antal stjälkar" ovanför listan.
-- **Inköp räknas på hela förpackningar**, av appens egen inköpsplan. Under varje rad står till exempel "Köper 1 × 10-pack · 99 kr". Med 6 och 10 rosor köps ett 10-pack, med 11 rosor två ("Köper 2 × 10-pack · 198 kr"). Delas en förpackning mellan arrangemang står "Hela jobbet köper …".
-- **Samma princip** gäller blomlistan, bukettbyggaren och inköpsöversikten. Inköpsöversikten visar behövs, köper, över och kostnad per vara samt summan (1 611 kr, 36 stjälkar över, värde 365 kr) rakt ur appens plan.
+I mappen [`skarmbilder/`](skarmbilder/): de tre huvudvyerna på mobil (390×664, den höjd en telefon har med webbläsarens fält) och dator (1440×900) som `1-hem-…`, `2-bukett-…` och `3-inkop-…`, flödet för en ny bukett (`4-` till `9-`), andra storlekar (`10-`) och 150 % teckenstorlek (`11-`).
 
 ## Verifierat
 
-Alla kontroller körs mot den riktiga prismotorn i riktig Chromium 141 (`verktyg/behave.mjs`, `verktyg/qa.mjs`). Verktygen behöver `playwright-core` och en Chromium (sökväg i `CHROMIUM_PATH`).
+Alla kontroller körs i riktig Chromium mot den riktiga prismotorn (`playwright-core`, sökväg i `CHROMIUM_PATH`). `SIDA=fil.html` kör flödestesterna mot en annan fil, till exempel enfilen. Granskningen mäter också kontrast (WCAG 2.x, text mot verklig bakgrund).
 
-- **Beteende: 118 kontroller, 0 fel** (mobil och dator). Priserna efter varje ändring jämförs mot motorn körd i Node: plus och minus, tillägg från blomvalet, sök och filter, arbete (giltigt och ogiltigt värde), eget material, antal likadana, ny bukett (skapas först vid första blomman), borttagning i två steg, inköpsregeln 6/10/11 rosor, inköpsöversikten, och att inga konsolfel uppstår.
-- **Layout:** inget sidledes överflöd och prisfältet inom bild vid 320, 360, 390, 768, 999, 1000, 1280, 1440 och 1920 px, för Hem, Bukettbyggare och Inköp. Blomvalet följer med när fönstret ändrar storlek mellan mobil och dator.
-- **Tryckytor:** alla knappar och fält minst 44×44 px på mobil.
-- **Typografi:** ingen text under 12 px, ingen skrifttjocklek under 400, ingen Bodoni under 20 px.
-- **Kontrast (WCAG 2.x):** brödtext 15,2:1, dämpad text 8,6:1, etiketter 5,7:1, bronstext 5,7:1, ≈ 5,6:1, ✓ 6,8:1, fältkanter 3,5:1 eller mer, text på svart knapp 15,2:1. Uppmätt ur CSS-variablerna.
-- **Tangentbord:** Tab genom Hem, synlig fokusring (3 px), blomvalet på mobil låser resten av sidan och Escape stänger det.
-- **Robusthet:** fungerar utan Google Fonts och visar ett tydligt meddelande utan JavaScript.
-- **Vikt:** cirka 223 KB HTML, CSS och JS (varav prismotorn 145 KB, ej minifierad) och inga bilder. Typsnitten hämtas separat.
+| Kontroll | Resultat |
+| --- | --- |
+| `verktyg/data.mjs` (Node): sortiment, kategorier, sök, favoriter, Ångra, priser | **138 ok, 0 fel** |
+| `verktyg/floede.mjs`: flöden på mobil och dator, varje belopp jämfört med motorn i Node (Hem-priser, kvitto, antal, arbete, eget material, 6/10/11 rosor, ny bukett, borttagning, inköp, fem favoriter → ändra antal → lägg till fler → inköp, sök, hjärtan, Ångra, tillbaka-knapp, tangentbord) | **264 ok, 0 fel** (mobil 390×664 och dator 1440×900; samma körning mot enfilen: 264 ok, 0 fel) |
+| `verktyg/granska.mjs`: kapad text, överlappande text och kontroller, täckta kontroller, tryckytor under 44 px, text under 12 px, sidledsrullning. Alla vyer och lägen (kvitto, byt namn, ta bort, menyer, sök, tomma lägen, meddelanden) på många storlekar och teckenstorlekar | **1 308 lägen, 0 fynd** |
+| Samma matris mot den **byggda artefaktsidan** (exakt filen som publiceras) i en sandlåde-iframe som artefaktvisaren: ingen lagring, inga formulärinskick, ingen frågesträng. Dessutom flöden i sandlådan (`verktyg/sandlada.mjs`) | **1 308 lägen, 0 fynd**; flöden **42 ok, 0 fel** |
+| `js/engine/` (prismotorn) oförändrad | `git diff` mot förra versionen och PR #13: inga ändringar |
 
-**Inte verifierat:** riktiga telefoner (iOS och Android), Safari och Firefox, skärmläsare, högkontrastläge, utskrift, mörkt läge (finns inte i prototypen), att en florist provat den, och prestanda med stora jobb.
+Storlekar i matrisen: telefon 320×568, 360×740, 375×667, 390×664, 390×844, 412×839, 430×739, liggande 667×375 och 844×390, med tangentbord uppe 390×330 och 320×300, surfplatta 768×1024 och 1024×768, dator 900×600, 1180×700, 1280×720, 1440×900 och 1920×1080. Teckenstorlek 100 %, 130 % och 150 % på alla, 200 % på ett urval. Teckenstorlek emuleras genom att alla teckenstorlekar i CSS och JS skalas medan layoutens övriga mått är kvar, som Androids teckenstorlek.
 
-## Förhandsvisning (klickbar)
+### Hittat och rättat med de nya testerna
+- Prisfältets knapp la sig över beloppet vid 150 % teckenstorlek och högre. Jobbpanelen klippte pris och knapp vid 200 %. Eget material och namnbyte överlappade vid stor text. Med tangentbord uppe i en liten skärm tog toppraden och prisfältet nästan hela höjden.
+- Ett tomt jobb blev kvar på Hem när man tog bort sista arrangemanget. Nu tas jobbet bort med det (och frågan säger det).
+- "1 stjälkar" är nu "1 stjälke". Skärmläsare fick "krinkl. moms" utan mellanslag på Hem.
+- **Bara synligt i sandlådan:** artefaktvisaren kan blockera formulärinskick, så *Spara* och *Lägg till* (namnbyte, eget material) gjorde ingenting. De är nu vanliga knappar och Enter hanteras direkt. Det hade inte hittats utan sandlådetestet.
+- Granskningsmotorn själv missade först text som klipps av sin egen ruta (en rubrik med `overflow:hidden`). Den hittas nu, kontrollerad mot en planterad defekt.
 
-`index.html` går inte att öppna direkt på GitHub. Alternativ för en klickbar länk, som alla kräver ett beslut innan något publiceras:
+### Inte verifierat (viktigt)
 
-1. **Ladda ner `maison-studio-enfil.html`** och öppna lokalt. Ingen publicering.
-2. **GitHub Pages** för repot (ändrar repots inställningar och gör prototypen offentligt tillgänglig på en adress).
-3. **Privat delbar sida i Claude** (publiceras som privat artefakt, delas bara på begäran).
-4. **Tredjepartsvisare** som renderar filen från GitHub. Inget i repot ändras, men en utomstående tjänst läser filen.
+- **Riktig telefon.** Miljön har ingen. Allt är testat i Chromium med telefonprofil (touch, skärmstorlek, pixeltäthet, sandlåda), inte på en iPhone eller Android-telefon.
+- **Safari/WebKit och Firefox** finns inte här. Särskilt hur **tangentbordet** och adressfältet ändrar skärmhöjden på iOS är bara emulerat med kortare fönster.
+- Skärmläsare, högkontrastläge och utskrift. Att en florist provat den. Ett riktigt grossistsortiment.
 
 ## Filer
 
 ```
 projects/buketraknare/prototyper/maison-studio/
-├── README.md
+├── README.md, GRANSKNING.md
 ├── index.html                  (öppna denna)
-├── maison-studio-enfil.html    (samma sak i en enda fil)
+├── maison-studio-enfil.html    (samma sak i en fil, byggd med verktyg/bygg-enfil.mjs)
 ├── css/studio.css
-├── js/
-│   ├── studio.js               (gränssnittet)
-│   ├── studio-engine.js        (översätter motorns svar till skärmen, ingen egen räkning)
-│   ├── studio-data.js          (påhittad testdata)
-│   └── engine/                 (appens egen prismotor, oförändrade kopior)
-├── skarmbilder/                (15 bilder, originalupplösning)
-└── verktyg/                    (behave.mjs, qa.mjs, capture.mjs)
+├── js/studio.js                (gränssnittet: tre vyer, appskal, blomval)
+├── js/studio-engine.js         (översätter motorns svar till skärmen, sortiment, kategorier, sök. Ingen egen räkning)
+├── js/studio-favorites.js      (favoriter per florist, lokalt)
+├── js/studio-data.js           (påhittad testdata)
+├── js/engine/                  (appens prismotor, oförändrade kopior)
+├── skarmbilder/                (verktyg/capture.mjs)
+└── verktyg/                    (data.mjs, floede.mjs, granska.mjs, sandlada.mjs, capture.mjs, bygg-enfil.mjs, bygg-artefakt.mjs, lib/)
 ```
-
-Mapp på GitHub: https://github.com/Annaholmstrompeter/Open-claw/tree/design-prototype/maison-studio-2026-10-08/projects/buketraknare/prototyper/maison-studio

@@ -133,8 +133,47 @@
       } else if (r && r.status === 'INCOMPLETE') out.state = 'missing';
       return out;
     }
-    function flowers() {
-      return D.FLOWERS.map(f => ({ id: f.id, name: f.namn, category: f.kategori, color: f.farg, unit: unitInfo(f).unit, desc: unitInfo(f).desc, old: !fresh(f).ok, days: fresh(f).days }));
+    // ---------- sortiment: kategorier, undergrupper och sök ----------
+    // Varje artikel har exakt ett hem (en kategori och en undergrupp). Sök täcker hela sortimentet oavsett kategori.
+    const baseChar = ch => ch.toLowerCase().normalize('NFD')[0];
+    const foldRaw = s => String(s == null ? '' : s).replace(/[\s\S]/g, baseChar);       // gemener utan diakriter, samma längd som originalet (för markering)
+    const fold = s => foldRaw(s).replace(/\s+/g, ' ').trim();
+    const collator = new Intl.Collator('sv');
+    const catIx = new Map(D.CATEGORIES.map((c, i) => [c.id, i]));
+    const grpIx = new Map(D.CATEGORIES.flatMap(c => c.groups.map((g, i) => [c.id + '/' + g.id, i])));
+    const catName = new Map(D.CATEGORIES.map(c => [c.id, c.name]));
+    const grpName = new Map(D.CATEGORIES.flatMap(c => c.groups.map(g => [c.id + '/' + g.id, g.name])));
+    const FL = D.FLOWERS.map(f => {
+      const u = unitInfo(f), fr = fresh(f), gk = f.kategori + '/' + f.grupp;
+      return { id: f.id, name: f.namn, cat: f.kategori, grp: f.grupp, catName: catName.get(f.kategori), grpName: grpName.get(gk), color: f.farg, unit: u.unit, desc: u.desc, old: !fr.ok, days: fr.days,
+        nameKey: fold(f.namn), words: fold(f.namn).split(' '), aliasKeys: (f.sok || []).map(fold),
+        catWords: fold(catName.get(f.kategori) + ' ' + grpName.get(gk)).split(' '), order: 0 };
+    }).sort((a, b) => (catIx.get(a.cat) - catIx.get(b.cat)) || (grpIx.get(a.cat + '/' + a.grp) - grpIx.get(b.cat + '/' + b.grp)) || collator.compare(a.name, b.name));
+    FL.forEach((f, i) => { f.order = i; });
+    const flowerById = new Map(FL.map(f => [f.id, f]));
+    const flowers = () => FL;
+    const flower = id => flowerById.get(id) || null;
+    function categories() {
+      return D.CATEGORIES.map(c => ({ id: c.id, name: c.name, count: FL.filter(f => f.cat === c.id).length,
+        groups: c.groups.map(g => ({ id: g.id, name: g.name, count: FL.filter(f => f.cat === c.id && f.grp === g.id).length })) }));
+    }
+    const inCategory = (catId, grpId) => FL.filter(f => f.cat === catId && (!grpId || grpId === 'alla' || f.grp === grpId));
+    /** 10 namnet börjar med ordet, 8 ett ord i namnet börjar med det, 5 del av namnet, 4 och 3 synonym, 1 kategori eller undergrupp. 0 = ingen träff. */
+    function scoreToken(f, t) {
+      if (f.nameKey.startsWith(t)) return 10;
+      if (f.words.some(w => w.startsWith(t))) return 8;
+      if (t.length > 1 && f.nameKey.includes(t)) return 5;
+      if (f.aliasKeys.some(a => a.startsWith(t) || a.split(' ').some(w => w.startsWith(t)))) return 4;
+      if (t.length > 1 && f.aliasKeys.some(a => a.includes(t))) return 3;
+      if (f.catWords.some(w => w.startsWith(t))) return 1;
+      return 0;
+    }
+    /** Hela sortimentet, oberoende av kategori. Alla ord måste träffa. Bäst träff först, därefter A till Ö. */
+    function search(q) {
+      const toks = fold(q).split(' ').filter(Boolean); if (!toks.length) return [];
+      const hits = [];
+      for (const f of FL) { let sum = 0; for (const t of toks) { const s = scoreToken(f, t); if (!s) { sum = 0; break; } sum += s; } if (sum) hits.push([sum, f]); }
+      return hits.sort((a, b) => (b[0] - a[0]) || collator.compare(a[1].name, b[1].name)).map(h => h[1]);
     }
     /** Inköpsöversikt för ett jobb, rakt ur arbetsytans inköpsplan (hela förpackningar, det som blir över ingår i kundpriset). */
     function purchase(evId) {
@@ -153,6 +192,12 @@
       const f = D.FLOWERS.find(x => x.id === flowerId), same = itemsOf(arrId).find(i => i.source === 'SUPPLIER' && i.articleRef.supplierProductId === flowerId);
       if (same) W.updateItem(ws, ctx, same.id, { quantity: Number(same.quantity) + 1 }); else W.addItem(ws, ctx, arrId, { source: 'SUPPLIER', name: f.namn, articleRef: art(f.id), quantity: 1 });
     }
+    /** Lägger tillbaka en borttagen blomma med det antal stjälkar den hade (för "Ångra"). */
+    function restoreFlower(arrId, flowerId, qty) {
+      addFlower(arrId, flowerId);
+      const it = itemsOf(arrId).find(i => i.source === 'SUPPLIER' && i.articleRef.supplierProductId === flowerId);
+      if (it && qty > 1) W.updateItem(ws, ctx, it.id, { quantity: Math.max(1, Math.round(qty)) });
+    }
     const setQty = (itemId, q) => W.updateItem(ws, ctx, itemId, { quantity: Math.max(1, Math.round(q)) });
     const removeItem = itemId => W.removeItem(ws, ctx, itemId);
     const setCount = (arrId, n) => W.updateArrangement(ws, ctx, arrId, { quantity: Math.max(1, Math.round(n)) });
@@ -165,8 +210,9 @@
     const rename = (arrId, name) => { const n = String(name || '').trim(); if (n) W.updateArrangement(ws, ctx, arrId, { name: n }); };
     const addOwn = (arrId, name, cost) => W.addItem(ws, ctx, arrId, { source: 'OWN_STOCK', name: String(name).trim(), quantity: 1, pricing: { mode: 'STANDARD_MARKUP', unitCostBasis: Money.fromDecimal(String(cost)).toJSON() } });
     const removeArrangement = arrId => W.removeArrangement(ws, ctx, arrId);
+    const removeJob = evId => W.removeEvent(ws, ctx, evId);
     const addArrangement = (evId, name) => W.addArrangement(ws, ctx, evId, { name: name || 'Nytt arrangemang', quantity: 1 }).id;
-    return { jobs, job, arrangement, flowers, purchase, unitInfo: f => unitInfo(D.FLOWERS.find(x => x.id === f)), priceListStatus, draft, addFlower, setQty, removeItem, setCount, setLabor, rename, removeArrangement, addArrangement, addOwn, kr, TODAY };
+    return { jobs, job, arrangement, flowers, flower, categories, inCategory, search, fold, foldRaw, purchase, unitInfo: f => unitInfo(D.FLOWERS.find(x => x.id === f)), priceListStatus, draft, addFlower, restoreFlower, setQty, removeItem, setCount, setLabor, rename, removeArrangement, removeJob, addArrangement, addOwn, kr, TODAY };
   }
   return { create, kr };
 });
