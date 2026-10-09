@@ -1,6 +1,6 @@
 /* Offline support: after the first visit the whole sanctuary works without signal.
    Bump VERSION whenever files change so guests receive the update on their next visit. */
-var VERSION = 'bme-sanctuary-33049df341';
+var VERSION = 'bme-sanctuary-1244833830';
 var FILES = [
   './',
   'assets/app.js',
@@ -30,6 +30,11 @@ var FILES = [
   'assets/img/presence-botanical.webp',
   'assets/img/presence-species.webp',
   'assets/img/presence-waves.webp',
+  'assets/img/ritual-balance.webp',
+  'assets/img/ritual-kindness.webp',
+  'assets/img/ritual-luminance.webp',
+  'assets/img/ritual-presence.webp',
+  'assets/img/ritual-serenity.webp',
   'assets/img/serenity-botanical.webp',
   'assets/img/serenity-species.webp',
   'assets/img/serenity-waves.webp',

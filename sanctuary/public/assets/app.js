@@ -36,6 +36,7 @@
     frontText: 'Natural skincare with guided sensory rituals, bringing moments of conscious care into your everyday life.',
     discover: 'Discover the Rituals',
     chooseTitle: 'Choose your ritual',
+    enterRitual: 'Enter the ritual',
     aboutLink: 'About Sensory Enrichment',
     aboutEyebrow: 'Sensory Enrichment',
     closeLink: 'Close your visit',
@@ -316,32 +317,68 @@
     };
   }
 
+  // The picture the guest was last looking at: back from a ritual, the carousel is where it was left.
+  var lastSlide = 0;
+
+  // Choose your ritual: five large pictures in a carousel, one for each ritual.
   function rituals() {
-    var tiles = DATA.rituals.map(function (r) {
-      return '<li><a class="tile" data-c="' + r.id + '" href="#/r/' + r.id + '">' +
-        img(r.img.botanical, 'tile-art') +
-        '<span class="tile-text">' +
-        '<span class="name">' + r.id + '</span>' +
-        '<span class="kind">' + esc(r.kind) + '</span>' +
-        '<span class="kind">' + esc(r.scent) + '</span>' +
-        '</span>' +
-        '<svg class="chev" viewBox="0 0 10 18" aria-hidden="true"><path d="M1 1l8 8-8 8"/></svg>' +
-        '</a></li>';
+    var slides = DATA.rituals.map(function (r, i) {
+      return '<li class="rc-slide" data-c="' + r.id + '">' +
+        '<a class="rc-card" href="#/r/' + r.id + '" aria-label="' + cap(r.id) + ', ' + esc(r.kind) + ', ' + esc(r.scent) + '">' +
+        '<span class="rc-photo"><img src="' + r.img.photo + '" alt="" width="900" height="1125" decoding="async"' + (i ? ' loading="lazy"' : '') + '></span>' +
+        '<span class="rc-cap">' +
+        '<span class="rc-name">' + r.id + '</span>' +
+        '<span class="rc-kind">' + esc(r.kind) + ' · ' + esc(r.scent) + '</span>' +
+        '<span class="rc-go">' + UI.enterRitual + arrow() + '</span>' +
+        '</span></a></li>';
+    }).join('');
+    var dots = DATA.rituals.map(function (r, i) {
+      return '<button class="rc-dot" type="button" data-rc-dot="' + i + '" aria-label="' + cap(r.id) + '"></button>';
     }).join('');
     return {
       title: UI.chooseTitle + ' — ' + UI.brand,
       kind: 'list',
+      mount: bindCarousel,
       html:
-        '<section class="screen top-aligned">' +
+        '<section class="screen top-aligned rituals-screen">' +
         tgTabs('rituals') +
         '<h1 class="title caps">' + UI.chooseTitle + '</h1>' +
-        '<p class="text sub-title">' + UI.footline + '</p>' +
-        '<ul class="ritual-list">' + tiles + '</ul>' +
+        '<div class="rc" role="region" aria-roledescription="carousel" aria-label="' + UI.chooseTitle + '">' +
+        '<ul class="rc-track" data-rc-track tabindex="0">' + slides + '</ul>' +
+        '<div class="rc-dots" data-rc-dots>' + dots + '</div></div>' +
         '<nav class="quiet">' +
         '<a href="#/about"><span>' + UI.aboutLink + '</span></a>' +
         '<a href="#/close"><span>' + UI.closeLink + '</span></a>' +
         '</nav></section>'
     };
+  }
+
+  // Swipe (or use the dots): the dot of the picture in the middle is lit in that ritual's colour.
+  function bindCarousel(root) {
+    var track = root.querySelector('[data-rc-track]');
+    if (!track) return;
+    var slides = track.children, dots = root.querySelectorAll('[data-rc-dot]'), box = root.querySelector('[data-rc-dots]');
+    var frame = null;
+    function left(i) { return slides[i].offsetLeft - (track.clientWidth - slides[i].clientWidth) / 2; }
+    function go(i, smooth) { track.scrollTo({ left: left(i), behavior: smooth && !reduced ? 'smooth' : 'auto' }); }
+    function mark() {
+      var mid = track.scrollLeft + track.clientWidth / 2, best = 0, gap = Infinity;
+      for (var i = 0; i < slides.length; i++) {
+        var d = Math.abs(slides[i].offsetLeft + slides[i].clientWidth / 2 - mid);
+        if (d < gap) { gap = d; best = i; }
+      }
+      lastSlide = best;
+      for (var j = 0; j < dots.length; j++) dots[j].setAttribute('aria-current', j === best ? 'true' : 'false');
+      box.style.setProperty('--dotc', DATA.rituals[best].color);
+    }
+    track.addEventListener('scroll', function () {
+      if (!frame) frame = requestAnimationFrame(function () { frame = null; mark(); });
+    }, { passive: true });
+    for (var k = 0; k < dots.length; k++) {
+      (function (i) { dots[i].addEventListener('click', function () { go(i, true); }); })(k);
+    }
+    go(lastSlide, false);
+    mark();
   }
 
   // The cream middle panel of the label: formula, actives, ingredients, origin.
@@ -527,6 +564,7 @@
     if (parts[0] === 'r') {
       var r = ritualById(parts[1]);
       if (!r) return rituals();
+      lastSlide = DATA.rituals.indexOf(r);
       if (!parts[2]) return ritualIntro(r);
       if (parts[2] === 'done') return ritualEnd(r);
       return player(r, parts[2] === 'e' ? 'e' : 's');

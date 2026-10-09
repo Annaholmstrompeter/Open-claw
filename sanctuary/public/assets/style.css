@@ -573,6 +573,56 @@ html[data-page="welcome"] .menu-btn { position: absolute; left: 6px; top: calc(e
 .front-copy .text { max-width: 23rem; margin: 0 0 1.7rem; font-size: 1.3rem; line-height: 1.4; text-wrap: balance; }
 @media (max-height: 700px) { .front-copy { padding-top: 1.5rem; } .front-copy .text { margin-bottom: 1.3rem; } }
 
+/* ——— Choose your ritual: five large pictures in a carousel ——— */
+.rituals-screen { justify-content: flex-start; }
+.rc { width: calc(100% + 56px); margin: .1rem -28px 0; }
+.rc-track {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  margin: 0;
+  padding: 6px 8.5% 46px;       /* room for the cards' shadow, which would otherwise be cut off in a straight line */
+  margin-bottom: -28px;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 8.5%;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.rc-track::-webkit-scrollbar { display: none; }
+.rc-track:focus-visible { outline-offset: -4px; }
+.rc-slide { flex: 0 0 83%; scroll-snap-align: center; scroll-snap-stop: always; }
+.rc-card {
+  position: relative;
+  display: block;
+  padding: 11px 11px 0;
+  border-radius: 24px;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--c);
+  color: var(--cream);
+  text-decoration: none;
+  box-shadow: 0 24px 42px -28px rgba(60, 40, 10, .75);
+  --accent: #ebc94f;
+}
+.rc-card::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--waves) right bottom / 17rem auto no-repeat; opacity: .5; }
+.rc-photo { display: block; aspect-ratio: 4 / 5; border-radius: 14px; overflow: hidden; background: #e8dcc6; }
+.rc-photo img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.4s var(--ease); }
+.rc-card:hover .rc-photo img, .rc-card:focus-visible .rc-photo img { transform: scale(1.025); }
+.rc-cap { display: grid; gap: .2rem; padding: 1.1rem .5rem 1.3rem; text-align: center; }
+.rc-name { font-size: 1.6rem; font-weight: 500; letter-spacing: .17em; margin-right: -.17em; text-transform: uppercase; line-height: 1.2; }
+.rc-kind { font-size: 1.08rem; opacity: .95; }
+.rc-go { margin-top: .55rem; font-family: var(--sans); font-size: .68rem; letter-spacing: .26em; text-transform: uppercase; color: var(--accent); }
+.rc-go .arr { width: 1.1rem; height: .55rem; margin-left: .55rem; vertical-align: middle; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.rc-dots { --dotc: var(--accent); display: flex; justify-content: center; gap: 2px; margin: .1rem 0 1rem; }
+.rc-dot { position: relative; width: 24px; height: 24px; padding: 0; border: 0; background: none; cursor: pointer; }
+.rc-dot::after { content: ""; position: absolute; left: 50%; top: 50%; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: rgba(51, 41, 29, .2); transition: background-color .5s var(--ease), transform .5s var(--ease); }
+.rc-dot[aria-current="true"]::after { background: var(--dotc); transform: scale(1.3); }
+@media (max-height: 740px) { .rc-photo { aspect-ratio: 1 / 1; } .rc-cap { padding: .9rem .5rem 1.1rem; } }
+@media (min-width: 720px) { .rc-track { padding-inline: 10%; scroll-padding-inline: 10%; } }
+
 /* ——— Reduced motion: keep it still, keep it kind ——— */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

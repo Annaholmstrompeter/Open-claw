@@ -144,8 +144,9 @@ def main():
             "id", "color", "kind", "scent", "tone", "with", "size", "rows", "affirmation",
             "formula", "actives", "vegan", "ingredients", "natural", "labCreated", "footnote", "species")}
         r["img"] = {}
-        for part in ("botanical", "waves", "species"):
-            rel = "assets/img/%s-%s.webp" % (rid, part)
+        for part in ("botanical", "waves", "species", "photo"):
+            # (the photograph for the carousel on the Rituals page: tools/make-ritual-photos.py)
+            rel = ("assets/img/ritual-%s.webp" % rid) if part == "photo" else ("assets/img/%s-%s.webp" % (rid, part))
             if not (ROOT / "public" / rel).exists():
                 problems.append("missing picture " + rel)
             r["img"][part] = rel

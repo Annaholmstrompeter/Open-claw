@@ -54,6 +54,8 @@ spelas som ström), så gästerna behöver täckning när de lyssnar.
 | `public/assets/together/` | **Together (A Ritual for Two)**: egna små moduler, se längre ner. |
 | `content/together.json` | Texterna om ritualerna för två. Byggs in i `content.js` av `build-content.py`. |
 | `content/together-heart-to-heart-manus.md` | Manusutkast och produktionskrav för *Heart to Heart*. Skickas aldrig till telefonerna. |
+| `content/source/ritual-photo.jpg` | Annas bild (Presence-flaskan i sin ask). Utgångspunkt för de fem ritualbilderna. |
+| `tools/make-ritual-photos.py` | Gör `public/assets/img/ritual-<id>.webp`: byter namn och ledord på flaskans etikett för varje ritual (resten av bilden orörd). Kör om efter ändrad text. |
 | `tools/make-together-art.py` | Räknar fram ljusreflexerna på vatten (egna bilder, inga foton, inga rättighetsproblem). |
 | `tests/` | Automatiska tester (se "Tester"). `TOGETHER-TEST.md` är provlistan för riktiga telefoner. |
 
@@ -188,6 +190,7 @@ node e2e/regression.mjs                          # är de fem ritualerna oförä
 - **Shopify stämmer inte med etiketterna.** Etiketterna har använts som källa. Shopify-sidorna har
   bland annat andra ritualrader och ton-ord (t.ex. "Smoothing" mot etikettens "Hydrating") och en
   garblad ingredienslista för handtvålen ("Coco-Communis Oil"). Uppdatera Shopify efter etiketterna.
+- **Ritualsidan** (2026-10-09) är en karusell med fem stora bilder, en per ritual, som på Annas förebild: inramad bild i ritualens färg, namn, och prickar som visar var man är. Bilderna är Annas Presence-bild där etiketten fått respektive ritualnamn och ledord (*A calmer tomorrow.* m.fl., från hennes första sidas bild). **De visar "Ritual Oil 30 ml", som inte är de riktiga produkterna** (handtvål, handkräm, duschtvål, schampo, kroppslotion, 250 ml), och baksidan med ingredienser är densamma på alla fem. Byt mot riktiga foton genom att lägga en bild per ritual som `public/assets/img/ritual-<id>.webp` (4:5, ca 900 × 1125 px).
 - **Första sidan** (2026-10-09) följer Annas skiss: meny till vänster, logotyp i mitten, fotot, rubriken *The Art of Conscious Care*, en rad text och en knapp (*Discover the Rituals*). **Ingen butik** (inget kundvagnsmärke, inga priser, inga länkar ut). Fotot (`public/assets/img/welcome-hero.webp`) är utskuret ur skissen. Det visar 30 ml-flaskor med egna ledord (*A calmer tomorrow.* …) som inte finns på de riktiga etiketterna (250 ml): byt mot ett riktigt produktfoto om de ska stämma. Avslutssidan använder fortfarande den mjukfokuserade olivkvisten (`hero.webp`).
 - **Ingen "Visit Body Mind Earth"-knapp,** som skissen hade. Fristaden är stängd.
 - **Meningen om webbplatsen** i introt ("You can discover more … on our website.") är utelämnad i texten.

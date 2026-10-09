@@ -127,7 +127,7 @@ test('Together is a tab on the rituals page and in the menu; the five rituals ar
   const p = await phone();
   await open(p, '#/rituals');
   assert.equal(await p.page.locator('.tg-tabs a').count(), 2);
-  assert.equal(await p.page.locator('.ritual-list .tile').count(), 5);
+  assert.equal(await p.page.locator('.rc-slide').count(), 5);
   await p.page.click('#menu-btn');
   assert.ok(await p.page.locator('#menu a[href="#/together"]').isVisible());
   await p.page.click('#menu a[href="#/together"]');
@@ -347,6 +347,35 @@ test('one device: the plain player, the water-light while it plays, and the way 
   noErrors(p); await closeAll(p);
 });
 
+test('choose your ritual: five large pictures in a carousel, one for each ritual', async () => {
+  const p = await phone();
+  await open(p, '#/rituals');
+  await p.page.waitForSelector('.rc-slide');
+  const names = await p.page.$$eval('.rc-name', (ns) => ns.map((n) => n.textContent.trim().toLowerCase()));
+  assert.deepEqual(names, ['balance', 'luminance', 'kindness', 'serenity', 'presence']);
+  assert.equal(await p.page.locator('[data-rc-dot]').count(), 5);
+  assert.equal(await p.page.getAttribute('[data-rc-dot="0"]', 'aria-current'), 'true');
+  // five different pictures, each large (a good part of the screen's width)
+  const srcs = await p.page.$$eval('.rc-photo img', (is) => is.map((i) => i.getAttribute('src')));
+  assert.equal(new Set(srcs).size, 5);
+  const w = await p.page.$eval('.rc-photo', (e) => e.getBoundingClientRect().width);
+  assert.ok(w > 0.6 * DW, 'the picture is large: ' + w + ' px of ' + DW);
+  // the dots move the carousel, and each ritual opens
+  await p.page.click('[data-rc-dot="3"]');
+  await p.page.waitForFunction(() => document.querySelector('[data-rc-dot="3"]').getAttribute('aria-current') === 'true');
+  assert.equal(await p.page.evaluate(() => document.querySelector('.rc-slide:nth-child(4)').getAttribute('data-c')), 'serenity');
+  await p.page.click('.rc-slide:nth-child(4) a');
+  await p.page.waitForSelector('.screen.intro');
+  assert.match(await p.page.title(), /Serenity/);
+  // back again: the carousel is where it was left
+  await p.page.goBack();
+  await p.page.waitForSelector('.rc-slide');
+  await p.page.waitForFunction(() => document.querySelector('[data-rc-dot="3"]').getAttribute('aria-current') === 'true');
+  const over = await p.page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  assert.ok(over <= 0, 'no sideways scrolling');
+  noErrors(p); await closeAll(p);
+});
+
 test('the front page: one photograph, one door, and no shop', async () => {
   const p = await phone();
   await open(p, '#/');
@@ -362,7 +391,7 @@ test('the front page: one photograph, one door, and no shop', async () => {
   for (const w of ['shop', 'cart', 'basket', 'checkout', 'buy now', 'add to bag']) assert.ok(!all.includes(w), 'no "' + w + '"');
   assert.equal(await p.page.locator('[aria-label*="bag" i], [aria-label*="cart" i], [aria-label*="basket" i]').count(), 0);
   await p.page.click('.front a.btn');
-  await p.page.waitForSelector('.ritual-list');
+  await p.page.waitForSelector('.rc-track');
   noErrors(p); await closeAll(p);
 });
 
@@ -374,8 +403,8 @@ test('the sanctuary\'s own five rituals play as before', { timeout: 60000 }, asy
   assert.ok(!(await p.page.evaluate(() => !!document.documentElement.getAttribute('data-tg'))), 'no Together look leaks into the rituals');
   await p.page.click('#menu-btn');
   await p.page.click('#menu a[href="#/rituals"]');
-  await p.page.waitForSelector('.ritual-list');
-  assert.equal(await p.page.locator('.ritual-list .tile').count(), 5);
+  await p.page.waitForSelector('.rc-track');
+  assert.equal(await p.page.locator('.rc-slide').count(), 5);
   await closeAll(p);
 });
 
