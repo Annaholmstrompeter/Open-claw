@@ -4,7 +4,8 @@
 //
 //   node e2e/regression.mjs [older git revision]        default: origin/ccr-b32990fc-q1bykk (the sanctuary before TOGETHER)
 //
-// Expected, and only this: the list of rituals gains the Rituals | Together tabs, and the menu gains "Together".
+// Expected, and only this: the list of rituals gains the Rituals | Together tabs, the menu gains "Together",
+// and the front page ('#/') is redesigned on purpose (2026-10-09, from Anna's mockup; no shop).
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -56,6 +57,7 @@ let unexpected = 0;
 for (const k of Object.keys(a)) {
   const x = JSON.stringify(a[k]), y = JSON.stringify(b[k]);
   if (x === y) { console.log('same     ', k); continue; }
+  if (k === '#/') { console.log('on purpose', k, '(the front page, redesigned)'); continue; }
   if (k === '#/rituals' && tabs(b[k].stage) === a[k].stage && ['page', 'c', 'ground', 'title', 'theme'].every((f) => a[k][f] === b[k][f])) { console.log('tabs only', k); continue; }
   if (k === '__menu' && b[k].replace(/\s*<a href="#\/together">Together<\/a>/, '') === a[k]) { console.log('menu +1  ', k, '(the Together link)'); continue; }
   unexpected++;

@@ -1,6 +1,6 @@
 /* Offline support: after the first visit the whole sanctuary works without signal.
    Bump VERSION whenever files change so guests receive the update on their next visit. */
-var VERSION = 'bme-sanctuary-5ed2cf7600';
+var VERSION = 'bme-sanctuary-33049df341';
 var FILES = [
   './',
   'assets/app.js',
@@ -34,6 +34,7 @@ var FILES = [
   'assets/img/serenity-species.webp',
   'assets/img/serenity-waves.webp',
   'assets/img/waves-gold.webp',
+  'assets/img/welcome-hero.webp',
   'assets/style.css',
   'assets/together/player.js',
   'assets/together/session.js',

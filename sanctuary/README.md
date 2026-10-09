@@ -188,8 +188,7 @@ node e2e/regression.mjs                          # är de fem ritualerna oförä
 - **Shopify stämmer inte med etiketterna.** Etiketterna har använts som källa. Shopify-sidorna har
   bland annat andra ritualrader och ton-ord (t.ex. "Smoothing" mot etikettens "Hydrating") och en
   garblad ingredienslista för handtvålen ("Coco-Communis Oil"). Uppdatera Shopify efter etiketterna.
-- **Bakgrundsfoto.** Välkomstvyn och avslutet använder en mjukfokuserad bit av olivkvisten i kit-fotot
-  (`public/assets/img/hero.webp`). Byt mot ett riktigt foto när det finns (varmt, ljust, högt format).
+- **Första sidan** (2026-10-09) följer Annas skiss: meny till vänster, logotyp i mitten, fotot, rubriken *The Art of Conscious Care*, en rad text och en knapp (*Discover the Rituals*). **Ingen butik** (inget kundvagnsmärke, inga priser, inga länkar ut). Fotot (`public/assets/img/welcome-hero.webp`) är utskuret ur skissen. Det visar 30 ml-flaskor med egna ledord (*A calmer tomorrow.* …) som inte finns på de riktiga etiketterna (250 ml): byt mot ett riktigt produktfoto om de ska stämma. Avslutssidan använder fortfarande den mjukfokuserade olivkvisten (`hero.webp`).
 - **Ingen "Visit Body Mind Earth"-knapp,** som skissen hade. Fristaden är stängd.
 - **Meningen om webbplatsen** i introt ("You can discover more … on our website.") är utelämnad i texten.
   Den kan fortfarande finnas i den inspelade introt: lyssna igenom `01_Intro_Sensory-Enrichment.mp3`.

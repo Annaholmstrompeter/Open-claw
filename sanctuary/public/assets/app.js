@@ -30,9 +30,11 @@
   var UI = {
     brand: 'Body Mind Earth',
     sub: 'Sensory Ritual',
-    tagline: 'Your sanctuary,|wherever you are.',
     footline: 'Rituals for a more present you',
-    begin: 'Begin your experience',
+    frontEyebrow: 'Sensory Enrichment Skincare',
+    frontTitle: 'The Art of Conscious Care',
+    frontText: 'Natural skincare with guided sensory rituals, bringing moments of conscious care into your everyday life.',
+    discover: 'Discover the Rituals',
     chooseTitle: 'Choose your ritual',
     aboutLink: 'About Sensory Enrichment',
     aboutEyebrow: 'Sensory Enrichment',
@@ -297,20 +299,19 @@
   // TOGETHER is a separate module; the sanctuary works the same without it.
   function tgTabs(active) { return window.BMETogether && window.BMETogether.available() ? window.BMETogether.tabs(active) : ''; }
 
+  // The front page: a calm header, one photograph, a few words, one door. No shop.
   function welcome() {
     return {
       title: UI.brand + ' — ' + UI.sub,
       kind: 'welcome',
       html:
-        '<section class="screen welcome">' +
-        photo() +
-        '<div class="welcome-head">' + logo('mark') +
-        '<p class="brand-name">' + wordmark() + '</p><p class="brand-sub">' + UI.sub + '</p></div>' +
-        '<div class="welcome-body">' +
-        '<h1 class="tagline">' + br(UI.tagline) + '</h1>' +
-        '<div class="rule" aria-hidden="true"></div>' +
-        '<p class="text">' + UI.footline + '</p>' +
-        '<a class="btn primary" href="#/rituals"><span>' + UI.begin + '</span>' + arrow() + '</a>' +
+        '<section class="screen front">' +
+        '<div class="front-photo" aria-hidden="true"></div>' +
+        '<div class="front-copy">' +
+        '<p class="eyebrow">' + UI.frontEyebrow + '</p>' +
+        '<h1 class="front-title">' + UI.frontTitle + '</h1>' +
+        '<p class="text">' + UI.frontText + '</p>' +
+        '<a class="btn primary" href="#/rituals"><span>' + UI.discover + '</span>' + arrow() + '</a>' +
         '</div></section>'
     };
   }

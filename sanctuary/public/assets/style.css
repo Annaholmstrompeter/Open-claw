@@ -153,7 +153,7 @@ html[data-page="list"] .waves, html[data-page="about"] .waves {
   color: var(--ink);
 }
 html[data-page="intro"] .top { color: var(--cream); }
-html[data-page="welcome"] .head-brand, html[data-page="close"] .head-brand { visibility: hidden; }
+html[data-page="close"] .head-brand { visibility: hidden; }
 .head-brand {
   display: flex;
   align-items: center;
@@ -554,6 +554,24 @@ details.formula summary:hover { color: var(--accent); }
 .closing .actions { margin-top: .4rem; }
 
 .nojs { padding: 2rem; text-align: center; font-style: italic; }
+
+/* ——— The front page: a calm header, one photograph, a few words, one door ——— */
+html[data-page="welcome"] .top {
+  justify-content: center;
+  height: calc(80px + env(safe-area-inset-top));
+  padding: calc(env(safe-area-inset-top) + 8px) 56px 6px;
+  background: var(--paper);
+}
+html[data-page="welcome"] .head-brand { flex-direction: column; gap: .3rem; text-align: center; font-size: .72rem; letter-spacing: .34em; margin-right: -.34em; }
+html[data-page="welcome"] .head-logo { width: 2.7rem; height: 2.7rem; }
+html[data-page="welcome"] .menu-btn { position: absolute; left: 6px; top: calc(env(safe-area-inset-top) + 16px); }
+
+.front { justify-content: flex-start; padding: calc(80px + env(safe-area-inset-top)) 0 calc(40px + env(safe-area-inset-bottom)); }
+.front-photo { width: 100%; aspect-ratio: 941 / 873; background: url("img/welcome-hero.webp") center / cover no-repeat; }
+.front-copy { display: grid; justify-items: center; width: 100%; padding: 2.1rem 28px 0; }
+.front-title { margin: .6rem 0 1rem; font-weight: 400; font-size: clamp(2.7rem, 12.6vw, 3.6rem); line-height: 1.02; letter-spacing: -.012em; text-wrap: balance; }
+.front-copy .text { max-width: 23rem; margin: 0 0 1.7rem; font-size: 1.3rem; line-height: 1.4; text-wrap: balance; }
+@media (max-height: 700px) { .front-copy { padding-top: 1.5rem; } .front-copy .text { margin-bottom: 1.3rem; } }
 
 /* ——— Reduced motion: keep it still, keep it kind ——— */
 @media (prefers-reduced-motion: reduce) {

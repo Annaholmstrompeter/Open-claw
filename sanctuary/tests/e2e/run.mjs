@@ -347,6 +347,25 @@ test('one device: the plain player, the water-light while it plays, and the way 
   noErrors(p); await closeAll(p);
 });
 
+test('the front page: one photograph, one door, and no shop', async () => {
+  const p = await phone();
+  await open(p, '#/');
+  await p.page.waitForSelector('.front');
+  assert.equal((await p.page.textContent('.front-title')).trim(), 'The Art of Conscious Care');
+  assert.match(await p.page.textContent('.front'), /Sensory Enrichment Skincare/);
+  assert.equal(await p.page.locator('.front a.btn').count(), 1, 'one door');
+  assert.equal(await p.page.getAttribute('.front a.btn', 'href'), '#/rituals');
+  // no shop: no basket, no price, no link that leaves the sanctuary, on the page or in the menu
+  const hrefs = await p.page.$$eval('a[href]', (as) => as.map((a) => a.getAttribute('href')));
+  assert.ok(hrefs.every((h) => h.startsWith('#/')), 'every link stays inside the sanctuary: ' + hrefs.join(' '));
+  const all = (await p.page.textContent('body')).toLowerCase();
+  for (const w of ['shop', 'cart', 'basket', 'checkout', 'buy now', 'add to bag']) assert.ok(!all.includes(w), 'no "' + w + '"');
+  assert.equal(await p.page.locator('[aria-label*="bag" i], [aria-label*="cart" i], [aria-label*="basket" i]').count(), 0);
+  await p.page.click('.front a.btn');
+  await p.page.waitForSelector('.ritual-list');
+  noErrors(p); await closeAll(p);
+});
+
 test('the sanctuary\'s own five rituals play as before', { timeout: 60000 }, async () => {
   const p = await phone();
   await open(p, '#/r/balance/s');
