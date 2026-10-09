@@ -320,17 +320,15 @@
   // The picture the guest was last looking at: back from a ritual, the carousel is where it was left.
   var lastSlide = 0;
 
-  // Choose your ritual: five large pictures in a carousel, one for each ritual.
+  // Choose your ritual: one large picture at a time in a thin pale frame, the name over it, dots below, one button.
   function rituals() {
     var slides = DATA.rituals.map(function (r, i) {
       return '<li class="rc-slide" data-c="' + r.id + '">' +
-        '<a class="rc-card" href="#/r/' + r.id + '" aria-label="' + cap(r.id) + ', ' + esc(r.kind) + ', ' + esc(r.scent) + '">' +
-        '<span class="rc-photo"><img src="' + r.img.photo + '" alt="" width="900" height="1125" decoding="async"' + (i ? ' loading="lazy"' : '') + '></span>' +
-        '<span class="rc-cap">' +
-        '<span class="rc-name">' + r.id + '</span>' +
-        '<span class="rc-kind">' + esc(r.kind) + ' · ' + esc(r.scent) + '</span>' +
-        '<span class="rc-go">' + UI.enterRitual + arrow() + '</span>' +
-        '</span></a></li>';
+        '<a class="rc-frame" href="#/r/' + r.id + '" aria-label="' + cap(r.id) + ', ' + esc(r.kind) + ', ' + esc(r.scent) + '">' +
+        '<span class="rc-photo"><img src="' + r.img.photo + '" alt="" width="900" height="1125" decoding="async"' + (i ? ' loading="lazy"' : '') + '>' +
+        '<span class="rc-name">' + r.id + '</span></span></a>' +
+        '<p class="rc-kind">' + esc(r.kind) + ' · ' + esc(r.scent) + '</p>' +
+        '</li>';
     }).join('');
     var dots = DATA.rituals.map(function (r, i) {
       return '<button class="rc-dot" type="button" data-rc-dot="' + i + '" aria-label="' + cap(r.id) + '"></button>';
@@ -342,34 +340,36 @@
       html:
         '<section class="screen top-aligned rituals-screen">' +
         tgTabs('rituals') +
-        '<h1 class="title caps">' + UI.chooseTitle + '</h1>' +
+        '<h1 class="sr-only">' + UI.chooseTitle + '</h1>' +
         '<div class="rc" role="region" aria-roledescription="carousel" aria-label="' + UI.chooseTitle + '">' +
         '<ul class="rc-track" data-rc-track tabindex="0">' + slides + '</ul>' +
         '<div class="rc-dots" data-rc-dots>' + dots + '</div></div>' +
         '<nav class="quiet">' +
         '<a href="#/about"><span>' + UI.aboutLink + '</span></a>' +
         '<a href="#/close"><span>' + UI.closeLink + '</span></a>' +
-        '</nav></section>'
+        '</nav>' +
+        '<a class="btn primary rc-cta" data-rc-cta href="#/r/' + DATA.rituals[0].id + '"><span>' + UI.enterRitual + '</span>' + arrow() + '</a>' +
+        '</section>'
     };
   }
 
-  // Swipe (or use the dots): the dot of the picture in the middle is lit in that ritual's colour.
+  // Swipe (or use the dots): the dot of the picture in view is lit, and the button below goes to that ritual.
   function bindCarousel(root) {
     var track = root.querySelector('[data-rc-track]');
     if (!track) return;
-    var slides = track.children, dots = root.querySelectorAll('[data-rc-dot]'), box = root.querySelector('[data-rc-dots]');
+    var slides = track.children, dots = root.querySelectorAll('[data-rc-dot]'), cta = root.querySelector('[data-rc-cta]');
     var frame = null;
-    function left(i) { return slides[i].offsetLeft - (track.clientWidth - slides[i].clientWidth) / 2; }
+    function left(i) { return slides[i].offsetLeft - slides[0].offsetLeft; }
     function go(i, smooth) { track.scrollTo({ left: left(i), behavior: smooth && !reduced ? 'smooth' : 'auto' }); }
     function mark() {
-      var mid = track.scrollLeft + track.clientWidth / 2, best = 0, gap = Infinity;
+      var best = 0, gap = Infinity;
       for (var i = 0; i < slides.length; i++) {
-        var d = Math.abs(slides[i].offsetLeft + slides[i].clientWidth / 2 - mid);
+        var d = Math.abs(left(i) - track.scrollLeft);
         if (d < gap) { gap = d; best = i; }
       }
       lastSlide = best;
       for (var j = 0; j < dots.length; j++) dots[j].setAttribute('aria-current', j === best ? 'true' : 'false');
-      box.style.setProperty('--dotc', DATA.rituals[best].color);
+      cta.setAttribute('href', '#/r/' + DATA.rituals[best].id);
     }
     track.addEventListener('scroll', function () {
       if (!frame) frame = requestAnimationFrame(function () { frame = null; mark(); });
