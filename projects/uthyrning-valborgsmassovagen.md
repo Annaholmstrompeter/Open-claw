@@ -25,3 +25,11 @@ Den som matchar beskrivningen "sida för dem som vill hyra ut till företag i G�
 - **Försiktighet:** sidans sidfot anger bolaget "Real Estate Ollopa11 LTD" (Storbritannien, bolagsnr 13697786) — inget svenskt organisationsnummer. Siffror som "garanterad hyra", "500+ företag" är deras egna påståenden. Kolla bolaget (Companies House) och be om svenskt avtalsunderlag innan personuppgifter/ID lämnas.
 - Andra Gävle-aktörer som hyr företagsbostäder (av ägare, ej verifierade): Swedacco, MP Bostäder, GM Properties, Stellahome, Rentaborg.
 - Oklart: om Anna har en bostad i Gävle att hyra ut, eller om det gäller en annan sida än Workers Stay — fråga Anna.
+
+## 4. Föreningens ansökan om andrahandsuthyrning (Nabo) — BRF Plommonträdet 5
+*Genomgång 2026-10-10. Inga telefonnummer/personnummer sparas här.*
+- Anna mejlade styrelsen 2026-08-04 (ca 1 jan–31 mars 2027, skäl: tillfällig utlandsvistelse/studier utomlands). Styrelsen (Oskar) svarade samma dag: ansökan görs **via Nabo**, instruktioner på brfplommontradet5.wordpress.com/andrahandsuthyrning/. Inget godkännande från styrelsen syns i Gmail — status ska kollas i Nabo-portalen.
+- Väg: portal.nabo.se/kundportal/login → Min lägenhet → ansök om andrahandsuthyrning. Styrelsen godkänner/nekar i portalen; Nabo lägger sedan avgift för andrahandsuthyrning på hyresavin. Debiteringen slutar efter sista angivna dag. Fel/utebliven ansökan eller uthyrning efter godkänd period debiteras retroaktivt för hela uthyrningsperioden.
+- Formulärfält (alla obligatoriska): Objekt (Bostadsrätt D1102, förvalt), uthyrningsperiod (yyyy-MM-dd, max 1 år), antal personer i hushållet, andrahandshyresgäst: namn/e-post/telefon (+ "Lägg till hyresgäst" per ytterligare person), anledning.
+- Hyresgäst enligt signerat Qasa/Scrive-avtal 2026-10-04: **David Lindvall**. Saknas: e-post, antal personer, ev. fler hyresgäster, avtalets exakta period (står i PDF:en, inte läsbar via Gmail-verktyget).
+- **Perioderna spretar:** styrelsemejlet 1 jan–31 mars 2027, Bostad Direkt 14 jan–14 apr 2027, Qasa-avtalet okänt. Nabo-perioden måste täcka avtalets faktiska datum.
