@@ -1,0 +1,16 @@
+{
+  "name": "Body Mind Earth — Sensory Ritual",
+  "short_name": "Sanctuary",
+  "description": "Your sanctuary, wherever you are.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#efe6d6",
+  "theme_color": "#efe6d6",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
