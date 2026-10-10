@@ -84,7 +84,7 @@ Innan sidan ligger på sin riktiga adress kan den läggas ut som en provsida, ut
 sanctuary/tools/publish-test-site.sh sökväg/till/testljud.mp3
 ```
 
-Skriptet bygger sidan (bara `public/`, inga manus eller anteckningar), lägger testljudet som Together-inspelning (bara på provsidan) och pushar den som grenen `gh-pages`. En gång i GitHub: *Settings → Pages → Deploy from a branch → `gh-pages`, `/ (root)` → Save*. Adressen blir `https://<användare>.github.io/<arkiv>/`. Kör skriptet igen efter varje ändring. Grenen är en byggprodukt: redigera den aldrig för hand. Provsidan är publik men inte länkad och har `noindex`; stäng av den under *Settings → Pages*. GitHub Pages läser inte `_headers`, så säkerhetshuvudena (CSP m.m.) gäller först på Cloudflare.
+Skriptet bygger sidan (bara `public/`, inga manus eller anteckningar), lägger testljudet som Together-inspelning (bara på provsidan) och pushar den som grenen `gh-pages`. En gång i GitHub: *Settings → Pages → Deploy from a branch → `gh-pages`, `/ (root)` → Save*. Adressen blir `https://<användare>.github.io/<arkiv>/`. Kör skriptet igen efter varje ändring: det skriver ut en ny länk (med `?v=<tid>` så att telefonen hämtar den nya versionen i stället för den gamla), och den länken ska Anna ha varje gång något är klart. Grenen är en byggprodukt: redigera den aldrig för hand. Provsidan är publik men inte länkad och har `noindex`; stäng av den under *Settings → Pages*. GitHub Pages läser inte `_headers`, så säkerhetshuvudena (CSP m.m.) gäller först på Cloudflare.
 
 ## När något ändras
 

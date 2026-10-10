@@ -29,6 +29,11 @@ mkdir -p "$SITE"
 cp -R "$ROOT/sanctuary/public/." "$SITE/"
 rm -f "$SITE/_headers"                 # GitHub Pages does not read it
 touch "$SITE/.nojekyll"                # serve the files as they are
+# Every publish gets its own link: the scripts and styles are asked for as ?v=<time>, and the link we hand out ends in the
+# same ?v=<time>, so a phone that still has the last version in its cache fetches the new one.
+V="$(date +%y%m%d%H%M%S)"
+sed -i -E "s#(src|href)=\"(assets/[^\"]+\.(js|css))\"#\1=\"\2?v=$V\"#g" "$SITE/index.html"
+grep -q "assets/app.js?v=$V" "$SITE/index.html" || { echo "could not version the files in index.html: has it changed?" >&2; exit 1; }
 # A test site must always show the latest: no offline cache. The page no longer registers the service worker, and
 # the sw.js that is served only removes one that an earlier visit left behind.
 sed -i "s/if ('serviceWorker' in navigator \&\&/if (false \&\&/" "$SITE/assets/app.js"
@@ -67,4 +72,6 @@ Claude-Session: https://claude.ai/code/session_01ECPs2YrbQPeDdGpYZqUbRn
 EOF
 git push -q --force "$REMOTE" gh-pages
 echo "pushed branch gh-pages (from $SRC)"
+PATHPART="${REMOTE%.git}"; REPO="${PATHPART##*/}"; OWNER="${PATHPART%/*}"; OWNER="${OWNER##*/}"
+echo "link (live after about a minute): https://$OWNER.github.io/$REPO/?v=$V#/"
 rm -rf "$SITE"
