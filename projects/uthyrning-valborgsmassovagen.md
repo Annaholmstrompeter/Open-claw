@@ -10,7 +10,7 @@ Bostaden: möblerad bostadsrätt, tvåa 60 m², upp till 6 sängplatser, infrar�
 - Qasa betalar ut hyra i förskott senast den 25:e varje månad; första utbetalningen ca 8 dagar efter inflyttning.
 - **Öppet:** Qasa har mejlat två gånger (4 okt) att **bankuppgifter saknas** — utan dem blir ingen utbetalning. Länk: Qasa → Inställningar → Bankkonto.
 - Qasa ber också om: besiktningsprotokoll/bilder på bostadens skick före inflytt; städning (Qleano-erbjudande). Hedvig-uthyrningsförsäkring ingår.
-- Vad Qasa kräver för en ny annons (enligt Qasas hjälpcenter, delvis norsk text — Sverige-detaljer ej bekräftade eftersom hjälpcentret gav 403 vid hämtning): verifierad identitet, bevis på ägande/rätt att hyra ut, minst ~10 bilder, komplett adress, en annons per bostad, hyra = den hyra som faktiskt tas ut, beskrivning + lediga datum. Gratis för hyresvärd; hyresgästen betalar 5 %.
+- Vad Qasa kräver för en ny annons (enligt Qasas hjälpcenter, delvis norsk text — Sverige-detaljer ej bekräftade eftersom hjälpcentret gav 403 vid hämtning): verifierad identitet, bevis på ägande/rätt att hyra ut, minst ~10 bilder, komplett adress, en annons per bostad, hyra = den hyra som faktiskt tas ut, beskrivning + lediga datum. Gratis för hyresvärd; hyresgästen betalar en serviceavgift (Qasas egen sida: från 5,95 % av månadshyran).
 
 ## 2. Bostad Direkt (företagsförmedling)
 - Anna mejlade foretag@bostaddirekt.com 2026-09-17 med presentation (PDF, 10 bilder). Svar: minsta period 3 månader, helst 1 år. Anna justerade till **14 jan–14 apr 2027** (3 mån), 18 500 kr/mån.
