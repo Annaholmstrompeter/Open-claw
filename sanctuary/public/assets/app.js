@@ -13,6 +13,7 @@
  *   #/r/<id>/done           the quiet ending
  *   #/about                 Sensory Enrichment (with the spoken introduction)
  *   #/close                 closing: back to the sanctuary
+ *   #/together/…            TOGETHER, a ritual for two: its own module (assets/together/), see together.js
  */
 (function () {
   'use strict';
@@ -23,17 +24,27 @@
   var menuBtn = document.getElementById('menu-btn');
   var themeMeta = document.querySelector('meta[name="theme-color"]');
   var PAPER = '#fff7e9';
+  var NIGHT = '#1b140e';   // the ground where the ritual is heard
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Interface words only. Everything the guest reads about the products is in content.js.
   var UI = {
     brand: 'Body Mind Earth',
     sub: 'Sensory Ritual',
-    tagline: 'Your sanctuary,|wherever you are.',
     footline: 'Rituals for a more present you',
-    begin: 'Begin your experience',
+    frontEyebrow: 'Sensory Enrichment Skincare',
+    frontTitle: 'The Art of Conscious Care',
+    frontText: 'Natural skincare with guided sensory rituals, bringing moments of conscious care into your everyday life.',
+    discover: 'Discover the Rituals',
     chooseTitle: 'Choose your ritual',
+    enterRitual: 'Enter the ritual',
     aboutLink: 'About Sensory Enrichment',
+    home: 'Home',
+    back: 'Back',
+    allRituals: 'All rituals',
+    aboutProduct: 'About the product',
+    minShort: 'min',
+    soon: 'Soon',
     aboutEyebrow: 'Sensory Enrichment',
     closeLink: 'Close your visit',
     shortRitual: 'Short ritual',
@@ -288,54 +299,91 @@
   });
 
   /* ——— screens ———
-     Each returns { title, kind, html, theme? }. 'kind' drives the look (see style.css):
-     welcome, list, intro (colour hero on cream), player and end (full colour ground), about, close. */
+     Each returns { title, kind, html }. 'kind' drives the look (see style.css):
+     welcome, list, intro (the ritual's own quiet page), player and end (full colour ground), about, close. */
 
   function photo() { return '<div class="photo" aria-hidden="true"></div>'; }
 
+  // TOGETHER is a separate module; the sanctuary works the same without it.
+  function tgTabs(active) { return window.BMETogether && window.BMETogether.available() ? window.BMETogether.tabs(active) : ''; }
+
+  // The front page: a calm header, one photograph, a few words, one door. No shop.
   function welcome() {
     return {
       title: UI.brand + ' — ' + UI.sub,
       kind: 'welcome',
       html:
-        '<section class="screen welcome">' +
-        photo() +
-        '<div class="welcome-head">' + logo('mark') +
-        '<p class="brand-name">' + wordmark() + '</p><p class="brand-sub">' + UI.sub + '</p></div>' +
-        '<div class="welcome-body">' +
-        '<h1 class="tagline">' + br(UI.tagline) + '</h1>' +
-        '<div class="rule" aria-hidden="true"></div>' +
-        '<p class="text">' + UI.footline + '</p>' +
-        '<a class="btn primary" href="#/rituals"><span>' + UI.begin + '</span>' + arrow() + '</a>' +
+        '<section class="screen front">' +
+        '<div class="front-photo" aria-hidden="true"></div>' +
+        '<div class="front-copy">' +
+        '<p class="eyebrow">' + UI.frontEyebrow + '</p>' +
+        '<h1 class="front-title">' + UI.frontTitle + '</h1>' +
+        '<p class="text">' + UI.frontText + '</p>' +
+        '<a class="btn primary" href="#/rituals"><span>' + UI.discover + '</span>' + arrow() + '</a>' +
+        '<nav class="quiet front-menu" aria-label="' + UI.aboutEyebrow + '"><a href="#/about"><span>' + UI.aboutLink + '</span></a></nav>' +
         '</div></section>'
     };
   }
 
+  // The picture the guest was last looking at: back from a ritual, the carousel is where it was left.
+  var lastSlide = 0;
+
+  // Choose your ritual: one large picture at a time in a thin pale frame, the name over it, dots below, one button.
+  // Nothing else on the page (the menu has the rest).
   function rituals() {
-    var tiles = DATA.rituals.map(function (r) {
-      return '<li><a class="tile" data-c="' + r.id + '" href="#/r/' + r.id + '">' +
-        img(r.img.botanical, 'tile-art') +
-        '<span class="tile-text">' +
-        '<span class="name">' + r.id + '</span>' +
-        '<span class="kind">' + esc(r.kind) + '</span>' +
-        '<span class="kind">' + esc(r.scent) + '</span>' +
-        '</span>' +
-        '<svg class="chev" viewBox="0 0 10 18" aria-hidden="true"><path d="M1 1l8 8-8 8"/></svg>' +
-        '</a></li>';
+    var slides = DATA.rituals.map(function (r, i) {
+      return '<li class="rc-slide" data-c="' + r.id + '">' +
+        '<a class="rc-frame" href="#/r/' + r.id + '" aria-label="' + cap(r.id) + ', ' + esc(r.kind) + ', ' + esc(r.scent) + '">' +
+        '<span class="rc-photo"><img src="' + r.img.photo + '" alt="" width="900" height="1125" decoding="async"' + (i ? ' loading="lazy"' : '') + '>' +
+        '<span class="rc-name">' + r.id + '</span></span></a>' +
+        '<p class="rc-kind">' + esc(r.kind) + ' · ' + esc(r.scent) + '</p>' +
+        '</li>';
+    }).join('');
+    var dots = DATA.rituals.map(function (r, i) {
+      return '<button class="rc-dot" type="button" data-rc-dot="' + i + '" aria-label="' + cap(r.id) + '"></button>';
     }).join('');
     return {
       title: UI.chooseTitle + ' — ' + UI.brand,
       kind: 'list',
+      back: '#/',
+      mount: bindCarousel,
       html:
-        '<section class="screen top-aligned">' +
-        '<h1 class="title caps">' + UI.chooseTitle + '</h1>' +
-        '<p class="text sub-title">' + UI.footline + '</p>' +
-        '<ul class="ritual-list">' + tiles + '</ul>' +
-        '<nav class="quiet">' +
-        '<a href="#/about"><span>' + UI.aboutLink + '</span></a>' +
-        '<a href="#/close"><span>' + UI.closeLink + '</span></a>' +
-        '</nav></section>'
+        '<section class="screen top-aligned rituals-screen">' +
+        '<h1 class="sr-only">' + UI.chooseTitle + '</h1>' +
+        '<div class="rc" role="region" aria-roledescription="carousel" aria-label="' + UI.chooseTitle + '">' +
+        '<ul class="rc-track" data-rc-track tabindex="0">' + slides + '</ul>' +
+        '<div class="rc-dots" data-rc-dots>' + dots + '</div></div>' +
+        '<a class="rc-cta" data-rc-cta href="#/r/' + DATA.rituals[0].id + '"><span>' + UI.enterRitual + '</span>' + arrow() + '</a>' +
+        '</section>'
     };
+  }
+
+  // Swipe (or use the dots): the dot of the picture in view is lit, and the button below goes to that ritual.
+  function bindCarousel(root) {
+    var track = root.querySelector('[data-rc-track]');
+    if (!track) return;
+    var slides = track.children, dots = root.querySelectorAll('[data-rc-dot]'), cta = root.querySelector('[data-rc-cta]');
+    var frame = null;
+    function left(i) { return slides[i].offsetLeft - slides[0].offsetLeft; }
+    function go(i, smooth) { track.scrollTo({ left: left(i), behavior: smooth && !reduced ? 'smooth' : 'auto' }); }
+    function mark() {
+      var best = 0, gap = Infinity;
+      for (var i = 0; i < slides.length; i++) {
+        var d = Math.abs(left(i) - track.scrollLeft);
+        if (d < gap) { gap = d; best = i; }
+      }
+      lastSlide = best;
+      for (var j = 0; j < dots.length; j++) dots[j].setAttribute('aria-current', j === best ? 'true' : 'false');
+      cta.setAttribute('href', '#/r/' + DATA.rituals[best].id);
+    }
+    track.addEventListener('scroll', function () {
+      if (!frame) frame = requestAnimationFrame(function () { frame = null; mark(); });
+    }, { passive: true });
+    for (var k = 0; k < dots.length; k++) {
+      (function (i) { dots[i].addEventListener('click', function () { go(i, true); }); })(k);
+    }
+    go(lastSlide, false);
+    mark();
   }
 
   // The cream middle panel of the label: formula, actives, ingredients, origin.
@@ -367,68 +415,79 @@
       '</aside>';
   }
 
+  function playMark() { return '<svg class="ri-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.2l11 6.8-11 6.8z"/></svg>'; }
+  function homeLink() { return '<a href="#/"><span>' + UI.home + '</span></a>'; }
+
+  // One section of the ritual's page: a title that opens and closes.
+  function section(title, body, open) {
+    return '<details class="rd"' + (open ? ' open' : '') + '><summary>' + title + '</summary><div class="rd-body">' + body + '</div></details>';
+  }
+
+  // A ritual: the same quiet page as the carousel. The picture, what it is, two ways to listen, then what to read.
   function ritualIntro(r) {
+    function mins(a) { return a.min ? '<em>' + Math.round(a.min) + ' ' + UI.minShort + '</em>' : ''; }
+    // both lengths are always there; one whose recording is not in yet is shown, but quiet and not pressable (no button leads to silence)
+    var first = true;
+    var listen = '<div class="ri-listen">' + [['short', UI.shortRitual, 's'], ['extended', UI.extended, 'e']].map(function (L) {
+      var a = r.audio[L[0]];
+      if (!a.ready) return '<span class="ri-btn ri-off" aria-disabled="true">' + playMark() + '<span>' + L[1] + '</span><em>' + UI.soon + '</em></span>';
+      var cls = first ? ' primary' : '';
+      first = false;
+      return '<a class="ri-btn' + cls + '" data-listen="' + r.id + ':' + L[0] + '" href="#/r/' + r.id + '/' + L[2] + '">' + playMark() + '<span>' + L[1] + '</span>' + mins(a) + '</a>';
+    }).join('') + '</div>';
     // the three ritual lines of the label, read as one short passage
     var prose = [r.rows.scent, r.rows.touch, r.rows.feel].map(esc).join(' ');
+    var facts =
+      '<p>' + esc(r.tone) + ' · with ' + r.with.map(esc).join(' · ') + '</p>' +
+      '<p>' + esc(r.size) + '</p>' +
+      '<p>' + (r.vegan ? UI.vegan + ' · ' : '') + esc(r.natural) + '</p>';
     return {
       title: cap(r.id) + ' — ' + UI.brand,
       kind: 'intro',
-      theme: r,
+      back: '#/rituals',
       html:
-        '<section class="screen intro">' +
-        '<div class="hero on-colour">' +
-        img(r.img.botanical, 'hero-art') +
-        '<p class="eyebrow">' + UI.sub + '</p>' +
-        '<h1 class="display">' + r.id + '</h1>' +
-        '<p class="product-line">' + esc(r.kind) + ' · ' + esc(r.scent) + '</p>' +
-        logo('mark small') +
-        '<p class="aff-caps">' + esc(r.affirmation) + '</p>' +
+        '<section class="screen top-aligned intro">' +
+        '<div class="ri-hero"><div class="rc-frame"><div class="rc-photo">' +
+        '<img src="' + r.img.photo + '" alt="" width="900" height="1125" decoding="async">' +
+        '<h1 class="rc-name">' + r.id + '</h1></div></div></div>' +
+        '<div class="ri-body">' +
+        '<p class="rc-kind">' + esc(r.kind) + ' · ' + esc(r.scent) + '</p>' +
+        '<p class="ri-aff">' + esc(r.affirmation) + '</p>' +
+        listen +
+        '<div class="ri-more">' +
+        section(UI.aboutProduct, facts, true) +
+        section(UI.theRitual, '<p>' + prose + '</p>') +
+        section(UI.ingredientsSummary, labelCard(r)) +
         '</div>' +
-        '<div class="intro-body">' +
-        '<p class="prose">' + prose + '</p>' +
-        '<p class="with">' + esc(r.tone) + ' · with ' + r.with.map(esc).join(' · ') + '</p>' +
-        '<div class="actions">' +
-        '<a class="btn primary" data-listen="' + r.id + ':short" href="#/r/' + r.id + '/s"><span>' + UI.shortRitual + '</span>' + arrow() + '</a>' +
-        '<a class="btn ghost" data-listen="' + r.id + ':extended" href="#/r/' + r.id + '/e"><span>' + UI.extended + '</span></a>' +
-        '</div>' +
-        '<details class="formula"><summary>' + UI.ingredientsSummary + '</summary>' + labelCard(r) + '</details>' +
+        '<nav class="quiet">' + homeLink() + '</nav>' +
         '</div></section>'
     };
   }
 
-  // The ritual, heard: a picture, one line from the meditation, and the controls.
+  // The ritual, heard: the product's photograph rising out of the dark, the name, one line from the recording,
+  // the line to drag, and one button, and a Back to the ritual's page (to choose the other length). The menu has the way home.
   function player(r, mode) {
     var key = mode === 'e' ? 'extended' : 'short';
-    var otherKey = mode === 'e' ? 'short' : 'extended';
     var a = r.audio[key];
     return {
       title: cap(r.id) + ' — ' + UI.brand,
       kind: 'player',
-      theme: r,
+      back: '#/r/' + r.id,
       html:
         '<section class="screen player" data-player="' + r.id + ':' + key + '" data-state="paused">' +
-        '<div class="art-card" aria-hidden="true">' +
-        '<div class="art-photo"></div>' +
-        img(r.img.botanical, 'art-botanical') +
-        logo('art-logo') +
-        '</div>' +
-        '<p class="eyebrow">' + r.id + ' · ' + (key === 'extended' ? UI.extended : UI.shortRitual) + '</p>' +
+        '<div class="pl-hero" aria-hidden="true"><img src="' + r.img.photo + '" alt="" width="900" height="1125" decoding="async"></div>' +
+        '<h1 class="pl-name">' + r.id + '</h1>' +
+        '<p class="eyebrow">' + (key === 'extended' ? UI.extended : UI.shortRitual) + '</p>' +
         '<blockquote class="quote"><p>“' + esc(a.quote) + '”</p></blockquote>' +
         '<div class="deck">' +
         '<div class="seek"><span class="t" data-now>0:00</span>' +
         '<input class="range" type="range" min="0" max="1000" step="1" value="0" data-range aria-label="' + UI.position + '">' +
         '<span class="t" data-total>–:––</span></div>' +
         '<div class="controls">' +
-        '<button class="ctl" type="button" data-restart aria-label="' + UI.beginAgain + '">' + ICON.restart + '<span class="cap">' + UI.beginAgain + '</span></button>' +
         '<button class="ctl play" type="button" data-toggle data-state="paused" aria-label="' + UI.play + '">' + ICON.play + ICON.pause + '</button>' +
-        '<button class="ctl" type="button" data-back15 aria-label="' + UI.back15 + '"><span class="ctl-text">−15</span><span class="cap">' + UI.back15Cap + '</span></button>' +
         '</div>' +
         '<p class="notice" data-notice hidden>' + UI.missing + '</p>' +
-        '</div>' +
-        '<nav class="quiet">' +
-        '<a href="#/r/' + r.id + '"><span>' + UI.theRitual + '</span></a>' +
-        '<a data-listen="' + r.id + ':' + otherKey + '" href="#/r/' + r.id + '/' + (otherKey === 'extended' ? 'e' : 's') + '"><span>' + (otherKey === 'extended' ? UI.extended : UI.shortRitual) + '</span></a>' +
-        '</nav></section>'
+        '</div></section>'
     };
   }
 
@@ -438,17 +497,16 @@
     return {
       title: cap(r.id) + ' — ' + UI.brand,
       kind: 'end',
-      theme: r,
+      back: '#/r/' + r.id,
       html:
         '<section class="screen end">' +
-        logo('mark small') +
         '<h1 class="affirmation">' + esc(r.affirmation) + '</h1>' +
         '<div class="rule" aria-hidden="true"></div>' +
         speciesCard(r) +
         '<div class="actions">' +
         '<a class="btn primary" href="#/rituals"><span>' + UI.returnRituals + '</span>' + arrow() + '</a>' +
         '<nav class="quiet"><a href="#/r/' + next.id + '"><span>' + UI.nextRitual + ': ' + cap(next.id) + '</span></a>' +
-        '<a data-listen="' + r.id + ':short" href="#/r/' + r.id + '/s"><span>' + UI.listenAgain + '</span></a></nav>' +
+        '<a data-listen="' + r.id + ':short" href="#/r/' + r.id + '/s"><span>' + UI.listenAgain + '</span></a>' + homeLink() + '</nav>' +
         '</div>' +
         '</section>'
     };
@@ -464,6 +522,7 @@
     return {
       title: UI.aboutEyebrow + ' — ' + UI.brand,
       kind: 'about',
+      back: '#/',
       html:
         '<section class="screen about top-aligned">' +
         '<p class="eyebrow">' + UI.aboutEyebrow + '</p>' +
@@ -480,6 +539,7 @@
         '<div class="sp-row">' + species + '</div>' +
         '<p class="reminder">' + UI.reminder + '</p></div>' +
         '<a class="btn primary" href="#/rituals"><span>' + UI.returnRituals + '</span>' + arrow() + '</a>' +
+        '<nav class="quiet">' + homeLink() + '</nav>' +
         '<h2>' + UI.privacyTitle + '</h2>' +
         '<p class="text fine">' + UI.privacy + '</p>' +
         /* CONTACT (optional): when a contact address is decided, add it here, e.g.
@@ -492,6 +552,7 @@
     return {
       title: plain(UI.closeTitle) + ' — ' + UI.brand,
       kind: 'close',
+      back: '#/',
       html:
         '<section class="screen closing">' +
         photo() +
@@ -504,6 +565,7 @@
         '<a class="btn primary" href="#/rituals"><span>' + UI.returnRituals + '</span>' + arrow() + '</a>' +
         '<div data-install>' + installButton() + '</div>' +
         (isIOS() ? '<p class="install-hint">' + UI.iosHint + '</p>' : '') +
+        '<nav class="quiet">' + homeLink() + '</nav>' +
         '</div>' +
         '<p class="small-caps footline">' + wordmark() + '</p>' +
         '</div></section>'
@@ -511,15 +573,31 @@
   }
 
   /* ——— routing ——— */
+  // Where Back goes from a TOGETHER screen: the one before it (landing, the choice, the ritual's page, then the screens that begin from it).
+  function togetherBack(parts) {
+    var a = parts[1];
+    if (!a) return '#/';
+    if (a === 'rituals') return '#/together';
+    if (a === 'solo' || a === 'host' || a === 'join') return '#/together/' + (parts[2] || 'rituals');
+    return '#/together/rituals';
+  }
+
   function resolve() {
     var parts = route.replace(/^#\/?/, '').split('/').filter(Boolean);
     if (!parts.length) return welcome();
     if (parts[0] === 'rituals') return rituals();
     if (parts[0] === 'about') return about();
     if (parts[0] === 'close') return closing();
+    if (parts[0] === 'together') {
+      var tp = window.BMETogether && window.BMETogether.screen(parts);
+      if (!tp) return rituals();
+      tp.back = togetherBack(parts);
+      return tp;
+    }
     if (parts[0] === 'r') {
       var r = ritualById(parts[1]);
       if (!r) return rituals();
+      lastSlide = DATA.rituals.indexOf(r);
       if (!parts[2]) return ritualIntro(r);
       if (parts[2] === 'done') return ritualEnd(r);
       return player(r, parts[2] === 'e' ? 'e' : 's');
@@ -527,7 +605,11 @@
     return welcome();
   }
 
+  var activePage = null; // a screen that has something to clean up when it is left (TOGETHER's sessions)
+
   function draw() {
+    if (activePage && activePage.unmount) { try { activePage.unmount(); } catch (e) { /* leaving anyway */ } }
+    activePage = null;
     var page = resolve();
     var root = document.documentElement;
     // the recording only plays on its own screen (and on the introduction's)
@@ -536,14 +618,20 @@
     }
     view = null;
     var coloured = page.kind === 'player' || page.kind === 'end';
-    if (page.theme) {
-      root.setAttribute('data-c', page.theme.id);
-      if (themeMeta) themeMeta.setAttribute('content', page.kind === 'intro' || coloured ? page.theme.color : PAPER);
-    } else {
-      root.removeAttribute('data-c');
-      if (themeMeta) themeMeta.setAttribute('content', PAPER);
-    }
+    root.removeAttribute('data-c');
+    if (themeMeta) themeMeta.setAttribute('content', coloured ? NIGHT : PAPER);
     root.setAttribute('data-page', page.kind);
+    // Back: every page but the front page says where it goes
+    var backEl = document.getElementById('back');
+    if (backEl) {
+      backEl.hidden = !page.back;
+      if (page.back) backEl.setAttribute('href', page.back);
+    }
+    if (page.back) root.setAttribute('data-back', ''); else root.removeAttribute('data-back');
+    try {
+      if (page.kind === 'together') window.BMETogether.enter(page);
+      else if (window.BMETogether) window.BMETogether.clear();
+    } catch (e) { /* TOGETHER can never take the rest of the sanctuary down */ }
     if (coloured) root.setAttribute('data-ground', ''); else root.removeAttribute('data-ground');
     document.title = page.title;
     stage.innerHTML = page.html;
@@ -552,6 +640,8 @@
     try { stage.focus({ preventScroll: true }); } catch (e) { stage.focus(); }
     bindPlayer();
     bindInstall();
+    activePage = page;
+    if (page.mount) { try { page.mount(stage); } catch (e) { /* the screen stays; the fade-out must not be left on */ } }
   }
 
   function setMenuClosed() {
@@ -570,6 +660,8 @@
     try { if (location.hash !== hash) location.hash = hash; } catch (e) { /* in-memory route still works */ }
     show();
   }
+
+  window.SANCTUARY_APP = { navigate: navigate };
 
   function show() {
     if (route === shown) { setMenuClosed(); return; }

@@ -6,6 +6,7 @@ Reads
   content/products.json          product facts, copied from the five labels
   content/quotes.json            one line from each meditation, shown while it plays
   content/audio.json             the names of the recordings in public/assets/audio/
+  content/together.json          TOGETHER (A Ritual for Two): the paired rituals
 and writes
   public/assets/content.js       what the site displays
   public/sw.js                   the offline file list and cache version
@@ -27,6 +28,7 @@ SRC = ROOT / "content" / "meditations-mall.txt"
 PRODUCTS = ROOT / "content" / "products.json"
 QUOTES = ROOT / "content" / "quotes.json"
 AUDIO = ROOT / "content" / "audio.json"
+TOGETHER = ROOT / "content" / "together.json"
 OUT = ROOT / "public" / "assets" / "content.js"
 
 # "4. BALANCE — SHORT", "2. PRESENCE — KORT RITUAL", "KINDNESS — EXTENDED" ...
@@ -79,13 +81,17 @@ def duration_minutes(path):
 
 def refresh_service_worker():
     """Keep the offline file list and the cache version in public/sw.js in step with the site.
-    The recordings are not cached by the service worker (they are large and are streamed)."""
+    The recordings are not cached by the service worker (they are large and are streamed).
+    TOGETHER's Supabase client and its pictures are left out too: they are fetched, and then kept,
+    the first time someone opens a shared session, so a guest who only uses the rituals never downloads them."""
     public = ROOT / "public"
     skip = {"sw.js", "_headers", "robots.txt"}
     files = sorted(
         f.relative_to(public).as_posix()
         for f in public.rglob("*")
         if f.is_file() and f.name not in skip and not f.name.startswith("OFL-") and "assets/audio/" not in f.as_posix()
+        and "assets/together/vendor/" not in f.as_posix() and "assets/together/img/" not in f.as_posix()
+        and f.name != "config.js"
     )
     digest = hashlib.sha1()
     for name in files:
@@ -107,6 +113,15 @@ def main():
     audio = json.loads(AUDIO.read_text(encoding="utf-8"))
     problems, warnings = [], []
 
+    together = json.loads(TOGETHER.read_text(encoding="utf-8"))
+    together.pop("_note", None)
+    for t in together["rituals"]:
+        for key in ("id", "title", "subtitle", "minutes", "lead", "consent", "disclaimer", "audio"):
+            if key not in t:
+                problems.append("together %s: missing %s" % (t.get("id", "?"), key))
+        if not (ROOT / "public" / t["audio"]["src"]).exists():
+            warnings.append("TOGETHER recording not added yet: " + t["audio"]["src"])
+
     # The shared introduction, for the Sensory Enrichment page. The sanctuary is closed,
     # so a line sending guests to a website is left out.
     intro = []
@@ -126,11 +141,12 @@ def main():
     for p in products["rituals"]:
         rid = p["id"]
         r = {k: p[k] for k in (
-            "id", "color", "kind", "scent", "tone", "with", "size", "rows", "affirmation",
+            "id", "kind", "scent", "tone", "with", "size", "rows", "affirmation",
             "formula", "actives", "vegan", "ingredients", "natural", "labCreated", "footnote", "species")}
         r["img"] = {}
-        for part in ("botanical", "waves", "species"):
-            rel = "assets/img/%s-%s.webp" % (rid, part)
+        for part in ("species", "photo"):
+            # (the photograph for the carousel on the Rituals page: tools/make-ritual-photos.py)
+            rel = ("assets/img/ritual-%s.webp" % rid) if part == "photo" else ("assets/img/%s-%s.webp" % (rid, part))
             if not (ROOT / "public" / rel).exists():
                 problems.append("missing picture " + rel)
             r["img"][part] = rel
@@ -146,7 +162,7 @@ def main():
             f = audio_dir / name
             if not f.exists():
                 warnings.append("recording not added yet: " + name)
-            r["audio"][mode] = {"src": audio["dir"] + name, "quote": quote, "min": duration_minutes(f) if f.exists() else None}
+            r["audio"][mode] = {"src": audio["dir"] + name, "quote": quote, "min": duration_minutes(f) if f.exists() else None, "ready": f.exists()}
         rituals.append(r)
 
     if not (ROOT / "public/assets/img/logo.webp").exists():
@@ -160,6 +176,7 @@ def main():
         "introAudio": audio["dir"] + intro_file,
         "logo": "assets/img/logo.webp",
         "rituals": rituals,
+        "together": together,
     }
     body = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
     body = body.replace('{"id":', '\n{"id":')  # one ritual per line, easier to diff

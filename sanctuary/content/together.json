@@ -1,0 +1,25 @@
+{
+  "_note": "TOGETHER (A Ritual for Two). The few words a guest reads about the paired rituals; build-content.py copies this into content.js as SANCTUARY.together. Interface words (buttons, status lines) live in assets/together/together.js. The ritual itself is only listened to, never written out: nothing from the manuscript is shown or shipped (the draft script is content/together-heart-to-heart-manus.md and stays here). The recording does not exist yet: add it as public/assets/audio/together/heart-to-heart.mp3 (see README, 'Heart to Heart').",
+  "tab": "Together",
+  "landing": {
+    "brand": "Body Mind Earth",
+    "title": "Together",
+    "sub": "A Ritual for Two",
+    "lead": "A moment to slow down together. To feel, to listen, and to rediscover the quiet beauty of connection.",
+    "intro": "Sit side by side, or facing each other. Each of you listens on your own phone, with your own headphones, to the same guiding voice at the same moment."
+  },
+  "rituals": [
+    {
+      "id": "heart-to-heart",
+      "title": "Heart to Heart",
+      "subtitle": "A Guided Ritual for Connection",
+      "minutes": 10,
+      "lead": "A quiet ritual for two. One voice guides you both.",
+      "consent": "Touch and eye contact are always optional.",
+      "disclaimer": "A ritual of attention and care, not a treatment.",
+      "audio": {
+        "src": "assets/audio/together/heart-to-heart.mp3"
+      }
+    }
+  ]
+}

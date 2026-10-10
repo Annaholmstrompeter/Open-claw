@@ -2,9 +2,10 @@
 
 En liten, helt fristående webbplats som gästerna når med QR-koden i Sensory Enrichment-asken.
 Fem ritualer (Balance, Luminance, Kindness, Serenity, Presence) som **lyssnas på**: när man trycker
-på *Short ritual* eller *Extended ritual* visas en vacker bild och en rad ur meditationen, och
-inspelningen startar av sig själv. Man kan pausa, börja om, backa 15 sekunder och söka. Själva
-meditationen visas aldrig som text. Ingen butik, inga priser, inga länkar ut, inga cookies och
+på *Short ritual* eller *Extended ritual* (båda längderna finns alltid; en vars inspelning inte är inlagd än visas stilla med *Soon* och går inte att trycka på) visas
+produktens bild, ritualens namn och en rad ur meditationen, och inspelningen startar av sig själv.
+Spelsidan är avskalad: en knapp (spela/pausa) och en linje man drar med fingret för att söka; vägen
+hem finns i menyn. Själva meditationen visas aldrig som text. Ingen butik, inga priser, inga länkar ut, inga cookies och
 ingen spårning.
 
 Formspråket kommer från etiketterna: etikettens exakta färger, gravyrerna, vågmönstret, den
@@ -27,10 +28,9 @@ Lägg de elva mp3-filerna ur Drive-mappen **"FÄRDIGA - hemsida (8 okt)"**, med 
 10_Serenity_Macadamia-Shampoo_KORT.mp3         11_Serenity_Macadamia-Shampoo_LANG.mp3
 ```
 
-Tre av dem (01, 02 och 04) ligger redan i repot. De övriga åtta är för stora för att hämtas
-automatiskt ur Drive; ladda ner dem och lägg dem i mappen (t.ex. via GitHub: öppna
-`sanctuary/public/assets/audio`, *Add file → Upload files*, dra in filerna). Saknas en fil säger
-spelaren "This recording is not available yet." i stället för att låta tyst.
+Alla elva ligger i repot (de åtta sista lades in 2026-10-10, hämtade ur Drive-mappen och kontrollerade
+mot Drives filstorlekar). Saknas en fil visar ritualens sida den längden stilla med *Soon*, och spelaren
+säger "This recording is not available yet." i stället för att låta tyst.
 
 Ändras en inspelning: byt filen med samma namn. Ljudet cachas inte offline (filerna är stora och
 spelas som ström), så gästerna behöver täckning när de lyssnar.
@@ -51,6 +51,13 @@ spelas som ström), så gästerna behöver täckning när de lyssnar.
 | `tools/make-hero.py` | Gör bakgrundsfotot till välkomstvyn och avslutet. |
 | `tools/make-qr.py` | Gör QR-koden när den riktiga adressen är bestämd. |
 | `tools/make-preview.py` | Packar sidan i en enda fil för förhandsvisning (utan ljud). |
+| `public/assets/together/` | **Together (A Ritual for Two)**: egna små moduler, se längre ner. |
+| `content/together.json` | Texterna om ritualerna för två. Byggs in i `content.js` av `build-content.py`. |
+| `content/together-heart-to-heart-manus.md` | Manusutkast och produktionskrav för *Heart to Heart*. Skickas aldrig till telefonerna. |
+| `content/source/ritual-photo.jpg` | Annas bild (Presence-flaskan i sin ask). Utgångspunkt för de fem ritualbilderna. |
+| `tools/make-ritual-photos.py` | Gör `public/assets/img/ritual-<id>.webp`: byter namn och ledord på flaskans etikett för varje ritual (resten av bilden orörd). Kör om efter ändrad text. |
+| `tools/make-together-art.py` | Räknar fram ljusreflexerna på vatten (egna bilder, inga foton, inga rättighetsproblem). |
+| `tests/` | Automatiska tester (se "Tester"). `TOGETHER-TEST.md` är provlistan för riktiga telefoner. |
 
 ## Lägga ut sidan (ca 10 minuter, en gång)
 
@@ -68,6 +75,16 @@ spelas som ström), så gästerna behöver täckning när de lyssnar.
 4. Gör QR-koden med den slutliga adressen och skanna den med en telefon innan tryck:
    `pip install segno` och sedan `python3 sanctuary/tools/make-qr.py https://din-adress`.
 
+### Provsida på GitHub Pages (för att prova Together på riktiga telefoner)
+
+Innan sidan ligger på sin riktiga adress kan den läggas ut som en provsida, utan nya konton:
+
+```
+sanctuary/tools/publish-test-site.sh sökväg/till/testljud.mp3
+```
+
+Skriptet bygger sidan (bara `public/`, inga manus eller anteckningar), lägger testljudet som Together-inspelning (bara på provsidan) och pushar den som grenen `gh-pages`. En gång i GitHub: *Settings → Pages → Deploy from a branch → `gh-pages`, `/ (root)` → Save*. Adressen blir `https://<användare>.github.io/<arkiv>/`. Kör skriptet igen efter varje ändring: det skriver ut en ny länk (med `?v=<tid>` så att telefonen hämtar den nya versionen i stället för den gamla), och den länken ska Anna ha varje gång något är klart. Grenen är en byggprodukt: redigera den aldrig för hand. Provsidan är publik men inte länkad och har `noindex`; stäng av den under *Settings → Pages*. GitHub Pages läser inte `_headers`, så säkerhetshuvudena (CSP m.m.) gäller först på Cloudflare.
+
 ## När något ändras
 
 Texter eller citat: ändra i `content/…` (eller be mig synka från Google-dokumentet) och kör
@@ -80,21 +97,107 @@ Det räcker. Skriptet kontrollerar citaten och håller offline-cachen i takt med
 som redan öppnat sidan får den nya versionen. Har etiketterna ändrats: kör `extract-label-art.py`
 med de nya PDF-filerna först.
 
+## Together — *A Ritual for Two*
+
+En ny avdelning med egen flik (**Rituals | Together**, och en länk i menyn) på `#/together`. Två personer lyssnar på samma ritual, var och en på sin egen telefon med sina egna hörlurar, och inspelningen startar samtidigt. Första ritualen är **Heart to Heart** (ca 10 minuter). De fem produktritualerna är oförändrade; Together är separata moduler som sanctuaryt klarar sig utan.
+
+### Så ser det ut för gästen
+
+1. **Together → Begin Your Ritual → Heart to Heart → Invite Your Partner.**
+2. Person A får en QR-kod och en länk (Share link / Copy link). Person B skannar eller öppnar länken.
+3. När båda är där går två ringar ihop på skärmen (ett diskret kvitto), med texten *Your shared moment is almost here.*
+4. Båda kopplar sina hörlurar till sin egen telefon och trycker **I'm Ready**. Det trycket är det som tänder ljudet på just den telefonen.
+5. När båda är redo kan A trycka **Begin Together**: ett andetag, 3, 2, 1, och inspelningen startar på båda. Skärmen går över till en stilla vy med ljus som rör sig långsamt över vatten.
+6. Pausa och fortsätta fungerar från båda telefonerna och gäller båda. Tappar en telefon nätet fortsätter inspelningen ändå. Lämnar en partner står det en stilla rad, och den andra kan lyssna klart.
+7. **Listen Together on One Device** är den vanliga spelaren på en telefon, med en rad om att två Bluetooth-hörlurar kräver att telefonen och hörlurarna själva stödjer ljuddelning (sidan kan inte slå på det).
+
+### Så här kopplar du på delade sessioner (en gång, ca 15 minuter, gratis)
+
+**Status:** projektet är redan skapat (`body-mind-earth-together`, organisationen *body mind earth*, Free-planen, region Stockholm) och adressen och den publika nyckeln står i `public/assets/together/config.js`. Stegen nedan gäller om det ska göras om eller flyttas.
+
+Delade sessioner behöver en tjänst som låter de två telefonerna hitta varandra och skicka korta kommandon (ingen ljudström: ljudet spelas från varje telefon för sig). Det är byggt för **Supabase Realtime** (gratis plan räcker).
+
+1. Skapa ett konto och ett projekt på <https://supabase.com> (välj en EU-region). Databasen används inte.
+2. **Project Settings → API:** kopiera *Project URL* och den **publika** nyckeln. Den heter *anon public* (börjar `eyJ…`) eller *Publishable key* (börjar `sb_publishable_…`), beroende på hur panelen ser ut just nu.
+3. Klistra in dem i `public/assets/together/config.js` (`supabaseUrl` och `supabaseAnonKey`) och kör `python3 sanctuary/tools/build-content.py`.
+4. I projektet: **Realtime → Settings**: kontrollera att publika kanaler är tillåtna (så är det som standard). Rummen är publika kanaler vars namn är hemligt.
+5. Lägg ut sidan som vanligt (se ovan). Delade sessioner kräver `https://` (Cloudflare Pages ger det).
+
+**Aldrig** den hemliga nyckeln (*service_role* eller *secret*) i `public/`: allt där skickas till alla besökare. Den publika nyckeln är gjord för det, men räcker bara till att öppna ett rum.
+**Tänk på:** Supabase kan pausa gratisprojekt som varit inaktiva en tid (kontrollera aktuella villkor). Då fungerar inte delade sessioner förrän du väcker projektet i panelen. Prova delade sessioner någon gång då och då, och särskilt dagen innan något ska visas.
+Utan `config.js`-värden säger sidan att delade sessioner inte är påslagna; ensamläget fungerar ändå. På `localhost` (utan värden) kan du prova skärmarna med två flikar i samma webbläsare.
+
+### Inspelningen till Heart to Heart
+
+Den finns inte än, och ingen är påhittad. Lägg den som `public/assets/audio/together/heart-to-heart.mp3`. Krav (utförligt i `content/together-heart-to-heart-manus.md`): mp3 med konstant bitrate (128 till 192 kbps), minst 1,5 sekunds tystnad först, jämn volym. Manusutkastet i samma mapp är ett förslag att skriva om.
+Så länge filen saknas är *Invite Your Partner* avstängd och sidan säger att inspelningen förbereds.
+Som i resten av sanctuaryt **lyssnas ritualen bara på**: ingen del av meditationen eller dess manus skrivs ut på sidan eller skickas till telefonen.
+
+### Hur synkroniseringen fungerar (och vad den inte kan lova)
+
+- Båda telefonerna följer **en tidslinje** ("vid tid T är inspelningen på sekund P och spelar"). Begin, Pause och Resume är bara en ny tidslinje; den som trycker styr båda.
+- **Gemensam tid** är värdens klocka. Gästens telefon mäter skillnaden mot den (ett par snabba frågor och svar, den snabbaste litar den på) och lägger på den. I testet var gästens klocka 4,3 sekunder fel och startade ändå i takt.
+- Inspelningen hämtas **hela först** (så inget kan hacka när den väl börjat), startas **på utsatt tid**, med hänsyn till hur lång tid telefonen behöver för att få ljud, och **kontrolleras varje sekund**: små avvikelser rättas genom att spela ett hår snabbare eller långsammare (3 %), stora genom ett hopp.
+- Ljudet spelas av telefonen själv, så det fortsätter med låst skärm och störs inte av ett tappat nät.
+- **Gränser, ärligt:** webbläsare ger inte sampelexakt tid. Räkna med att ni ligger i takt inom ett tiotal till ett hundratal millisekunder, i testerna 0 till ca 100. Bluetooth-hörlurar har egen fördröjning (ofta 100 till 300 ms, olika för olika modeller) som webbplatsen inte kan mäta. Det räcker för en guidad ritual med en röst, men det är inte perfekt synk, och sidan lovar det inte.
+- **iPhone/Safari** tillåter bara ljud som en människa har bett om. Därför är *I'm Ready* ett eget tryck på varje telefon. Släpper telefonen ändå inte igenom den nätverksstyrda starten visar sidan *Tap to join your partner*; ett tryck, och telefonen hamnar på rätt ställe. Hur just din iPhone beter sig kan bara provas på en riktig iPhone (`TOGETHER-TEST.md`).
+
+### Två personer, och ingen annan
+
+Rummet tar emot en värd och en gäst. Länken är nyckeln, så den som har den kan ansluta, men:
+- Varje telefon får ett slumpat **säte** som står sist i sin egen adress (inte i inbjudningslänken, inget lagras). En omladdning behåller sätet och tar tillbaka platsen; ett nytt fönster med samma adress ersätter det gamla (som säger det och tystnar).
+- Kommer någon **annan** med inbjudningslänken när platsen redan är tagen visas *This ritual already has two people* och personen störs inte in i pågående ritual: telefonerna lyssnar bara på sin partner.
+- Öppnar du inbjudningslänken på en ny telefon medan den gamla ännu syns som ansluten (upp till en minut efter att den stängts av) får du samma besked: vänta en stund och tryck *Try again*.
+
+### Integritet
+
+Inga namn, ingen inloggning, inga profiler. Sidan ber aldrig om mikrofon, kamera, plats eller Bluetooth (och säkerhetshuvudet stänger de tre första). Rummet heter något långt och slumpmässigt (130 bitar) som bara finns i länken, efter `#`: webbhotellet (Cloudflare) ser därför aldrig rumsnamnet. Länken har ett slutdatum inbyggt (3 timmar). Supabase får rumsnamnet (som kanalnamn), ett slumpat id per telefon, "redo"-flaggor och tidsiffror, och **inget sparas**: rummet finns bara medan telefonerna är med. Precis som alla som tar emot en uppkoppling ser Supabase de anslutande telefonernas IP-adresser. Ingen analyserar eller spelar in andning.
+Meningen på Sensory Enrichment-sidan ("This sanctuary keeps nothing about you") stämmer fortfarande: ingenting sparas. Vill du vara extra noggrann kan du lägga till "Shared rituals connect through a private room that is deleted when you leave." där.
+
+### Tester
+
+```
+cd sanctuary/tests && npm install
+node --test --test-force-exit session.test.js     # sessionslogiken (enhetstester)
+node e2e/run.mjs                                 # två telefoner i webbläsare (kräver Chromium och ffmpeg)
+node e2e/regression.mjs                          # är de fem ritualerna oförändrade jämfört med före Together?
+```
+
+`e2e/run.mjs` kör två separata webbläsare med egna klockor (gästens går 4,3 s fel), den riktiga Supabase-klienten och riktig mp3-uppspelning mot en lokal stand-in för Supabase Realtime (`e2e/mock-realtime.mjs`), och sidans egna säkerhetshuvud (CSP). Det täcker inbjudan, QR-koden (avläst igen med en separat avkodare), Ready, start i takt, paus, återupptagning, tappat nät, blockerad start, omladdning mitt i, att en partner lämnar, felmeddelanden, ensamläget och rörelseavstängning. Det är **inte** den riktiga Supabase-tjänsten, och det är **Chromium, inte iPhone-Safari**: se `TOGETHER-TEST.md`.
+
+### Klart och testat / kräver dig
+
+| | Status |
+|---|---|
+| Together-flik, landningssida, val av ritual, presentationssida för Heart to Heart | Klart, testat i webbläsare (390 och 360 px breda skärmar) |
+| De fem ritualerna | Oförändrade (regressionstestet visar bara flikraden och menylänken som skillnad) |
+| Inbjudan: unikt rum, QR-kod, länk, Share/Copy | Klart, testat (QR-koden avläses och stämmer med länken) |
+| Närvaro, Ready-kvitto, vänteskärm, Begin Together, nedräkning | Klart, testat med två webbläsare |
+| Start i takt, paus/återupptagning, drift-rättning, tappat nät, partner lämnar, omladdning | Klart, testat (0 till ca 100 ms i testmiljön) |
+| Reservläge när telefonen blockerar start (*Tap to join your partner*) | Klart, testat genom att simulera en blockerande telefon |
+| Listen Together on One Device | Klart, testat |
+| Vattenljuset (egna bilder, ingen video, pausas när skärmen inte syns, stilla vid "reduce motion") | Klart |
+| **Supabase-projekt och `config.js`** | **Kräver dig** (ca 15 minuter, ovan) |
+| **Inspelningen `heart-to-heart.mp3`** | **Kräver dig** (manusutkast och krav finns) |
+| **Publicering på `https://`-adress** | **Kräver dig** (Cloudflare Pages, som resten av sidan) |
+| **Prov på riktig iPhone-Safari och Android-Chrome**, skärmlås, Bluetooth | **Kräver riktiga telefoner:** `TOGETHER-TEST.md` |
+| Riktiga foton (vatten, hud, händer, stenar) | Kräver dig: jag har inga bilder jag får använda. Nu används egna, uträknade ljusreflexer. Foton läggs in i `assets/together/img/` |
+
 ## Öppna punkter
 
-- **Åtta inspelningar saknas i repot** (se ovan). Utan dem säger spelaren att inspelningen inte finns än.
+- **Inspelningarna är inlagda** (alla elva, 2026-10-10). Repot är publikt: filerna kan hämtas av var och en som har adressen.
 - **Texterna är inte klara.** "Meditations mall" ändras fortfarande; citaten och introtexten bygger på kopian från 2026-10-08.
 - **Shopify stämmer inte med etiketterna.** Etiketterna har använts som källa. Shopify-sidorna har
   bland annat andra ritualrader och ton-ord (t.ex. "Smoothing" mot etikettens "Hydrating") och en
   garblad ingredienslista för handtvålen ("Coco-Communis Oil"). Uppdatera Shopify efter etiketterna.
-- **Bakgrundsfoto.** Välkomstvyn och avslutet använder en mjukfokuserad bit av olivkvisten i kit-fotot
-  (`public/assets/img/hero.webp`). Byt mot ett riktigt foto när det finns (varmt, ljust, högt format).
+- **Ritualsidan** (2026-10-09) är en karusell med fem stora bilder, en i taget, som på Annas förebild (ffern.co): bilden i en tunn ljus ram, ritualens namn över bilden, prickar som visar var man är, och en knapp längst ner (*Enter the ritual*) som följer den bild som syns. Bilderna är Annas Presence-bild där etiketten fått respektive ritualnamn och ledord (*A calmer tomorrow.* m.fl., från hennes första sidas bild). **De visar "Ritual Oil 30 ml", som inte är de riktiga produkterna** (handtvål, handkräm, duschtvål, schampo, kroppslotion, 250 ml), och baksidan med ingredienser är densamma på alla fem. Byt mot riktiga foton genom att lägga en bild per ritual som `public/assets/img/ritual-<id>.webp` (4:5, ca 900 × 1125 px).
+- **Första sidan** (2026-10-09) följer Annas skiss: meny till vänster, logotyp i mitten, fotot, rubriken *The Art of Conscious Care*, en rad text och en knapp (*Discover the Rituals*). **Ingen butik** (inget kundvagnsmärke, inga priser, inga länkar ut). Fotot (`public/assets/img/welcome-hero.webp`) är utskuret ur skissen. Det visar 30 ml-flaskor med egna ledord (*A calmer tomorrow.* …) som inte finns på de riktiga etiketterna (250 ml): byt mot ett riktigt produktfoto om de ska stämma. Avslutssidan använder fortfarande den mjukfokuserade olivkvisten (`hero.webp`).
 - **Ingen "Visit Body Mind Earth"-knapp,** som skissen hade. Fristaden är stängd.
 - **Meningen om webbplatsen** i introt ("You can discover more … on our website.") är utelämnad i texten.
   Den kan fortfarande finnas i den inspelade introt: lyssna igenom `01_Intro_Sensory-Enrichment.mp3`.
 - **Språk.** Allt är på engelska, som lådorna och inspelningarna.
 - **Kontakt.** Ingen e-postadress är inlagd. Ett färdigt ställe finns i kommentaren i `about()` i `public/assets/app.js`.
-- **Integritetsraden** ("keeps nothing about you") stämmer så länge ingen statistik slås på i Cloudflare.
+- **Integritetsraden** ("keeps nothing about you") stämmer så länge ingen statistik slås på i Cloudflare. Together lägger till att delade sessioner går via Supabase (ingenting sparas där); se "Together → Integritet".
 
 ## Typsnitt
 
