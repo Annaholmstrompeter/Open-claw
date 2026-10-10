@@ -125,7 +125,8 @@ button { font: inherit; color: inherit; }
   transition: opacity 1.2s var(--ease);
 }
 html[data-ground] .waves { opacity: 1; }
-html[data-page="player"] .waves { opacity: .35; }
+html[data-page="player"] .waves { opacity: .2; }
+html[data-page="end"] .waves { opacity: .5; }
 html[data-page="about"] .waves {
   background-image: url("img/waves-gold.webp");
   opacity: .3;
@@ -412,29 +413,8 @@ h1, h2, .tagline, .title, .text { text-wrap: balance; }
 .sp-art { width: 6.4rem; height: auto; }
 .reminder { margin: .9rem 0 0; text-align: center; font-family: var(--label-serif); font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; }
 
-/* ——— The ritual, heard: a picture, one line from the meditation, and the controls ——— */
-.player { justify-content: flex-start; padding-top: calc(70px + env(safe-area-inset-top)); }
-.art-card {
-  position: relative;
-  isolation: isolate;
-  width: 100%;
-  aspect-ratio: 5 / 4;
-  max-height: 42svh;
-  margin-bottom: 1.4rem;
-  border-radius: 22px;
-  overflow: hidden;
-  background: linear-gradient(158deg, color-mix(in srgb, var(--c) 80%, #fff) 0%, var(--c) 52%, color-mix(in srgb, var(--c) 80%, #000) 100%);
-  box-shadow: 0 26px 50px -28px rgba(0, 0, 0, .6), 0 0 0 1px rgba(255, 253, 248, .12) inset;
-}
-.art-card::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--waves) right top / cover no-repeat; opacity: .85; }
-.art-photo { position: absolute; inset: 0; z-index: -2; background: url("img/hero.webp") 62% center / cover no-repeat; mix-blend-mode: soft-light; opacity: .6; }
-.art-botanical { position: absolute; left: 0; bottom: 0; height: 92%; width: auto; max-width: 62%; object-fit: contain; object-position: left bottom; }
-.art-logo { position: absolute; right: 13%; top: 50%; width: 5.4rem; height: auto; transform: translateY(-50%); filter: drop-shadow(0 0 14px rgba(255, 220, 120, .35)); margin: 0; }
-.player[data-state="playing"] .art-logo { animation: breathe 7s ease-in-out infinite; }
-@keyframes breathe {
-  0%, 100% { transform: translateY(-50%) scale(1); filter: drop-shadow(0 0 10px rgba(255, 220, 120, .25)); }
-  50%      { transform: translateY(-50%) scale(1.08); filter: drop-shadow(0 0 26px rgba(255, 220, 120, .6)); }
-}
+/* ——— The ritual, heard: the controls (the look is below, with the framed picture) ——— */
+.player { justify-content: flex-start; }
 .player .eyebrow { margin-bottom: .2rem; }
 .quote { margin: .8rem 0 1.4rem; max-width: 29rem; }
 .quote p { margin: 0; font-style: italic; font-size: clamp(1.4rem, 5.8vw, 1.7rem); line-height: 1.38; text-wrap: balance; }
@@ -489,6 +469,50 @@ h1, h2, .tagline, .title, .text { text-wrap: balance; }
 .range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; margin-top: -5.5px; border: 0; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 5px rgba(235, 201, 79, .18); }
 .range::-moz-range-thumb { width: 14px; height: 14px; border: 0; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 5px rgba(235, 201, 79, .18); }
 
+/* ——— The ritual, heard: the label's own colour, one framed picture, and almost nothing else ——— */
+.player { padding: calc(80px + env(safe-area-inset-top) + 20px) 0 calc(30px + env(safe-area-inset-bottom)); }
+.pl-art { width: 100%; padding: 0 22px; }
+.player .rc-frame { padding: 14px; }
+.player .rc-photo { width: 100%; aspect-ratio: 1 / 1; max-height: 34svh; }
+.player .rc-name { margin-top: 0; margin-bottom: 0; top: 9%; font-size: clamp(1.9rem, 9vw, 2.5rem); }
+.player .rc-photo img { object-position: 50% 34%; transform-origin: 50% 50%; }
+.pl-id { display: none; }
+.player[data-state="playing"] .rc-photo img { animation: pl-drift 70s ease-in-out infinite alternate; }
+@keyframes pl-drift { from { transform: scale(1); } to { transform: scale(1.07); } }
+.player .eyebrow { margin: 1.5rem 0 0; font-size: .7rem; letter-spacing: .36em; margin-right: -.36em; color: var(--accent); }
+.player .quote { margin: 1rem 30px 1.7rem; }
+.player .quote p { font-size: clamp(1.4rem, 5.8vw, 1.65rem); font-weight: 400; }
+.player .deck { padding: 0 30px; gap: 1.5rem; }
+.player .seek { grid-template-columns: 2.4rem minmax(0, 1fr) 2.4rem; font-size: .7rem; letter-spacing: .12em; color: var(--ink); }
+.player .range { height: 26px; }
+.player .range::-webkit-slider-runnable-track { height: 1px; border-radius: 0; background: linear-gradient(to right, var(--accent) var(--p), rgba(255, 253, 248, .38) var(--p)); }
+.player .range::-moz-range-track { height: 1px; border-radius: 0; background: rgba(255, 253, 248, .38); }
+.player .range::-moz-range-progress { height: 1px; border-radius: 0; background: var(--accent); }
+.player .range::-webkit-slider-thumb { width: 11px; height: 11px; margin-top: -5px; box-shadow: none; }
+.player .range::-moz-range-thumb { width: 11px; height: 11px; box-shadow: none; }
+.player .controls { max-width: 21rem; }
+.player .ctl { width: 3.6rem; height: 3.6rem; border: 0; }
+.player .ctl:not(.play):hover { background: none; opacity: .8; }
+.player .ctl svg { width: 1.35rem; height: 1.35rem; }
+.player .ctl .cap { top: calc(100% + .1rem); color: var(--ink); opacity: .85; letter-spacing: .2em; }
+.player .ctl.play { width: 4.7rem; height: 4.7rem; background: #a88b30; box-shadow: none; }
+.player .ctl.play:hover { background: #9a7e29; filter: none; }
+.player .ctl.play svg { width: 1.7rem; height: 1.7rem; }
+.player .quiet { margin-top: 2.2rem; gap: .1rem 1.5rem; }
+@media (max-height: 740px) {
+  .player { padding-top: calc(80px + env(safe-area-inset-top) + 10px); }
+  .player .rc-photo { max-height: 28svh; }
+  .player .rc-name { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }   /* too little room for the name over the picture: the line below says it */
+  .pl-id { display: inline; }
+  .player .rc-frame { padding: 11px; }
+  .player .eyebrow { margin-top: 1.1rem; }
+  .player .quote { margin: .7rem 24px 1.1rem; }
+  .player .quote p { font-size: 1.3rem; }
+  .player .deck { gap: 1.2rem; }
+  .player .ctl.play { width: 4rem; height: 4rem; }
+  .player .quiet { margin-top: 1.2rem; }
+}
+
 /* the spoken introduction on the Sensory Enrichment page (cream ground) */
 .listen { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 1rem; width: 100%; margin: .6rem 0 .4rem; padding: 1rem 1.1rem; border: 1px solid var(--line); border-radius: 18px; text-align: left; }
 .listen .ctl.play { width: 3.6rem; height: 3.6rem; }
@@ -499,8 +523,11 @@ h1, h2, .tagline, .title, .text { text-wrap: balance; }
 .listen .range::-webkit-slider-runnable-track { background: linear-gradient(to right, var(--accent) var(--p), rgba(51, 41, 29, .2) var(--p)); }
 .listen .range::-moz-range-track { background: rgba(51, 41, 29, .2); }
 
-.end .affirmation { margin: .2rem 0 0; max-width: 21rem; font-size: clamp(1.5rem, 6.4vw, 1.95rem); }
+.end .affirmation { margin: 0; max-width: 21rem; font-size: clamp(1.5rem, 6.4vw, 1.95rem); }
 .end .actions { margin-top: 0; }
+html[data-page="end"] .btn.primary { max-width: 24rem; min-height: 58px; border-radius: 7px; background: #a88b30; box-shadow: none; font-family: var(--sans); font-weight: 500; font-size: .86rem; letter-spacing: .16em; text-transform: uppercase; }
+html[data-page="end"] .btn.primary:hover { filter: none; background: #9a7e29; }
+html[data-page="end"] .btn .arr { width: 1.2rem; height: .6rem; stroke-width: 1.4; }
 .end .quiet { margin-top: .8rem; }
 
 /* ——— Sensory Enrichment ——— */
@@ -521,15 +548,15 @@ h1, h2, .tagline, .title, .text { text-wrap: balance; }
 .nojs { padding: 2rem; text-align: center; font-style: italic; }
 
 /* ——— The front page: a calm header, one photograph, a few words, one door ——— */
-html[data-page="welcome"] .top, html[data-page="list"] .top, html[data-page="intro"] .top {
+html[data-page="welcome"] .top, html[data-page="list"] .top, html[data-page="intro"] .top, html[data-page="player"] .top, html[data-page="end"] .top {
   justify-content: center;
   height: calc(80px + env(safe-area-inset-top));
   padding: calc(env(safe-area-inset-top) + 8px) 56px 6px;
   background: var(--paper);
 }
-html[data-page="welcome"] .head-brand, html[data-page="list"] .head-brand, html[data-page="intro"] .head-brand { flex-direction: column; gap: .3rem; text-align: center; font-size: .72rem; letter-spacing: .34em; margin-right: -.34em; }
-html[data-page="welcome"] .head-logo, html[data-page="list"] .head-logo, html[data-page="intro"] .head-logo { width: 2.7rem; height: 2.7rem; }
-html[data-page="welcome"] .menu-btn, html[data-page="list"] .menu-btn, html[data-page="intro"] .menu-btn { position: absolute; left: 6px; top: calc(env(safe-area-inset-top) + 16px); }
+html[data-page="welcome"] .head-brand, html[data-page="list"] .head-brand, html[data-page="intro"] .head-brand, html[data-page="player"] .head-brand, html[data-page="end"] .head-brand { flex-direction: column; gap: .3rem; text-align: center; font-size: .72rem; letter-spacing: .34em; margin-right: -.34em; }
+html[data-page="welcome"] .head-logo, html[data-page="list"] .head-logo, html[data-page="intro"] .head-logo, html[data-page="player"] .head-logo, html[data-page="end"] .head-logo { width: 2.7rem; height: 2.7rem; }
+html[data-page="welcome"] .menu-btn, html[data-page="list"] .menu-btn, html[data-page="intro"] .menu-btn, html[data-page="player"] .menu-btn, html[data-page="end"] .menu-btn { position: absolute; left: 6px; top: calc(env(safe-area-inset-top) + 16px); }
 
 .front { justify-content: flex-start; padding: calc(80px + env(safe-area-inset-top)) 0 calc(40px + env(safe-area-inset-bottom)); }
 .front-photo { width: 100%; aspect-ratio: 941 / 873; background: url("img/welcome-hero.webp") center / cover no-repeat; }
@@ -542,6 +569,7 @@ html[data-page="welcome"] .menu-btn, html[data-page="list"] .menu-btn, html[data
 .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 html[data-page="list"], html[data-page="intro"] { --bg: #faf7f1; --bg-outer: #faf7f1; }
 html[data-page="list"] .top, html[data-page="intro"] .top { background: #f4efe6; }
+html[data-ground] .top { background: transparent; }       /* on a colour the quiet header has no band */
 html[data-page="list"] body::before, html[data-page="list"] body::after,
 html[data-page="intro"] body::before, html[data-page="intro"] body::after { display: none; }   /* no glow, no paper grain */
 
@@ -684,7 +712,6 @@ html[data-page="intro"] body::before, html[data-page="intro"] body::after { disp
 /* Short phones: keep a whole step in view */
 @media (max-height: 740px) {
   .text.big { font-size: 1.32rem; }
-  .art-card { max-height: 34svh; margin-bottom: 1rem; }
   .quote { margin-bottom: 1rem; }
   .player .quiet { margin-top: 1.6rem; }
 }

@@ -454,7 +454,8 @@
     };
   }
 
-  // The ritual, heard: a picture, one line from the meditation, and the controls.
+  // The ritual, heard: the label's colour, one framed picture with the name over it, one line from the
+  // recording, and the controls. Nothing else.
   function player(r, mode) {
     var key = mode === 'e' ? 'extended' : 'short';
     var otherKey = mode === 'e' ? 'short' : 'extended';
@@ -465,12 +466,10 @@
       theme: r,
       html:
         '<section class="screen player" data-player="' + r.id + ':' + key + '" data-state="paused">' +
-        '<div class="art-card" aria-hidden="true">' +
-        '<div class="art-photo"></div>' +
-        img(r.img.botanical, 'art-botanical') +
-        logo('art-logo') +
-        '</div>' +
-        '<p class="eyebrow">' + r.id + ' · ' + (key === 'extended' ? UI.extended : UI.shortRitual) + '</p>' +
+        '<div class="pl-art"><div class="rc-frame"><div class="rc-photo">' +
+        '<img src="' + r.img.photo + '" alt="" width="900" height="1125" decoding="async">' +
+        '<h1 class="rc-name">' + r.id + '</h1></div></div></div>' +
+        '<p class="eyebrow"><span class="pl-id">' + r.id + ' · </span>' + (key === 'extended' ? UI.extended : UI.shortRitual) + '</p>' +
         '<blockquote class="quote"><p>“' + esc(a.quote) + '”</p></blockquote>' +
         '<div class="deck">' +
         '<div class="seek"><span class="t" data-now>0:00</span>' +
@@ -500,7 +499,6 @@
       theme: r,
       html:
         '<section class="screen end">' +
-        logo('mark small') +
         '<h1 class="affirmation">' + esc(r.affirmation) + '</h1>' +
         '<div class="rule" aria-hidden="true"></div>' +
         speciesCard(r) +

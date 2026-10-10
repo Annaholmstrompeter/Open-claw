@@ -434,7 +434,14 @@ test('a ritual\'s own page: the picture, two ways to listen, what to read, and a
     await p.page.click(h === '#/rituals' ? 'a.head-brand' : '#stage a[href="#/"]');
     await p.page.waitForSelector('.front');
   }
+  // where it is heard: the framed picture with the name, the controls, and the way home
+  await open(p, '#/r/presence/e');
+  assert.equal((await p.page.textContent('.player h1.rc-name')).trim().toLowerCase(), 'presence');
+  assert.equal(await p.page.locator('.player .pl-art img').count(), 1);
+  for (const sel of ['[data-toggle]', '[data-restart]', '[data-back15]', '[data-range]', '[data-now]', '[data-total]']) assert.equal(await p.page.locator('.player ' + sel).count(), 1, sel);
+  assert.match(await p.page.textContent('.player .eyebrow'), /Extended ritual/);
   // the front page has its own way to Sensory Enrichment
+  await open(p, '#/');
   await p.page.click('.front-menu a');
   await p.page.waitForSelector('.screen.about');
   // listening starts from the ritual's page
