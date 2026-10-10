@@ -1,6 +1,6 @@
 # Uthyrning — Peters lägenhet (Workers Stay + Qasa)
 
-*Checklista 2026-10-10. Inget är registrerat än. I Annas Gmail och i arbetsytan finns inga uppgifter om lägenheten — allt ska komma från Peter. Inga personnummer eller kontonummer ska skrivas i filer, mejl eller chatt; Peter matar in dem själv i tjänsternas formulär.*
+*Checklista 2026-10-10 (förenklad efter Annas rättelse: Qasa kräver inget skriftligt intyg om rätt att hyra ut — man kryssar bara i att man har tillstånd). Inget är registrerat än. I Annas Gmail och i arbetsytan finns inga uppgifter om lägenheten — allt ska komma från Peter. Inga personnummer eller kontonummer ska skrivas i filer, mejl eller chatt; Peter matar in dem själv i tjänsternas formulär.*
 
 ## Vad Anna behöver från Peter
 
@@ -34,4 +34,7 @@
 
 ## Vad tjänsterna ber om
 - **Workers Stay** ([workersstay.com/list-property](https://workersstay.com/list-property)): steg 1 av 2 = typ av bostad (lägenhet/hus/stuga/hotellrum), antal sovrum, badrum, antal personer, tillgänglig från (datum), e-post. Steg 2 visas inte utan inloggning — fält okända. Annonsen granskas innan publicering. **Obs:** bolaget bakom är ett brittiskt LTD utan svenskt orgnr — verifiera innan ID lämnas.
-- **Qasa**: verifierad identitet, bevis på ägande/rätt att hyra ut, ~10 bilder, komplett adress, en annons per bostad, hyra = faktisk hyra, beskrivning + lediga datum, bankkonto för utbetalning. Gratis för hyresvärd. (Sverige-detaljer ej helt bekräftade — Qasas hjälpcenter gav 403.)
+- **Qasa**: verifierad identitet, ruta att kryssa i att man har tillstånd att hyra ut (inget skriftligt intyg krävdes för Annas egen annons), ~10 bilder, komplett adress, en annons per bostad, hyra = faktisk hyra, beskrivning + lediga datum, bankkonto för utbetalning. Gratis för hyresvärd. (Sverige-detaljer ej helt bekräftade — Qasas hjälpcenter gav 403.)
+
+## Kortlista att skicka till Peter (version 2, 2026-10-10)
+Bara sådant Peter skickar till Anna: adress + lägenhetsnummer/våning/hiss; bostadsrätt/hyresrätt/villa; m², rum, sovrum, badrum; sängplatser/max personer; möblering och utrustning; husdjur/rökning; lediga datum + kortaste period; hyra per månad + vad som ingår; 10+ bilder (eller Airbnb-länk); områdesbeskrivning; bekräftelse att han har tillstånd att hyra ut (Anna kryssar i rutan); bankkonto för utbetalning; vem som visar/städar/är kontaktperson.
