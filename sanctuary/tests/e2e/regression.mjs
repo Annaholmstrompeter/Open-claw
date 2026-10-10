@@ -7,7 +7,7 @@
 // Expected, and only this: the list of rituals gains the Rituals | Together tabs, the menu gains "Together" and "Home" (the way back to the front page; the logo is a link there too),
 // the front page ('#/') is redesigned on purpose (2026-10-09, from Anna's mockup; no shop), and so is the list of rituals
 // ('#/rituals': a carousel of five large pictures, 2026-10-09), and so is each ritual's own page ('#/r/<id>', 2026-10-09);
-// so are the pages where the ritual is heard and what follows it (2026-10-10: a framed picture, flat gold, hairlines);
+// so are the pages where the ritual is heard and what follows it (2026-10-10: the night ground with gold lines, the photograph rising out of the dark; the old label colours are gone);
 // every other page gains a quiet "Home" link (a way back to the front page).
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -66,7 +66,7 @@ for (const k of Object.keys(a)) {
   if (k === '#/') { console.log('on purpose', k, '(the front page, redesigned)'); continue; }
   if (k === '#/rituals') { console.log('on purpose', k, '(the list of rituals, now a carousel)'); continue; }
   if (/^#\/r\/[a-z]+$/.test(k) && a[k].title === b[k].title && a[k].page === b[k].page) { console.log('on purpose', k, "(the ritual's own page, in the carousel's style)"); continue; }
-  if (/^#\/r\/[a-z]+\/(s|e|done)$/.test(k) && a[k].title === b[k].title && a[k].page === b[k].page && a[k].c === b[k].c && a[k].ground === b[k].ground) { console.log('on purpose', k, '(where the ritual is heard, and what follows: the same quiet look)'); continue; }
+  if (/^#\/r\/[a-z]+\/(s|e|done)$/.test(k) && a[k].title === b[k].title && a[k].page === b[k].page && a[k].ground === b[k].ground) { console.log('on purpose', k, '(where the ritual is heard, and what follows: the same quiet look)'); continue; }
   if (typeof b[k] === 'object' && withoutHome(b[k].stage) === a[k].stage && ['page', 'c', 'ground', 'tg', 'title', 'theme'].every((f) => a[k][f] === b[k][f])) { console.log('+ Home    ', k, '(a link back to the front page, nothing else)'); continue; }
   if (false && tabs(b[k].stage) === a[k].stage && ['page', 'c', 'ground', 'title', 'theme'].every((f) => a[k][f] === b[k][f])) { console.log('tabs only', k); continue; }
   if (k === '__menu' && b[k].replace(/\s*<a href="#\/together">Together<\/a>/, '').replace(/\s*<a href="#\/">Home<\/a>/, '') === a[k]) { console.log('menu +2  ', k, '(the Together link, and a way back to the front page)'); continue; }

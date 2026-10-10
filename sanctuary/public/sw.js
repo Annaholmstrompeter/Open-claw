@@ -1,6 +1,6 @@
 /* Offline support: after the first visit the whole sanctuary works without signal.
    Bump VERSION whenever files change so guests receive the update on their next visit. */
-var VERSION = 'bme-sanctuary-fc09e9a499';
+var VERSION = 'bme-sanctuary-84643964d4';
 var FILES = [
   './',
   'assets/app.js',
@@ -16,28 +16,18 @@ var FILES = [
   'assets/icon-180.png',
   'assets/icon-192.png',
   'assets/icon-512.png',
-  'assets/img/balance-botanical.webp',
   'assets/img/balance-species.webp',
-  'assets/img/balance-waves.webp',
   'assets/img/hero.webp',
-  'assets/img/kindness-botanical.webp',
   'assets/img/kindness-species.webp',
-  'assets/img/kindness-waves.webp',
   'assets/img/logo.webp',
-  'assets/img/luminance-botanical.webp',
   'assets/img/luminance-species.webp',
-  'assets/img/luminance-waves.webp',
-  'assets/img/presence-botanical.webp',
   'assets/img/presence-species.webp',
-  'assets/img/presence-waves.webp',
   'assets/img/ritual-balance.webp',
   'assets/img/ritual-kindness.webp',
   'assets/img/ritual-luminance.webp',
   'assets/img/ritual-presence.webp',
   'assets/img/ritual-serenity.webp',
-  'assets/img/serenity-botanical.webp',
   'assets/img/serenity-species.webp',
-  'assets/img/serenity-waves.webp',
   'assets/img/waves-gold.webp',
   'assets/img/welcome-hero.webp',
   'assets/style.css',

@@ -24,6 +24,7 @@
   var menuBtn = document.getElementById('menu-btn');
   var themeMeta = document.querySelector('meta[name="theme-color"]');
   var PAPER = '#fff7e9';
+  var NIGHT = '#1b140e';   // the ground where the ritual is heard
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Interface words only. Everything the guest reads about the products is in content.js.
@@ -296,7 +297,7 @@
   });
 
   /* ——— screens ———
-     Each returns { title, kind, html, theme? }. 'kind' drives the look (see style.css):
+     Each returns { title, kind, html }. 'kind' drives the look (see style.css):
      welcome, list, intro (the ritual's own quiet page), player and end (full colour ground), about, close. */
 
   function photo() { return '<div class="photo" aria-hidden="true"></div>'; }
@@ -431,7 +432,6 @@
     return {
       title: cap(r.id) + ' — ' + UI.brand,
       kind: 'intro',
-      theme: r,
       html:
         '<section class="screen top-aligned intro">' +
         '<div class="ri-hero"><div class="rc-frame"><div class="rc-photo">' +
@@ -454,8 +454,8 @@
     };
   }
 
-  // The ritual, heard: the label's colour, one framed picture with the name over it, one line from the
-  // recording, and the controls. Nothing else.
+  // The ritual, heard: the product's photograph rising out of the dark, the name, one line from the recording,
+  // and the controls. Nothing else.
   function player(r, mode) {
     var key = mode === 'e' ? 'extended' : 'short';
     var otherKey = mode === 'e' ? 'short' : 'extended';
@@ -463,13 +463,11 @@
     return {
       title: cap(r.id) + ' — ' + UI.brand,
       kind: 'player',
-      theme: r,
       html:
         '<section class="screen player" data-player="' + r.id + ':' + key + '" data-state="paused">' +
-        '<div class="pl-art"><div class="rc-frame"><div class="rc-photo">' +
-        '<img src="' + r.img.photo + '" alt="" width="900" height="1125" decoding="async">' +
-        '<h1 class="rc-name">' + r.id + '</h1></div></div></div>' +
-        '<p class="eyebrow"><span class="pl-id">' + r.id + ' · </span>' + (key === 'extended' ? UI.extended : UI.shortRitual) + '</p>' +
+        '<div class="pl-hero" aria-hidden="true"><img src="' + r.img.photo + '" alt="" width="900" height="1125" decoding="async"></div>' +
+        '<h1 class="pl-name">' + r.id + '</h1>' +
+        '<p class="eyebrow">' + (key === 'extended' ? UI.extended : UI.shortRitual) + '</p>' +
         '<blockquote class="quote"><p>“' + esc(a.quote) + '”</p></blockquote>' +
         '<div class="deck">' +
         '<div class="seek"><span class="t" data-now>0:00</span>' +
@@ -496,7 +494,6 @@
     return {
       title: cap(r.id) + ' — ' + UI.brand,
       kind: 'end',
-      theme: r,
       html:
         '<section class="screen end">' +
         '<h1 class="affirmation">' + esc(r.affirmation) + '</h1>' +
@@ -601,13 +598,8 @@
     }
     view = null;
     var coloured = page.kind === 'player' || page.kind === 'end';
-    if (page.theme) {
-      root.setAttribute('data-c', page.theme.id);
-      if (themeMeta) themeMeta.setAttribute('content', coloured ? page.theme.color : PAPER);
-    } else {
-      root.removeAttribute('data-c');
-      if (themeMeta) themeMeta.setAttribute('content', PAPER);
-    }
+    root.removeAttribute('data-c');
+    if (themeMeta) themeMeta.setAttribute('content', coloured ? NIGHT : PAPER);
     root.setAttribute('data-page', page.kind);
     try {
       if (page.kind === 'together') window.BMETogether.enter(page);
