@@ -515,6 +515,11 @@ test('Back on every page but the front page, each to the page before it', async 
     await p.page.waitForFunction((t) => document.getElementById('back').getAttribute('href') === t && !document.getElementById('back').hidden, to, { timeout: 5000 }).catch(() => {});
     assert.equal(await p.page.getAttribute('#back', 'href'), to, hash + ' goes back to ' + to);
     assert.equal(await p.page.isVisible('#back'), true, hash + ': Back is in view');
+    // at the bottom of the screen, where the thumb rests, in the middle
+    const box = await p.page.locator('#back').boundingBox();
+    const vp = p.page.viewportSize();
+    assert.ok(box.y + box.height > vp.height - 70 && box.y > vp.height * 0.8, hash + ': Back is at the bottom (y ' + Math.round(box.y) + ' of ' + vp.height + ')');
+    assert.ok(Math.abs(box.x + box.width / 2 - vp.width / 2) < 4, hash + ': Back is centred');
   }
   // and it works: from the rituals, back to the front page; from the ritual, back to the carousel
   await open(p, '#/rituals');

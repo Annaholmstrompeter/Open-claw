@@ -408,33 +408,49 @@ h1, h2, .tagline, .title, .text { text-wrap: balance; }
 
 /* ——— The ritual, heard: the photograph rises out of the dark; gold and cream; almost nothing else ——— */
 .player { padding: calc(80px + env(safe-area-inset-top)) 0 calc(28px + env(safe-area-inset-bottom)); }
-/* Back: small, the same place on every page but the front page */
+/* Back: small, at the bottom of the screen where the thumb rests, the same place on every page but the front page */
 .back {
-  position: absolute;
+  position: fixed;
   z-index: 9;
-  top: calc(80px + env(safe-area-inset-top) + 6px);
-  left: 8px;
+  left: 0;
+  right: 0;
+  bottom: calc(8px + env(safe-area-inset-bottom));
+  width: fit-content;
+  margin: 0 auto;
   display: inline-flex;
   align-items: center;
   gap: .35rem;
-  min-height: 46px;
-  padding: 0 .9rem 0 .5rem;
+  min-height: 48px;
+  padding: 0 1.4rem 0 1.1rem;
   font-family: var(--sans);
-  font-size: .68rem;
+  font-size: .7rem;
   letter-spacing: .26em;
   text-transform: uppercase;
   text-decoration: none;
   color: var(--ink);
 }
+/* what scrolls past underneath fades out softly, so the word is always easy to read */
+.back::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  bottom: calc(-8px - env(safe-area-inset-bottom));
+  width: min(100vw, var(--panel));
+  height: calc(84px + env(safe-area-inset-bottom));
+  margin-left: calc(min(100vw, var(--panel)) / -2);
+  background: linear-gradient(to top, var(--bg) 38%, transparent);
+  pointer-events: none;
+}
 .back[hidden] { display: none; }
 .back svg { width: 1.1rem; height: 1.1rem; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 .back:hover { color: var(--accent); }
-html[data-ground] .back { text-shadow: 0 1px 10px rgba(27, 20, 14, .55); }
-html[data-ground] .back svg { filter: drop-shadow(0 1px 6px rgba(27, 20, 14, .5)); }
 /* a live paired ritual is not left by a stray touch: no Back while the countdown and the listening are on */
 html:has(.tg-live[data-phase="countdown"]) .back, html:has(.tg-live[data-phase="playing"]) .back, html:has(.tg-live[data-phase="paused"]) .back { visibility: hidden; }
-html[data-back] .screen.about { padding-top: calc(124px + env(safe-area-inset-top)); }
-html[data-back] .screen.tg { padding-top: calc(122px + env(safe-area-inset-top)); }
+/* room for it under every page's last line */
+html[data-back] .screen { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+html[data-back] .rituals-screen { padding-bottom: calc(168px + env(safe-area-inset-bottom)); }
+html[data-back] .rc-cta { bottom: calc(66px + env(safe-area-inset-bottom)); }
 .player > .pl-hero { animation: pl-fade 2.2s var(--ease) both; }
 @keyframes pl-fade { from { opacity: 0; } to { opacity: 1; } }
 .pl-hero { position: relative; width: 100%; height: 48svh; min-height: 280px; max-height: 430px; margin-bottom: -3.4rem; overflow: hidden; }
@@ -553,7 +569,7 @@ html[data-ground] .top { background: transparent; }       /* on a colour the qui
 html[data-page="list"] body::before, html[data-page="list"] body::after,
 html[data-page="intro"] body::before, html[data-page="intro"] body::after { display: none; }   /* no glow, no paper grain */
 
-.rituals-screen { justify-content: flex-start; padding: calc(80px + env(safe-area-inset-top) + 50px) 0 calc(104px + env(safe-area-inset-bottom)); }
+.rituals-screen { justify-content: flex-start; padding: calc(80px + env(safe-area-inset-top) + 22px) 0 calc(104px + env(safe-area-inset-bottom)); }
 .rc { width: 100%; }
 .rc-track {
   position: relative;
@@ -624,7 +640,7 @@ html[data-page="intro"] body::before, html[data-page="intro"] body::after { disp
 @media (max-height: 740px) { .rc-name { top: 5%; } .rc-kind { margin-top: .8rem; } }
 
 /* ——— A ritual's own page: the carousel's picture, what it is, two ways to listen, then what to read ——— */
-.intro { padding: calc(80px + env(safe-area-inset-top) + 50px) 0 calc(36px + env(safe-area-inset-bottom)); }
+.intro { padding: calc(80px + env(safe-area-inset-top) + 22px) 0 calc(36px + env(safe-area-inset-bottom)); }
 .ri-hero { width: 100%; padding: 0 22px; }
 .ri-hero .rc-name { margin-top: 0; margin-bottom: 0; }
 .ri-body { width: 100%; max-width: 28rem; padding: 0 22px; }
