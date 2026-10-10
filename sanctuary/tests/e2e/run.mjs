@@ -420,7 +420,8 @@ test('a ritual\'s own page: the picture, two ways to listen, what to read, and a
   assert.equal((await p.page.textContent('h1.rc-name')).trim().toLowerCase(), 'presence');
   assert.match(await p.page.textContent('.rc-kind'), /Body Lotion · Raspberry/);
   assert.equal(await p.page.getAttribute('.ri-btn.primary', 'href'), '#/r/presence/s');
-  assert.equal(await p.page.getAttribute('.ri-btn:not(.primary)', 'href'), '#/r/presence/e');
+  // only the lengths that have a recording get a button: Presence has the short one, not yet the extended
+  assert.equal(await p.page.locator('.ri-btn').count(), 1);
   assert.equal(await p.page.locator('.rd').count(), 3, 'three things to read');
   assert.equal(await p.page.locator('.rd[open]').count(), 1, 'the first is open');
   assert.match(await p.page.textContent('.rd[open]'), /250 ml/);
@@ -429,11 +430,19 @@ test('a ritual\'s own page: the picture, two ways to listen, what to read, and a
   // the ritual's page no longer wears the ritual's colour: it is the carousel's quiet page
   assert.equal(await p.page.evaluate(() => document.documentElement.hasAttribute('data-ground')), false);
   // Home from every kind of page
-  for (const h of ['#/r/presence', '#/r/presence/s', '#/r/presence/done', '#/about', '#/close', '#/rituals']) {
+  for (const h of ['#/r/presence', '#/r/presence/done', '#/about', '#/close', '#/rituals']) {
     await open(p, h);
     await p.page.click(h === '#/rituals' ? 'a.head-brand' : '#stage a[href="#/"]');
     await p.page.waitForSelector('.front');
   }
+  // the bare listening page has no links of its own: the logo and the menu take you home
+  await open(p, '#/r/presence/s');
+  await p.page.click('a.head-brand');
+  await p.page.waitForSelector('.front');
+  await open(p, '#/r/presence/s');
+  await p.page.click('#menu-btn');
+  await p.page.click('#menu a[href="#/"]');
+  await p.page.waitForSelector('.front');
   // where it is heard: the framed picture with the name, the controls, and the way home
   await open(p, '#/r/presence/e');
   assert.equal((await p.page.textContent('.player h1.pl-name')).trim().toLowerCase(), 'presence');
@@ -441,8 +450,15 @@ test('a ritual\'s own page: the picture, two ways to listen, what to read, and a
   // the old label colours are gone: the ground is the night ground, whatever the ritual
   assert.equal(await p.page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()), '#1b140e');
   assert.equal(await p.page.evaluate(() => document.documentElement.hasAttribute('data-c')), false);
-  for (const sel of ['[data-toggle]', '[data-restart]', '[data-back15]', '[data-range]', '[data-now]', '[data-total]']) assert.equal(await p.page.locator('.player ' + sel).count(), 1, sel);
+  for (const sel of ['[data-toggle]', '[data-range]', '[data-now]', '[data-total]']) assert.equal(await p.page.locator('.player ' + sel).count(), 1, sel);
+  // as bare as possible: one button (play), the line to drag, and no links underneath (the menu has the way home)
+  assert.equal(await p.page.locator('.player button').count(), 1, 'one button');
+  assert.equal(await p.page.locator('.player a').count(), 0, 'no links on the page itself');
   assert.match(await p.page.textContent('.player .eyebrow'), /Extended ritual/);
+  // a ritual without any recording yet says so instead of offering silence
+  await open(p, '#/r/luminance');
+  await p.page.waitForSelector('.ri-soon');
+  assert.equal(await p.page.locator('.ri-btn').count(), 0);
   // the front page has its own way to Sensory Enrichment
   await open(p, '#/');
   await p.page.click('.front-menu a');
@@ -460,6 +476,12 @@ test('the sanctuary\'s own five rituals play as before', { timeout: 60000 }, asy
   await p.page.click('[data-toggle]');
   await p.page.waitForFunction(() => document.querySelector('[data-player]').getAttribute('data-state') === 'playing', null, { timeout: 15000 });
   assert.ok(!(await p.page.evaluate(() => !!document.documentElement.getAttribute('data-tg'))), 'no Together look leaks into the rituals');
+  // the line is the way to move about in it: drag it to the middle and the clock follows
+  await p.page.fill('[data-range]', '500');
+  await p.page.dispatchEvent('[data-range]', 'input');
+  const clock = await p.page.textContent('[data-now]');
+  const [mm, ss] = clock.split(':').map(Number);
+  assert.ok(mm * 60 + ss > 30, 'the clock moved with the line: ' + clock);
   await p.page.click('#menu-btn');
   await p.page.click('#menu a[href="#/rituals"]');
   await p.page.waitForSelector('.rc-track');

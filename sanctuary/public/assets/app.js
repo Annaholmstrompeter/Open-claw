@@ -43,6 +43,7 @@
     allRituals: 'All rituals',
     aboutProduct: 'About the product',
     minShort: 'min',
+    soon: 'The recording is being prepared.',
     aboutEyebrow: 'Sensory Enrichment',
     closeLink: 'Close your visit',
     shortRitual: 'Short ritual',
@@ -423,6 +424,13 @@
   // A ritual: the same quiet page as the carousel. The picture, what it is, two ways to listen, then what to read.
   function ritualIntro(r) {
     function mins(a) { return a.min ? '<em>' + Math.round(a.min) + ' ' + UI.minShort + '</em>' : ''; }
+    // only the lengths that have a recording: no button leads to silence
+    var lengths = [['short', UI.shortRitual, 's'], ['extended', UI.extended, 'e']].filter(function (L) { return r.audio[L[0]].ready; });
+    var listen = lengths.length
+      ? '<div class="ri-listen">' + lengths.map(function (L, i) {
+        return '<a class="ri-btn' + (i ? '' : ' primary') + '" data-listen="' + r.id + ':' + L[0] + '" href="#/r/' + r.id + '/' + L[2] + '">' + playMark() + '<span>' + L[1] + '</span>' + mins(r.audio[L[0]]) + '</a>';
+      }).join('') + '</div>'
+      : '<p class="ri-soon">' + UI.soon + '</p>';
     // the three ritual lines of the label, read as one short passage
     var prose = [r.rows.scent, r.rows.touch, r.rows.feel].map(esc).join(' ');
     var facts =
@@ -440,10 +448,7 @@
         '<div class="ri-body">' +
         '<p class="rc-kind">' + esc(r.kind) + ' · ' + esc(r.scent) + '</p>' +
         '<p class="ri-aff">' + esc(r.affirmation) + '</p>' +
-        '<div class="ri-listen">' +
-        '<a class="ri-btn primary" data-listen="' + r.id + ':short" href="#/r/' + r.id + '/s">' + playMark() + '<span>' + UI.shortRitual + '</span>' + mins(r.audio.short) + '</a>' +
-        '<a class="ri-btn" data-listen="' + r.id + ':extended" href="#/r/' + r.id + '/e">' + playMark() + '<span>' + UI.extended + '</span>' + mins(r.audio.extended) + '</a>' +
-        '</div>' +
+        listen +
         '<div class="ri-more">' +
         section(UI.aboutProduct, facts, true) +
         section(UI.theRitual, '<p>' + prose + '</p>') +
@@ -455,10 +460,9 @@
   }
 
   // The ritual, heard: the product's photograph rising out of the dark, the name, one line from the recording,
-  // and the controls. Nothing else.
+  // the line to drag, and one button. Nothing else (the menu has the way home).
   function player(r, mode) {
     var key = mode === 'e' ? 'extended' : 'short';
-    var otherKey = mode === 'e' ? 'short' : 'extended';
     var a = r.audio[key];
     return {
       title: cap(r.id) + ' — ' + UI.brand,
@@ -474,17 +478,10 @@
         '<input class="range" type="range" min="0" max="1000" step="1" value="0" data-range aria-label="' + UI.position + '">' +
         '<span class="t" data-total>–:––</span></div>' +
         '<div class="controls">' +
-        '<button class="ctl" type="button" data-restart aria-label="' + UI.beginAgain + '">' + ICON.restart + '<span class="cap">' + UI.beginAgain + '</span></button>' +
         '<button class="ctl play" type="button" data-toggle data-state="paused" aria-label="' + UI.play + '">' + ICON.play + ICON.pause + '</button>' +
-        '<button class="ctl" type="button" data-back15 aria-label="' + UI.back15 + '"><span class="ctl-text">−15</span><span class="cap">' + UI.back15Cap + '</span></button>' +
         '</div>' +
         '<p class="notice" data-notice hidden>' + UI.missing + '</p>' +
-        '</div>' +
-        '<nav class="quiet">' +
-        '<a href="#/r/' + r.id + '"><span>' + UI.theRitual + '</span></a>' +
-        '<a data-listen="' + r.id + ':' + otherKey + '" href="#/r/' + r.id + '/' + (otherKey === 'extended' ? 'e' : 's') + '"><span>' + (otherKey === 'extended' ? UI.extended : UI.shortRitual) + '</span></a>' +
-        homeLink() +
-        '</nav></section>'
+        '</div></section>'
     };
   }
 

@@ -162,7 +162,7 @@ def main():
             f = audio_dir / name
             if not f.exists():
                 warnings.append("recording not added yet: " + name)
-            r["audio"][mode] = {"src": audio["dir"] + name, "quote": quote, "min": duration_minutes(f) if f.exists() else None}
+            r["audio"][mode] = {"src": audio["dir"] + name, "quote": quote, "min": duration_minutes(f) if f.exists() else None, "ready": f.exists()}
         rituals.append(r)
 
     if not (ROOT / "public/assets/img/logo.webp").exists():
