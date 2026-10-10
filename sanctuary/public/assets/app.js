@@ -40,6 +40,8 @@
     enterRitual: 'Enter the ritual',
     aboutLink: 'About Sensory Enrichment',
     home: 'Home',
+    back: 'Back',
+    backLabel: 'Back to the ritual, to choose the other length',
     allRituals: 'All rituals',
     aboutProduct: 'About the product',
     minShort: 'min',
@@ -462,7 +464,7 @@
   }
 
   // The ritual, heard: the product's photograph rising out of the dark, the name, one line from the recording,
-  // the line to drag, and one button. Nothing else (the menu has the way home).
+  // the line to drag, and one button, and a Back to the ritual's page (to choose the other length). The menu has the way home.
   function player(r, mode) {
     var key = mode === 'e' ? 'extended' : 'short';
     var a = r.audio[key];
@@ -472,6 +474,7 @@
       html:
         '<section class="screen player" data-player="' + r.id + ':' + key + '" data-state="paused">' +
         '<div class="pl-hero" aria-hidden="true"><img src="' + r.img.photo + '" alt="" width="900" height="1125" decoding="async"></div>' +
+        '<a class="pl-back" href="#/r/' + r.id + '" aria-label="' + UI.backLabel + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>' + UI.back + '</span></a>' +
         '<h1 class="pl-name">' + r.id + '</h1>' +
         '<p class="eyebrow">' + (key === 'extended' ? UI.extended : UI.shortRitual) + '</p>' +
         '<blockquote class="quote"><p>“' + esc(a.quote) + '”</p></blockquote>' +

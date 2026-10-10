@@ -455,9 +455,14 @@ test('a ritual\'s own page: the picture, two ways to listen, what to read, and a
   assert.equal(await p.page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()), '#1b140e');
   assert.equal(await p.page.evaluate(() => document.documentElement.hasAttribute('data-c')), false);
   for (const sel of ['[data-toggle]', '[data-range]', '[data-now]', '[data-total]']) assert.equal(await p.page.locator('.player ' + sel).count(), 1, sel);
-  // as bare as possible: one button (play), the line to drag, and no links underneath (the menu has the way home)
+  // as bare as possible: one button (play), the line to drag, and one link: Back to the ritual's page (to choose the other length)
   assert.equal(await p.page.locator('.player button').count(), 1, 'one button');
-  assert.equal(await p.page.locator('.player a').count(), 0, 'no links on the page itself');
+  assert.equal(await p.page.locator('.player a').count(), 1, 'one link');
+  assert.equal(await p.page.getAttribute('.player a.pl-back', 'href'), '#/r/presence');
+  await p.page.click('.player a.pl-back');
+  await p.page.waitForSelector('.ri-hero');
+  assert.equal(await p.page.locator('a.ri-btn').count(), 2, 'both lengths to choose between');
+  await open(p, '#/r/presence/e');
   assert.match(await p.page.textContent('.player .eyebrow'), /Extended ritual/);
   // a recording that is not in yet: its length is still shown, quiet, with nothing to press (the recordings are
   // made to look missing here: Luminance has neither, Presence lacks the extended one)
