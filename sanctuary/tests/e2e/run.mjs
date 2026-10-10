@@ -420,11 +420,12 @@ test('a ritual\'s own page: the picture, two ways to listen, what to read, and a
   assert.equal((await p.page.textContent('h1.rc-name')).trim().toLowerCase(), 'presence');
   assert.match(await p.page.textContent('.rc-kind'), /Body Lotion · Raspberry/);
   assert.equal(await p.page.getAttribute('.ri-btn.primary', 'href'), '#/r/presence/s');
-  // both lengths are always there: Presence has the short recording (a button), the extended one is not in yet (quiet, not pressable)
-  assert.equal(await p.page.locator('.ri-btn').count(), 2);
-  assert.equal(await p.page.locator('a.ri-btn').count(), 1);
-  assert.equal(await p.page.getAttribute('.ri-btn.ri-off', 'aria-disabled'), 'true');
-  assert.match(await p.page.textContent('.ri-btn.ri-off'), /Extended ritual/);
+  // both lengths, both with their recording: two buttons to press, each with its length
+  assert.equal(await p.page.locator('a.ri-btn').count(), 2);
+  assert.equal(await p.page.getAttribute('a.ri-btn:not(.primary)', 'href'), '#/r/presence/e');
+  assert.equal(await p.page.locator('.ri-off').count(), 0);
+  assert.match(await p.page.textContent('a.ri-btn.primary'), /4 min/);
+  assert.match(await p.page.textContent('a.ri-btn:not(.primary)'), /11 min/);
   assert.equal(await p.page.locator('.rd').count(), 3, 'three things to read');
   assert.equal(await p.page.locator('.rd[open]').count(), 1, 'the first is open');
   assert.match(await p.page.textContent('.rd[open]'), /250 ml/);
@@ -458,11 +459,27 @@ test('a ritual\'s own page: the picture, two ways to listen, what to read, and a
   assert.equal(await p.page.locator('.player button').count(), 1, 'one button');
   assert.equal(await p.page.locator('.player a').count(), 0, 'no links on the page itself');
   assert.match(await p.page.textContent('.player .eyebrow'), /Extended ritual/);
-  // a ritual without any recording yet shows both lengths, quiet, and nothing to press
-  await open(p, '#/r/luminance');
-  await p.page.waitForSelector('.ri-off');
-  assert.equal(await p.page.locator('.ri-btn.ri-off').count(), 2);
-  assert.equal(await p.page.locator('a.ri-btn').count(), 0);
+  // a recording that is not in yet: its length is still shown, quiet, with nothing to press (the recordings are
+  // made to look missing here: Luminance has neither, Presence lacks the extended one)
+  const q = await phone();
+  await q.ctx.route('**/assets/content.js*', async (route) => {
+    const res = await route.fetch();
+    const text = await res.text();
+    const data = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1));
+    const by = (id) => data.rituals.find((r) => r.id === id).audio;
+    by('luminance').short.ready = false; by('luminance').extended.ready = false; by('presence').extended.ready = false;
+    await route.fulfill({ status: 200, contentType: 'text/javascript', body: 'window.SANCTUARY = ' + JSON.stringify(data) + ';' });
+  });
+  await open(q, '#/r/luminance');
+  await q.page.waitForSelector('.ri-off');
+  assert.equal(await q.page.locator('.ri-btn.ri-off').count(), 2);
+  assert.equal(await q.page.locator('a.ri-btn').count(), 0);
+  await open(q, '#/r/presence');
+  await q.page.waitForFunction(() => { const h = document.querySelector('h1.rc-name'); return h && h.textContent.trim() === 'presence'; });
+  assert.equal(await q.page.locator('a.ri-btn').count(), 1);
+  assert.equal(await q.page.getAttribute('.ri-btn.ri-off', 'aria-disabled'), 'true');
+  assert.match(await q.page.textContent('.ri-btn.ri-off'), /Extended ritual/);
+  noErrors(q); await closeAll(q);
   // the front page has its own way to Sensory Enrichment
   await open(p, '#/');
   await p.page.click('.front-menu a');

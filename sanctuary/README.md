@@ -28,10 +28,9 @@ Lägg de elva mp3-filerna ur Drive-mappen **"FÄRDIGA - hemsida (8 okt)"**, med 
 10_Serenity_Macadamia-Shampoo_KORT.mp3         11_Serenity_Macadamia-Shampoo_LANG.mp3
 ```
 
-Tre av dem (01, 02 och 04) ligger redan i repot. De övriga åtta är för stora för att hämtas
-automatiskt ur Drive; ladda ner dem och lägg dem i mappen (t.ex. via GitHub: öppna
-`sanctuary/public/assets/audio`, *Add file → Upload files*, dra in filerna). Saknas en fil säger
-spelaren "This recording is not available yet." i stället för att låta tyst.
+Alla elva ligger i repot (de åtta sista lades in 2026-10-10, hämtade ur Drive-mappen och kontrollerade
+mot Drives filstorlekar). Saknas en fil visar ritualens sida den längden stilla med *Soon*, och spelaren
+säger "This recording is not available yet." i stället för att låta tyst.
 
 Ändras en inspelning: byt filen med samma namn. Ljudet cachas inte offline (filerna är stora och
 spelas som ström), så gästerna behöver täckning när de lyssnar.
@@ -186,7 +185,7 @@ node e2e/regression.mjs                          # är de fem ritualerna oförä
 
 ## Öppna punkter
 
-- **Åtta inspelningar saknas i repot** (se ovan). Utan dem säger spelaren att inspelningen inte finns än.
+- **Inspelningarna är inlagda** (alla elva, 2026-10-10). Repot är publikt: filerna kan hämtas av var och en som har adressen.
 - **Texterna är inte klara.** "Meditations mall" ändras fortfarande; citaten och introtexten bygger på kopian från 2026-10-08.
 - **Shopify stämmer inte med etiketterna.** Etiketterna har använts som källa. Shopify-sidorna har
   bland annat andra ritualrader och ton-ord (t.ex. "Smoothing" mot etikettens "Hydrating") och en
