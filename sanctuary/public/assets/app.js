@@ -43,7 +43,7 @@
     allRituals: 'All rituals',
     aboutProduct: 'About the product',
     minShort: 'min',
-    soon: 'The recording is being prepared.',
+    soon: 'Soon',
     aboutEyebrow: 'Sensory Enrichment',
     closeLink: 'Close your visit',
     shortRitual: 'Short ritual',
@@ -424,13 +424,15 @@
   // A ritual: the same quiet page as the carousel. The picture, what it is, two ways to listen, then what to read.
   function ritualIntro(r) {
     function mins(a) { return a.min ? '<em>' + Math.round(a.min) + ' ' + UI.minShort + '</em>' : ''; }
-    // only the lengths that have a recording: no button leads to silence
-    var lengths = [['short', UI.shortRitual, 's'], ['extended', UI.extended, 'e']].filter(function (L) { return r.audio[L[0]].ready; });
-    var listen = lengths.length
-      ? '<div class="ri-listen">' + lengths.map(function (L, i) {
-        return '<a class="ri-btn' + (i ? '' : ' primary') + '" data-listen="' + r.id + ':' + L[0] + '" href="#/r/' + r.id + '/' + L[2] + '">' + playMark() + '<span>' + L[1] + '</span>' + mins(r.audio[L[0]]) + '</a>';
-      }).join('') + '</div>'
-      : '<p class="ri-soon">' + UI.soon + '</p>';
+    // both lengths are always there; one whose recording is not in yet is shown, but quiet and not pressable (no button leads to silence)
+    var first = true;
+    var listen = '<div class="ri-listen">' + [['short', UI.shortRitual, 's'], ['extended', UI.extended, 'e']].map(function (L) {
+      var a = r.audio[L[0]];
+      if (!a.ready) return '<span class="ri-btn ri-off" aria-disabled="true">' + playMark() + '<span>' + L[1] + '</span><em>' + UI.soon + '</em></span>';
+      var cls = first ? ' primary' : '';
+      first = false;
+      return '<a class="ri-btn' + cls + '" data-listen="' + r.id + ':' + L[0] + '" href="#/r/' + r.id + '/' + L[2] + '">' + playMark() + '<span>' + L[1] + '</span>' + mins(a) + '</a>';
+    }).join('') + '</div>';
     // the three ritual lines of the label, read as one short passage
     var prose = [r.rows.scent, r.rows.touch, r.rows.feel].map(esc).join(' ');
     var facts =

@@ -2,7 +2,7 @@
 
 En liten, helt fristående webbplats som gästerna når med QR-koden i Sensory Enrichment-asken.
 Fem ritualer (Balance, Luminance, Kindness, Serenity, Presence) som **lyssnas på**: när man trycker
-på *Short ritual* eller *Extended ritual* (bara de längder som har en inspelning får en knapp) visas
+på *Short ritual* eller *Extended ritual* (båda längderna finns alltid; en vars inspelning inte är inlagd än visas stilla med *Soon* och går inte att trycka på) visas
 produktens bild, ritualens namn och en rad ur meditationen, och inspelningen startar av sig själv.
 Spelsidan är avskalad: en knapp (spela/pausa) och en linje man drar med fingret för att söka; vägen
 hem finns i menyn. Själva meditationen visas aldrig som text. Ingen butik, inga priser, inga länkar ut, inga cookies och

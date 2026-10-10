@@ -627,7 +627,8 @@ html[data-page="intro"] body::before, html[data-page="intro"] body::after { disp
 .ri-btn.primary:hover { background: #9a7e29; }
 .ri-btn:not(.primary):hover { background: rgba(168, 139, 48, .09); }
 .ri-btn em { font-style: normal; font-weight: 400; letter-spacing: .08em; opacity: .85; }
-.ri-soon { margin: 1.7rem 0 0; font-style: italic; font-size: 1.15rem; color: var(--soft); }
+.ri-off { border-color: rgba(168, 139, 48, .35); color: rgba(134, 105, 26, .55); cursor: default; }
+.ri-off em { text-transform: uppercase; font-size: .78em; letter-spacing: .16em; }
 .ri-play { width: 1rem; height: 1rem; flex: none; fill: currentColor; }
 .ri-more { margin: 2.1rem 0 0; border-top: 1px solid rgba(51, 41, 29, .14); text-align: left; }
 .rd { border-bottom: 1px solid rgba(51, 41, 29, .14); }

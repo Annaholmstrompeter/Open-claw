@@ -420,8 +420,11 @@ test('a ritual\'s own page: the picture, two ways to listen, what to read, and a
   assert.equal((await p.page.textContent('h1.rc-name')).trim().toLowerCase(), 'presence');
   assert.match(await p.page.textContent('.rc-kind'), /Body Lotion · Raspberry/);
   assert.equal(await p.page.getAttribute('.ri-btn.primary', 'href'), '#/r/presence/s');
-  // only the lengths that have a recording get a button: Presence has the short one, not yet the extended
-  assert.equal(await p.page.locator('.ri-btn').count(), 1);
+  // both lengths are always there: Presence has the short recording (a button), the extended one is not in yet (quiet, not pressable)
+  assert.equal(await p.page.locator('.ri-btn').count(), 2);
+  assert.equal(await p.page.locator('a.ri-btn').count(), 1);
+  assert.equal(await p.page.getAttribute('.ri-btn.ri-off', 'aria-disabled'), 'true');
+  assert.match(await p.page.textContent('.ri-btn.ri-off'), /Extended ritual/);
   assert.equal(await p.page.locator('.rd').count(), 3, 'three things to read');
   assert.equal(await p.page.locator('.rd[open]').count(), 1, 'the first is open');
   assert.match(await p.page.textContent('.rd[open]'), /250 ml/);
@@ -455,10 +458,11 @@ test('a ritual\'s own page: the picture, two ways to listen, what to read, and a
   assert.equal(await p.page.locator('.player button').count(), 1, 'one button');
   assert.equal(await p.page.locator('.player a').count(), 0, 'no links on the page itself');
   assert.match(await p.page.textContent('.player .eyebrow'), /Extended ritual/);
-  // a ritual without any recording yet says so instead of offering silence
+  // a ritual without any recording yet shows both lengths, quiet, and nothing to press
   await open(p, '#/r/luminance');
-  await p.page.waitForSelector('.ri-soon');
-  assert.equal(await p.page.locator('.ri-btn').count(), 0);
+  await p.page.waitForSelector('.ri-off');
+  assert.equal(await p.page.locator('.ri-btn.ri-off').count(), 2);
+  assert.equal(await p.page.locator('a.ri-btn').count(), 0);
   // the front page has its own way to Sensory Enrichment
   await open(p, '#/');
   await p.page.click('.front-menu a');
