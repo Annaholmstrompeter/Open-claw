@@ -135,6 +135,15 @@ Anna samlar resmål och resetips löpande, över flera sessioner. När resor ell
 - Gör detta utan att fråga om lov — det är samma sak som att skriva ner en anteckning
 - Följer samma synk-konvention som allt annat: pull `master` innan, pusha ändringen dit direkt efteråt
 
+## 🖥️ Datorstyrning → kör lokalt, inte i molnet
+
+Datoranvändning (Beta) är påslaget i Claude-skrivbordsappen (Inställningar → Datoranvändning → "Aktivera datoranvändning"). Det fungerar **bara i sessioner som körs på Annas egen dator** — aldrig i Code-sessioner i molnet.
+
+- Behöver en uppgift styra Annas dator (öppna appar, klicka, logga in på en sida) och sessionen körs i molnet, eller det blir krångligt: **säg direkt åt Anna att starta en ny session som körs lokalt** — lägg inte tid på att diagnostisera inställningar först.
+- Så gör Anna: **+ Ny** (uppe till vänster) → klicka knappen **Default** (molnikonen) ovanför skrivrutan → byt från molnet till lokalt (den egna datorn) → skriv uppgiften. En pågående molnsession kan inte flyttas, så en ny behövs.
+- Webbsidor: med datoranvändning kan webbläsare bara läsas, inte klickas i. För att navigera behövs Claude-tillägget i Chrome (Anna öppnar Chrome → tillägget → loggar in; annars står det "Inga Chrome-instanser är anslutna") eller den inbyggda webbläsaren (inställningen "Öppna länkar i inbyggd webbläsare").
+- Inloggning, bankuppgifter och betalningar gör Anna själv — du guidar, du skriver inte in dem.
+
 ## Tools
 
 Skills provide your tools. When you need one, check its `SKILL.md`. Keep local notes (camera names, SSH details, voice preferences) in `TOOLS.md`.

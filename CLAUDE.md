@@ -2,6 +2,10 @@
 
 This repo is Anna's personal OpenClaw workspace (assistant identity: "Aether"). Full operating instructions live in `AGENTS.md` — read it.
 
+## Datorstyrning (computer use)
+
+Fungerar bara i sessioner som körs **lokalt på Annas dator**, inte i molnet. Om en molnsession ska styra hennes dator, eller det blir krångligt: be Anna starta en ny session och i knappen **Default** (molnikon, ovanför skrivrutan) byta från molnet till lokalt. Detaljer i `AGENTS.md` → "Datorstyrning".
+
 ## Sync convention
 
 This repo is shared across multiple fronts: OpenClaw running locally, and Claude Code sessions elsewhere (web or otherwise). `master` is the single source of truth everyone syncs against.
