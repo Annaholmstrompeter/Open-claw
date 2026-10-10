@@ -141,9 +141,6 @@ html[data-tg="scene"] .waves { opacity: 0; }
 .tg-privacy { margin: 1.6rem 0 0; max-width: 22rem; line-height: 1.7; text-transform: none; letter-spacing: .1em; font-size: .68rem; }
 .tg-meta { margin: 0 0 .9rem; }
 .tg-prose { max-width: 25rem; font-size: 1.28rem; }
-.tg-back { align-self: flex-start; display: inline-flex; align-items: center; gap: .5rem; margin: -.4rem 0 .6rem -.2rem; padding: .6rem .2rem; text-decoration: none; font-family: var(--sans); font-size: .7rem; letter-spacing: .26em; text-transform: uppercase; color: var(--soft); }
-.tg-back svg { width: .5rem; height: .9rem; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
-.tg-back:hover { color: var(--accent); }
 .tg-fine, .fine.tg-fine { font-size: 1.05rem; max-width: 24rem; margin: 1rem 0 0; }
 
 .tg-consent { margin: .6rem 0 1.8rem; max-width: 24rem; font-style: italic; font-size: 1.22rem; line-height: 1.45; color: var(--ink); }

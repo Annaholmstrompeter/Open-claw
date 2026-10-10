@@ -41,7 +41,6 @@
     aboutLink: 'About Sensory Enrichment',
     home: 'Home',
     back: 'Back',
-    backLabel: 'Back to the ritual, to choose the other length',
     allRituals: 'All rituals',
     aboutProduct: 'About the product',
     minShort: 'min',
@@ -346,6 +345,7 @@
     return {
       title: UI.chooseTitle + ' — ' + UI.brand,
       kind: 'list',
+      back: '#/',
       mount: bindCarousel,
       html:
         '<section class="screen top-aligned rituals-screen">' +
@@ -444,6 +444,7 @@
     return {
       title: cap(r.id) + ' — ' + UI.brand,
       kind: 'intro',
+      back: '#/rituals',
       html:
         '<section class="screen top-aligned intro">' +
         '<div class="ri-hero"><div class="rc-frame"><div class="rc-photo">' +
@@ -458,7 +459,7 @@
         section(UI.theRitual, '<p>' + prose + '</p>') +
         section(UI.ingredientsSummary, labelCard(r)) +
         '</div>' +
-        '<nav class="quiet"><a href="#/rituals"><span>' + UI.allRituals + '</span></a>' + homeLink() + '</nav>' +
+        '<nav class="quiet">' + homeLink() + '</nav>' +
         '</div></section>'
     };
   }
@@ -471,10 +472,10 @@
     return {
       title: cap(r.id) + ' — ' + UI.brand,
       kind: 'player',
+      back: '#/r/' + r.id,
       html:
         '<section class="screen player" data-player="' + r.id + ':' + key + '" data-state="paused">' +
         '<div class="pl-hero" aria-hidden="true"><img src="' + r.img.photo + '" alt="" width="900" height="1125" decoding="async"></div>' +
-        '<a class="pl-back" href="#/r/' + r.id + '" aria-label="' + UI.backLabel + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>' + UI.back + '</span></a>' +
         '<h1 class="pl-name">' + r.id + '</h1>' +
         '<p class="eyebrow">' + (key === 'extended' ? UI.extended : UI.shortRitual) + '</p>' +
         '<blockquote class="quote"><p>“' + esc(a.quote) + '”</p></blockquote>' +
@@ -496,6 +497,7 @@
     return {
       title: cap(r.id) + ' — ' + UI.brand,
       kind: 'end',
+      back: '#/r/' + r.id,
       html:
         '<section class="screen end">' +
         '<h1 class="affirmation">' + esc(r.affirmation) + '</h1>' +
@@ -520,6 +522,7 @@
     return {
       title: UI.aboutEyebrow + ' — ' + UI.brand,
       kind: 'about',
+      back: '#/',
       html:
         '<section class="screen about top-aligned">' +
         '<p class="eyebrow">' + UI.aboutEyebrow + '</p>' +
@@ -549,6 +552,7 @@
     return {
       title: plain(UI.closeTitle) + ' — ' + UI.brand,
       kind: 'close',
+      back: '#/',
       html:
         '<section class="screen closing">' +
         photo() +
@@ -569,13 +573,27 @@
   }
 
   /* ——— routing ——— */
+  // Where Back goes from a TOGETHER screen: the one before it (landing, the choice, the ritual's page, then the screens that begin from it).
+  function togetherBack(parts) {
+    var a = parts[1];
+    if (!a) return '#/';
+    if (a === 'rituals') return '#/together';
+    if (a === 'solo' || a === 'host' || a === 'join') return '#/together/' + (parts[2] || 'rituals');
+    return '#/together/rituals';
+  }
+
   function resolve() {
     var parts = route.replace(/^#\/?/, '').split('/').filter(Boolean);
     if (!parts.length) return welcome();
     if (parts[0] === 'rituals') return rituals();
     if (parts[0] === 'about') return about();
     if (parts[0] === 'close') return closing();
-    if (parts[0] === 'together') return (window.BMETogether && window.BMETogether.screen(parts)) || rituals();
+    if (parts[0] === 'together') {
+      var tp = window.BMETogether && window.BMETogether.screen(parts);
+      if (!tp) return rituals();
+      tp.back = togetherBack(parts);
+      return tp;
+    }
     if (parts[0] === 'r') {
       var r = ritualById(parts[1]);
       if (!r) return rituals();
@@ -603,6 +621,13 @@
     root.removeAttribute('data-c');
     if (themeMeta) themeMeta.setAttribute('content', coloured ? NIGHT : PAPER);
     root.setAttribute('data-page', page.kind);
+    // Back: every page but the front page says where it goes
+    var backEl = document.getElementById('back');
+    if (backEl) {
+      backEl.hidden = !page.back;
+      if (page.back) backEl.setAttribute('href', page.back);
+    }
+    if (page.back) root.setAttribute('data-back', ''); else root.removeAttribute('data-back');
     try {
       if (page.kind === 'together') window.BMETogether.enter(page);
       else if (window.BMETogether) window.BMETogether.clear();

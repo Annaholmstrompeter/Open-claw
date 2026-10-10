@@ -32,7 +32,6 @@
     forTwo: 'For two',
     about: 'About',
     minutes: 'minutes',
-    backTogether: 'Together',
     invite: 'Invite Your Partner',
     oneDevice: 'Listen Together on One Device',
     oneDeviceNote: 'Two Bluetooth headphones can work on one phone, if your phone and headphones allow it. This website cannot switch that on for you: look for audio sharing in your phone’s Bluetooth settings.',
@@ -228,7 +227,6 @@
       mount: function (stage) { checkRecording(r, stage.querySelector('[data-note]')); bindInvite(r, stage); },
       html:
         '<section class="screen top-aligned tg tg-ritual">' +
-        '<a class="tg-back" href="#/together/rituals"><svg viewBox="0 0 10 18" aria-hidden="true"><path d="M9 1L1 9l8 8"/></svg><span>' + UI.backTogether + '</span></a>' +
         '<div class="tg-hero tg-hero-ritual">' + light() + rings('here', 'here') +
         '<div class="tg-hero-text"><p class="eyebrow">' + UI.chooseTitle + '</p>' +
         '<h1 class="tg-title small">' + esc(r.title) + '</h1>' +

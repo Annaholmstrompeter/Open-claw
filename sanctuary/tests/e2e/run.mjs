@@ -173,6 +173,8 @@ test('two phones: invite, QR and link, ready, begin together, start in step, pau
   await waitPhase(host, 'countdown'); await waitPhase(guest, 'countdown');
   await shot(host, 'c-countdown-breath'); await shot(guest, 'c-guest-countdown');
   await waitPhase(host, 'playing', 15000); await waitPhase(guest, 'playing', 15000);
+  // a shared ritual in progress is not left by a stray touch: no Back to be seen on either phone while it plays
+  for (const x of [host, guest]) assert.equal(await x.page.evaluate(() => getComputedStyle(document.getElementById('back')).visibility), 'hidden', 'no Back during the shared ritual');
   await sleep(1800);
   await shot(host, 'd-host-playing'); await shot(guest, 'd-guest-playing');
 
@@ -455,11 +457,11 @@ test('a ritual\'s own page: the picture, two ways to listen, what to read, and a
   assert.equal(await p.page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()), '#1b140e');
   assert.equal(await p.page.evaluate(() => document.documentElement.hasAttribute('data-c')), false);
   for (const sel of ['[data-toggle]', '[data-range]', '[data-now]', '[data-total]']) assert.equal(await p.page.locator('.player ' + sel).count(), 1, sel);
-  // as bare as possible: one button (play), the line to drag, and one link: Back to the ritual's page (to choose the other length)
+  // as bare as possible: one button (play), the line to drag, no links on the page itself; Back (the one in the corner) goes to the ritual's page
   assert.equal(await p.page.locator('.player button').count(), 1, 'one button');
-  assert.equal(await p.page.locator('.player a').count(), 1, 'one link');
-  assert.equal(await p.page.getAttribute('.player a.pl-back', 'href'), '#/r/presence');
-  await p.page.click('.player a.pl-back');
+  assert.equal(await p.page.locator('.player a').count(), 0, 'no links on the page itself');
+  assert.equal(await p.page.getAttribute('#back', 'href'), '#/r/presence');
+  await p.page.click('#back');
   await p.page.waitForSelector('.ri-hero');
   assert.equal(await p.page.locator('a.ri-btn').count(), 2, 'both lengths to choose between');
   await open(p, '#/r/presence/e');
@@ -493,6 +495,36 @@ test('a ritual\'s own page: the picture, two ways to listen, what to read, and a
   await open(p, '#/r/presence');
   await p.page.click('.ri-btn.primary');
   await p.page.waitForSelector('[data-player="presence:short"]');
+  noErrors(p); await closeAll(p);
+});
+
+test('Back on every page but the front page, each to the page before it', async () => {
+  const p = await phone();
+  const pages = [
+    ['#/rituals', '#/'], ['#/r/presence', '#/rituals'], ['#/r/presence/s', '#/r/presence'], ['#/r/presence/e', '#/r/presence'],
+    ['#/r/presence/done', '#/r/presence'], ['#/about', '#/'], ['#/close', '#/'],
+    ['#/together', '#/'], ['#/together/rituals', '#/together'], ['#/together/heart-to-heart', '#/together/rituals'],
+    ['#/together/solo/heart-to-heart', '#/together/heart-to-heart'],
+    ['#/together/host/heart-to-heart/not-a-room/not-a-seat', '#/together/heart-to-heart']
+  ];
+  await open(p, '#/');
+  assert.equal(await p.page.isVisible('#back'), false, 'no Back on the front page');
+  for (const [hash, to] of pages) {
+    await open(p, hash);
+    // the page swaps after a short fade: wait for Back to point where it should (the check below says it if not)
+    await p.page.waitForFunction((t) => document.getElementById('back').getAttribute('href') === t && !document.getElementById('back').hidden, to, { timeout: 5000 }).catch(() => {});
+    assert.equal(await p.page.getAttribute('#back', 'href'), to, hash + ' goes back to ' + to);
+    assert.equal(await p.page.isVisible('#back'), true, hash + ': Back is in view');
+  }
+  // and it works: from the rituals, back to the front page; from the ritual, back to the carousel
+  await open(p, '#/rituals');
+  await p.page.waitForSelector('.rc-track');
+  await p.page.click('#back');
+  await p.page.waitForSelector('.front');
+  await open(p, '#/r/kindness');
+  await p.page.waitForSelector('.ri-hero');
+  await p.page.click('#back');
+  await p.page.waitForSelector('.rc-track');
   noErrors(p); await closeAll(p);
 });
 
