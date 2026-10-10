@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Body Mind Earth — Sensory Ritual</title>
+  <meta name="description" content="A private sanctuary of five sensory rituals.">
+  <!-- A closed sanctuary: not for search engines, not for sharing, not linked from anywhere. -->
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#fff7e9">
+  <meta name="apple-mobile-web-app-title" content="Sanctuary">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" href="assets/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/icon-180.png">
+  <link rel="preload" href="assets/fonts/cormorant-garamond-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/jost-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <div class="panel-bg" aria-hidden="true"></div>
+  <div class="waves" aria-hidden="true"></div>
+
+  <header class="top">
+    <p class="head-brand" aria-hidden="true"><img class="head-logo" src="assets/img/logo.webp" alt="" width="36" height="36"><span>B<i>O</i>DY MI<i>N</i>D <i>E</i>ARTH</span></p>
+    <button class="menu-btn" id="menu-btn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="menu">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18M3 12h18M3 17h18"/></svg>
+    </button>
+  </header>
+
+  <nav class="menu" id="menu" aria-label="Menu" hidden>
+    <button class="menu-close" id="menu-close" type="button" aria-label="Close menu">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+    <a href="#/rituals">Rituals</a>
+    <a href="#/about">Sensory Enrichment</a>
+    <a href="#/close">Close your visit</a>
+  </nav>
+
+  <main id="stage" tabindex="-1"></main>
+
+  <noscript><p class="nojs">This sanctuary needs JavaScript to guide you through the rituals.</p></noscript>
+
+  <script src="assets/content.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>
