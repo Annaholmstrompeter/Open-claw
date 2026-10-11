@@ -156,3 +156,8 @@
 - Känslig information (som verifieringskoder) ska INTE loggas i klartext
 - Rensa känslig information från minnet efter användning
 - Endast använda känslig information i säkra miljöer
+
+## Projekt: Fristaden (Body Mind Earth Sanctuary) — spa-kundernas QR-sida
+- Annas stängda, statiska QR-sida för spa-kunder: fem lyssnarritualer (kort + lång), Together (parlyssning), spa-sidor (`?s=<spa>`). Koden ligger på grenen `claude/parallel-page-spakunder-9t2qcg` (inte mergad till `master`; utkast-PR).
+- **Överlämning med allt överenskommet, gjort och planerat: `projects/fristaden-overlamning.md`. Läs den först.** Detaljlogg på grenen: `projects/fristaden-logg.md`.
+- Anna vill **alltid ha en ny, uppdaterad testlänk** när något är klart, och att jag gör sakerna åt henne (hon är mycket oteknisk). Hon kollar på iPhone (Brave, ca 390×737).
