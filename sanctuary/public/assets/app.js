@@ -23,6 +23,8 @@
   var menu = document.getElementById('menu');
   var menuBtn = document.getElementById('menu-btn');
   var themeMeta = document.querySelector('meta[name="theme-color"]');
+  // A spa's own page (?s=<name>): its picture, its name, its thanks and its way to book. Nothing else changes.
+  var SPA = window.BME_SPA && window.BME_SPA.name ? window.BME_SPA : null;
   var PAPER = '#fff7e9';
   var NIGHT = '#1b140e';   // the ground where the ritual is heard
   var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -45,6 +47,10 @@
     aboutProduct: 'About the product',
     minShort: 'min',
     soon: 'Soon',
+    spaWelcome: 'Welcome to',
+    spaBook: 'Experience the ritual at',
+    spaBookShort: 'Experience it at the spa',
+    spaMenuBook: 'Book a visit',
     aboutEyebrow: 'Sensory Enrichment',
     closeLink: 'Close your visit',
     shortRitual: 'Short ritual',
@@ -74,6 +80,22 @@
     privacyTitle: 'Privacy',
     privacy: 'This sanctuary keeps nothing about you. No cookies, no accounts, no tracking.'
   };
+
+  // the way to book at the spa: its own page, told where the guest came from (so the spa sees what the ritual brings)
+  function bookHref() {
+    var u = SPA && SPA.bookUrl || '';
+    if (!u || /^(tel|mailto):/.test(u)) return u;
+    return u + (u.indexOf('?') < 0 ? '?' : '&') + 'utm_source=bodymindearth&utm_medium=ritual&utm_campaign=' + encodeURIComponent(SPA.slug || 'spa');
+  }
+  function spaMark() {
+    return SPA.logo ? '<img class="spa-logo" src="' + esc(SPA.logo) + '" alt="' + esc(SPA.name) + '">' : '<span class="spa-name">' + esc(SPA.name) + '</span>';
+  }
+  function bookLink(cls, short) {
+    return SPA && SPA.bookUrl
+      ? '<a class="' + cls + '" href="' + esc(bookHref()) + '" target="_blank" rel="noopener noreferrer"><span>' + (short ? UI.spaBookShort : UI.spaBook + ' ' + esc(SPA.name)) + '</span></a>'
+      : '';
+  }
+  function spaDemoNote() { return SPA && SPA.demo ? '<p class="spa-demo">' + esc(SPA.name) + ' is a fictional example.</p>' : ''; }
 
   function br(s) { return s.split('|').join('<br>'); }
   function plain(s) { return s.split('|').join(' '); }
@@ -282,6 +304,15 @@
   }
 
   /* ——— the menu: three places, nothing else ——— */
+  if (SPA && SPA.bookUrl) {
+    var menuBook = document.createElement('a');
+    menuBook.href = bookHref();
+    menuBook.target = '_blank';
+    menuBook.rel = 'noopener noreferrer';
+    menuBook.textContent = UI.spaMenuBook;
+    menu.appendChild(menuBook);
+  }
+
   function setMenu(open) {
     menu.hidden = !open;
     menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -309,6 +340,24 @@
 
   // The front page: a calm header, one photograph, a few words, one door. No shop.
   function welcome() {
+    if (SPA) {
+      return {
+        title: SPA.name + ' — ' + UI.brand,
+        kind: 'welcome',
+        html:
+          '<section class="screen front front-spa">' +
+          '<div class="front-photo spa-photo" aria-hidden="true"><img src="' + esc(SPA.hero) + '" alt="" width="1500" height="1364" decoding="async">' +
+          '<div class="spa-welcome"><p class="spa-welcome-eyebrow">' + UI.spaWelcome + '</p>' + spaMark() + '</div></div>' +
+          '<div class="front-copy">' +
+          '<p class="eyebrow">' + UI.frontEyebrow + '</p>' +
+          '<h1 class="front-title">' + UI.frontTitle + '</h1>' +
+          '<p class="text">' + UI.frontText + '</p>' +
+          '<a class="btn primary" href="#/rituals"><span>' + UI.discover + '</span>' + arrow() + '</a>' +
+          '<nav class="quiet front-menu" aria-label="' + UI.aboutEyebrow + '"><a href="#/about"><span>' + UI.aboutLink + '</span></a>' + bookLink('', true) + '</nav>' +
+          spaDemoNote() +
+          '</div></section>'
+      };
+    }
     return {
       title: UI.brand + ' — ' + UI.sub,
       kind: 'welcome',
@@ -502,6 +551,7 @@
         '<section class="screen end">' +
         '<h1 class="affirmation">' + esc(r.affirmation) + '</h1>' +
         '<div class="rule" aria-hidden="true"></div>' +
+        (SPA ? '<div class="spa-thanks">' + spaMark() + '<p class="spa-thanks-text">' + esc(SPA.thanks || '') + '</p>' + bookLink('btn ghost') + spaDemoNote() + '</div>' : '') +
         speciesCard(r) +
         '<div class="actions">' +
         '<a class="btn primary" href="#/rituals"><span>' + UI.returnRituals + '</span>' + arrow() + '</a>' +

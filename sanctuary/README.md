@@ -203,3 +203,24 @@ node e2e/regression.mjs                          # är de fem ritualerna oförä
 
 Cormorant Garamond och Jost (SIL Open Font License, licenserna ligger i `public/assets/fonts/`).
 De ligger på sidan, så gästernas telefoner anropar inga externa tjänster.
+
+## Spa-sidor (en egen sida per spa)
+
+Samma sida, men med ett spas egen bild, namn, tack och väg till bokning. Adressen är `<sidan>/?s=<spa>#/`. Utan `?s=` (eller med ett spa som inte finns) är sidan precis som för alla andra.
+
+**Så görs ett spa** (en minut, ingen programmering):
+
+```
+python3 sanctuary/tools/make-spa.py --slug horizon-hill --name "Horizon Hill Spa" --photo foto.jpg \
+    --book-url https://spats-bokning.se/boka --thanks "Tack för att ni tog er tid med oss."
+```
+
+Verktyget beskär bilden, ger den husets färgton (lite lugnare färg, varma ljus, mjuka skuggor) så att alla spa ser lika hemma ut bredvid produkterna, och skriver `public/spas/<slug>/{hero.webp, spa.js}`. Valfritt: `--logo`, `--focus x,y` (var i bilden det viktiga är), `--no-grade`.
+
+- **Första sidan:** spats bild med "Welcome to <namn>" över, sedan sidans vanliga text och knapp. Under finns en tyst länk "Experience it at the spa".
+- **Efter ritualen:** spats namn och tack, och en knapp "Experience the ritual at <spa>" till spats egen bokning. Menyn får "Book a visit".
+- **Bokningslänken** får `utm_source=bodymindearth&utm_medium=ritual&utm_campaign=<spa>` och öppnas i ny flik utan att skicka något annat (sidan sätter `Referrer-Policy: no-referrer`). Spat ser i sin egen statistik hur många som kommer från ritualen; själva sidan lagrar och spårar inget.
+- **Demon** `?s=horizon-hill` är ett **påhittat** spa med en fri bild (CC0) som stand-in och en exempel-bokningssida (`spas/horizon-hill/book.html`) som visar vad ett spa skulle se. Den är den enda spa-sidan som får ligga i det publika arkivet.
+
+**Riktiga spa:** deras namn och bilder är deras. `public/spas/` hålls utanför git (`.gitignore`, utom demon). Bygg riktiga spa i en **privat** kopia (eller bara lokalt och ladda upp mappen till Cloudflare), och visa dem för spat via en privat länk. Be om lov för bilden när de säger ja. QR-koden som trycks på produkten ska peka på en **egen domän** (inte github.io eller pages.dev), så att den fungerar även om sidan flyttar.
+

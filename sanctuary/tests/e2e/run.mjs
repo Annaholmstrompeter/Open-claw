@@ -533,6 +533,48 @@ test('Back on every page but the front page, each to the page before it', async 
   noErrors(p); await closeAll(p);
 });
 
+test('a spa\'s own page: its picture and name, its thanks and the way to book; the ordinary page is untouched', async () => {
+  const p = await phone();
+  await p.page.goto(p.base.base + 'index.html?s=horizon-hill#/');
+  await p.page.waitForSelector('.front-spa');
+  assert.match(await p.page.textContent('.spa-welcome'), /Horizon Hill Spa/);
+  assert.equal(await p.page.getAttribute('.spa-photo img', 'src'), 'spas/horizon-hill/hero.webp');
+  await p.page.waitForFunction(() => { const i = document.querySelector('.spa-photo img'); return i && i.complete && i.naturalWidth > 0; });
+  assert.equal(await p.page.locator('.btn.primary').count(), 1, 'still one door');
+  // the way to book: the spa's own page, in a new tab, told only where the guest came from
+  const book = p.page.locator('.front-menu a[target="_blank"]');
+  assert.equal(await book.count(), 1);
+  const href = await book.getAttribute('href');
+  assert.match(href, /utm_source=bodymindearth/);
+  assert.match(href, /utm_campaign=horizon-hill/);
+  assert.match(await book.getAttribute('rel'), /noopener/);
+  assert.match(await p.page.textContent('#menu'), /Book a visit/);
+  // after a ritual: the spa's thanks, and the same way to book
+  await p.page.goto(p.base.base + 'index.html?s=horizon-hill#/r/presence/done');
+  await p.page.reload();
+  await p.page.waitForSelector('.spa-thanks');
+  assert.match(await p.page.textContent('.spa-thanks'), /Thank you for taking this moment/);
+  assert.match(await p.page.getAttribute('.spa-thanks a.btn', 'href'), /utm_source=bodymindearth/);
+  assert.match(await p.page.textContent('.spa-thanks a.btn'), /Experience the ritual at Horizon Hill Spa/);
+  // the example booking page tells what the spa would see
+  const b = await p.ctx.newPage();
+  await b.goto(p.base.base + 'spas/horizon-hill/book.html?utm_source=bodymindearth&utm_medium=ritual&utm_campaign=horizon-hill');
+  assert.match(await b.textContent('[data-source]'), /came from the Body Mind Earth ritual/);
+  await b.close();
+  noErrors(p);
+  // the ordinary address has none of it
+  await p.page.goto(p.base.base + 'index.html#/');
+  await p.page.reload();
+  await p.page.waitForSelector('.front');
+  assert.equal(await p.page.locator('.front-spa, .spa-photo, .spa-thanks, [target="_blank"]').count(), 0);
+  // an address with a spa that does not exist is just the ordinary page
+  await p.page.goto(p.base.base + 'index.html?s=no-such-spa#/');
+  await p.page.reload();
+  await p.page.waitForSelector('.front');
+  assert.equal(await p.page.locator('.front-spa').count(), 0);
+  await closeAll(p);
+});
+
 test('the sanctuary\'s own five rituals play as before', { timeout: 60000 }, async () => {
   const p = await phone();
   await open(p, '#/r/balance/s');

@@ -91,7 +91,7 @@ def refresh_service_worker():
         for f in public.rglob("*")
         if f.is_file() and f.name not in skip and not f.name.startswith("OFL-") and "assets/audio/" not in f.as_posix()
         and "assets/together/vendor/" not in f.as_posix() and "assets/together/img/" not in f.as_posix()
-        and f.name != "config.js"
+        and f.name != "config.js" and not f.as_posix().startswith("spas/") and "/spas/" not in f.as_posix()
     )
     digest = hashlib.sha1()
     for name in files:
