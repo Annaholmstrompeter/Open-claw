@@ -1,3 +1,9 @@
+# Fristaden — arbetslogg (detaljerad, kronologisk)
+
+*Samlad ur de dagliga anteckningarna 2026-10-09 till 2026-10-11 (flyttade hit så att de inte krockar med andra sessioners dagsfiler i `memory/`). Överblick och nästa steg: `projects/fristaden-overlamning.md`.*
+
+---
+
 # 2026-10-09
 
 ## Together — A Ritual for Two (ny avdelning i fristaden)
@@ -23,3 +29,49 @@
 - **Lyssnarsidan och slutsidan omgjorda (2026-10-10, Anna: "lyxig och dyr", bonjil/ffern som förebild, med min egen identitet):** `#/r/<id>/s|e` har etikettens exakta färg som botten (som förut) men platt och lugn: samma inramade bild som karusellen (kräm-passepartout, namnet i vitt över), en guldfärgad liten rad *Short/Extended ritual*, en rad ur inspelningen i kursiv, hårfin tidslinje med liten guldprick, platt guldknapp för play/pause, och tysta länkar (The ritual · andra längden · Home). Vågornas linjer är kvar men svaga (opacitet .2). Bilden andas långsamt (70 s) bara medan det spelas; stilla vid reducerad rörelse. Rubriken (namnet) ligger i bilden på vanliga telefoner och i raden under på låga skärmar (under 740 px höjd). Slutsidan (`/done`): samma centrerade rubrik, ingen dubbel logga, platt guldknapp. All ljudlogik (data-attributen) är orörd. De gamla glaskortet med botaniska gravyren används inte längre på spelarsidan (bilderna ligger kvar i `assets/img`).
 - **Gamla etikettens färger borttagna (2026-10-10, Anna: "vi har ju bytt etikett, det gamla rosa ska inte vara med … världsklass, dyrt"):** de fem färgvärldarna (rosa/grönt/plommon/brun/koppar) är borta ur koden och tillgångarna: CSS (`[data-c]`, `.tile`, `.on-colour`, färgade kort), `*-waves.webp` och `*-botanical.webp` raderade, `color`/`botanical`/`waves` ur `content.js` (`build-content.py`). `tools/extract-label-art.py` finns kvar som härkomst för `waves-gold.webp` (gamla etikettens linjer i guld), men behövs inte för bygget. **Lyssnarsidan (`/s`, `/e`) och slutsidan (`/done`)** ligger nu på en enda *nattbotten* `#1b140e` (skuggsidan av kraftasken): produktfotot stiger ur mörkret (full bredd, tonar ut uppåt och nedåt), namnet i stora spärrade versaler, guld liten rad *Short/Extended ritual*, rad ur inspelningen i kursiv, hårfin tidslinje med liten guldprick, play/pause som tunn guldring (ringen pulserar mycket långsamt medan det spelas), och de gamla guldlinjerna (waves-gold) svagt i kanten. Fotot driver långsamt (90 s) bara medan det spelas. Samma botten för alla fem ritualer. Kräm/guld-sidorna (första sidan, karusell, ritualens sida, about, close, Together) var redan i nya världen. Ett test (`two phones …`) fick en gång ett CORS-fel mot den lokala Supabase-attrapen och gick sedan igenom fyra gånger i rad: sannolikt en sen request vid nedstängning, inte kopplat till ändringen.
 - **Spelsidan avskalad (2026-10-10, Anna: "så avskalat som möjligt"):** bort med *Begin again*, *15 s back* och länkarna *The ritual / Short ritual / Home* under spelaren (vägen hem är menyn och loggan). Kvar: foto, namn, längd, en rad ur inspelningen, linjen att dra i (hög träffyta, 48 px) och en knapp. **Inspelningar som saknas:** `content.js` har nu `ready` per längd; ritualens sida visar bara knappar för längder som finns, och `The recording is being prepared.` om ingen finns. Idag finns bara tre mp3 i repot (intro, Presence kort, Balance kort); åtta saknas (Balance lång, Luminance ×2, Kindness ×2, Serenity ×2, Presence lång). De ligger i Drive-mappen *FÄRDIGA - hemsida (8 okt)*; ej inlagda (repot är publikt, Anna får avgöra).
+
+---
+
+# 2026-10-10
+
+## Anna: arbetssätt för fristaden
+- **Ge alltid en ny, uppdaterad länk när något är klart** (Annas besked 2026-10-10). Publicera först provsidan (`sanctuary/tools/publish-test-site.sh <testljud.mp3>`), vänta tills den är uppe (Pages tar ca en minut), och skicka sedan länken som skriptet skriver ut (`https://annaholmstrompeter.github.io/Open-claw/?v=<tid>#/…`). `?v=` gör att telefonen inte visar en gammal kopia. Ange också vilken sida länken går till (t.ex. `#/r/presence/s` för spelsidan).
+- Testljud till Together: `sanctuary/public/assets/audio/04_Balance_Bergamot-Hand-Wash_KORT.mp3`.
+- Anna svarar på svenska, kollar på telefon (Brave/Chrome) och skickar skärmdumpar; hon vill att jag gör saker åt henne och är tydlig när något är fel i stället för att gissa.
+- Stilen: ffern.co är förebilden (platt, ljus, stor bild, hårfina linjer). **Gamla etikettens färger (rosa m.fl.) ska inte vara med** — nya etiketten är sand/kräm/guld med produktfotot. Lyssnarsidan ligger på en nattbotten (`#1b140e`) med guldlinjer. "Världsklass, dyrt" = återhållsamt, få element.
+
+## Short och Extended ritual ska alltid synas
+- Anna: "det ska finnas både short och long ritual". Ritualens sida visar därför **alltid båda längderna**; en vars inspelning inte är inlagd visas stilla med *Soon* och går inte att trycka på (ingen knapp leder till tystnad). Så fort mp3-filen ligger i `sanctuary/public/assets/audio/` (rätt filnamn, se `content/audio.json`) och `build-content.py` körts blir knappen levande av sig själv.
+- **Saknas i repot (finns i Drive-mappen `FÄRDIGA - hemsida`, id `1GYQFlCs3d1zYMwF2p5z97aDvK0_jUIQj`):** 03 Presence LANG, 05 Balance LANG, 06/07 Luminance, 08/09 Kindness, 10/11 Serenity. Drive-kopplingen kan bara ge filer som base64 genom chatten (6–10 MB var), vilket inte går att flytta in i repot härifrån. Anna eller OpenClaw lokalt måste lägga in dem (t.ex. GitHub på webben: *Add file → Upload files* i `sanctuary/public/assets/audio/` på grenen `claude/parallel-page-spakunder-9t2qcg`).
+
+## Alla inspelade ritualer inkopplade (2026-10-10)
+- Anna: "koppla alla inspelade ritualer rätt så det går att lyssna". De åtta saknade mp3-filerna hämtades ur Drive-mappen *FÄRDIGA - hemsida* (Drive-filerna går att ladda ner direkt med `curl https://drive.google.com/uc?export=download&id=<id>`, utan inloggning: de är alltså delade med länk; kopplingens `download_file_content` är oanvändbar för så stora filer). Kontrollerat: filstorlek = Drives, ID3-huvud, ffprobe-längd. Inlagda i `sanctuary/public/assets/audio/` med oförändrade namn; `build-content.py` ger `ready` + längd (Balance 4,0/9,9 min, Luminance 4,5/8,7, Kindness 5,1/9,8, Serenity 4,7/8,4, Presence 3,9/10,7).
+- Provat i webbläsare: alla tio ritualinspelningar spelar, längden stämmer, och när linjen dras till slutet går sidan själv till `#/r/<id>/done`. Skript (utanför repot): `allplay.mjs` i scratchpad.
+- Drive-ID:n (mapp `1GYQFlCs3d1zYMwF2p5z97aDvK0_jUIQj`): 03 `12UxCTGSSHFURFV98H9LHRAaW8G33K-_p`, 05 `1Z-ZBaIGNSUMSV_278swLterfJLhnDfml`, 06 `1stck2LR1iwNPNa2tpKNLAwB4fRnmptbx`, 07 `1ti88h7iEK87wkAaLpnIIb6UkR_oueWzZ`, 08 `1EVzdAg8Vu15CAlaHthVgadcfgFfAangc`, 09 `1XWK9EThmhRzcvhrezSKZ1tcqReEdItPa`, 10 `1dLSgOJkEt2MA3PDIb6eFG8gI5XmZAdTC`, 11 `1oAjXu1UGLT-WQTymEknJDks8B28ltja2`.
+
+## Back på spelsidan (2026-10-10, Anna: "jag vill ha en back, så jag kan välja den längre ritualen")
+- Liten *Back* (vänsterpil + versaler) överst till vänster över fotot på `#/r/<id>/s|e`; går till ritualens sida `#/r/<id>` där båda längderna väljs. Spelsidan har nu en knapp (play/pause), linjen och den enda länken *Back*; vägen hem är menyn/loggan. Att gå bakåt stoppar inspelningen (som alla sidbyten).
+
+## Back på alla sidor (2026-10-10, Anna: "alla ska ha back pilen")
+- **En gemensam Back** (`#back` i `index.html`, styrd av `page.back` i `app.js`) på varje sida utom första sidan, alltid på samma plats (uppe till vänster under rubriken). Mål: karusellen → första sidan; ritualens sida → karusellen; spelsidan och slutsidan → ritualens sida (där båda längderna väljs); Sensory Enrichment och Close your visit → första sidan; Together: landing → första sidan, valet → landing, ritualens Together-sida → valet, ensam-lyssning och parsessioner → ritualens Together-sida.
+- Dold under en **levande parsession** (nedräkning/spelar/paus) så att en felklickning inte lämnar ritualen för båda (`:has()` i CSS; Safari ≥ 15.4). Syns vid inbjudan, fel och när sessionen är slut.
+- Borttaget som dubblett: Togethers egen *Back* på ritualsidan och *All rituals*-länken längst ner på ritualens sida.
+- Tester: `Back on every page …`, och i parsessionen kontrolleras att Back är dold medan det spelas.
+- **Back flyttad längst ner (2026-10-10, Anna: "ska placeras längst ner"):** `#back` är nu `position: fixed` mitt längst ner (8 px + säkerhetsmarginal), samma plats på alla sidor utom första sidan, med en mjuk tonad remsa bakom så att text som scrollar förbi inte krockar. Varje sida har extra botten-padding (96 px; karusellen 168 px och knappen *Enter the ritual* ligger ovanför Back). Spelsidan: hero lite kortare så att play + Back ryms i en 737 px hög skärm (Annas webbläsare i Brave på iPhone ger ca 390×737). Test låser läget (nederst, centrerad).
+
+---
+
+# 2026-10-11
+
+## Spa-sidor (en egen sida per spa)
+- Idé: varje spa kan få en egen version av fristaden (spats bild + namn + tack + väg till bokning). Spånande/demo; produkterna är inte klara.
+- Byggt: `?s=<slug>`-läge (`assets/spa-loader.js`, `window.BME_SPA` i `spas/<slug>/spa.js`, spa-varianter av första sidan och slutsidan i `app.js`), verktyget `sanctuary/tools/make-spa.py`, demon **Horizon Hill Spa** (påhittat spa, fri CC0-bild som stand-in, exempel-bokningssida). Se `sanctuary/README.md`, avsnittet *Spa-sidor*.
+- **Riktiga spa ska inte in i det publika arkivet** (`.gitignore`). Bygg dem privat. Bilder och logotyper är spats egna: visa bara spat själv, via privat länk, och be om lov när de säger ja.
+- Demobilden är lågupplöst (1024 px): byt mot ett riktigt foto. Sandlådan når inte Unsplash/Pexels (botskydd), så fotot får komma från Anna.
+- Rösthälsning per spa är ännu inte gjord; textrad finns på slutsidan.
+
+## Mätning för spa (framtida, inte byggt)
+- Mål: spat ser själv hur många som kommer från ritualen, och Anna ser per spa: sidöppningar, lyssningar (start/hela vägen), klick på *Experience it at the spa*, och (via spat) faktiska bokningar.
+- Det vi kan räkna själva, utan cookies och utan personuppgifter: öppningar, lyssningar och bokningsklick per spa (en enkel räknare, t.ex. i Supabase eller Cloudflare). Faktiska bokningar kan bara spat veta: lösning = länkens `utm_*` i spats egen statistik + en egen kampanjkod per spa + månadsrapport från spat.
+- **Sidans integritetstext måste ändras när räkningen finns** (idag lovar den "no tracking"): t.ex. "We count how many times the page is opened and a ritual is played, per spa. Nothing else, and nothing about you."
+- Visa inga siffror i säljmaterial innan de är verkliga (pilot med några spa).
