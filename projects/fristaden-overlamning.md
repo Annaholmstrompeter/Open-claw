@@ -5,7 +5,7 @@
 ## 0. Så fortsätter du direkt
 
 1. `git pull` på `master` (AGENTS.md → Session Startup), läs den här filen.
-2. **All kod ligger på grenen `claude/parallel-page-spakunder-9t2qcg`** (inte mergad till `master`; utkast-PR finns på GitHub). Arbeta där: `git fetch origin claude/parallel-page-spakunder-9t2qcg && git checkout claude/parallel-page-spakunder-9t2qcg`.
+2. **All kod ligger på grenen `claude/parallel-page-spakunder-9t2qcg`** (inte mergad till `master`). **Utkast-PR #16**, med bas `ccr-b32990fc-q1bykk` (= fristaden, utkast-PR #15), alltså inte `master`. Arbeta där: `git fetch origin claude/parallel-page-spakunder-9t2qcg && git checkout claude/parallel-page-spakunder-9t2qcg`.
 3. Läs `sanctuary/README.md` (hur allt hänger ihop) och kör testerna (avsnitt 5).
 4. Plocka nästa punkt i avsnitt 8. När något är klart: **publicera testsidan och ge Anna en ny, verifierad länk** (avsnitt 5).
 5. Vill Anna starta en ny session: be henne skriva *"Läs projects/fristaden-overlamning.md och fortsätt med nästa punkt."* Sessionen kan köra i molnet (datorstyrning behövs inte för fristaden).
@@ -102,7 +102,7 @@ sanctuary/tools/publish-test-site.sh sanctuary/public/assets/audio/04_Balance_Be
 6. **Röst-tack per spa** efter ritualen (samma röst som meditationerna: filerna är märkta *Tellsonic*; fråga Anna vilket verktyg). Idag finns bara en textrad. Autoplay efter ritualens slut på iPhone måste provas, annars en tryckbar knapp.
 7. **Slutsidan** i samma avskalade stil som spelsidan (fråga Anna).
 8. Heart to Heart-inspelning (Annas röst/produktion) → `assets/audio/together/heart-to-heart.mp3`.
-9. När Anna säger till: slå ihop grenen med `master` (utkast-PR → klar), eller flytta till Cloudflare först.
+9. När Anna säger till: sanctuaryt ligger i två lager, **#15** (fristaden före Together, gren `ccr-b32990fc-q1bykk`) och **#16** (den här grenen ovanpå). Slå ihop #15 först, sedan #16 (eller ändra #16:s bas till `master` när #15 är inne). `master` är redan inmergad i grenen. Flytta gärna till Cloudflare Pages före eller samtidigt.
 
 **Förfrågan från en bekant till Anna** (ej beslutad, ej påbörjad): en liknande, lika snygg gratis sida för att sälja en kurs då och då (engångsköp, ingen prenumeration). Rekommenderat upplägg: egen mall utan Annas varumärke i **ett separat projekt**; hosting Cloudflare Pages; betalning via **Stripe Payment Link** (hosted, ingen månadsavgift, avgift bara per genomfört köp) eller inbyggd betalning med en liten serverfunktion; kursinnehåll får inte ligga öppet i publikt arkiv; bekanten skapar och verifierar själv sina Cloudflare- och Stripe-konton. Kostnader att presentera: bygge 0 kr, hosting 0 kr, Stripe-avgift per köp, valfri egen domän ≈ 100–200 kr/år, egen mejladress gratis (vidarebefordran) eller ≈ 60–80 kr/mån för riktig brevlåda.
 
