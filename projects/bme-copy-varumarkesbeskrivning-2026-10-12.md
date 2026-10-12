@@ -11,6 +11,16 @@ Status: **hero låst 2026-10-12, övriga sektioner förslag.** Arbetsdokumentet 
 
 Nästa sektion: The Experience. Underlag: Annas sammanställning av det överenskomna konceptet (kundlöfte, kärnvärden, Sensory Enrichment Method, Ritual/Deepening/Together, Science, Ingredients). Språk: engelska i copy, svenska i kommentarer.
 
+## Försäljningsargumentet (sparat 2026-10-12, Annas val)
+
+Hjärnan formas av det den upprepar med känsla. De flesta lämnar den träningen åt slumpen; dagen tränar dem. BONJIL säljer en paus från den träningen. Vi säljer motsatsen: ett sätt att välja vad hjärnan övar på, lagt i det mest upprepade, mest sinnliga och mest privata ögonblicket på dagen, minuten när händerna redan är på huden.
+
+Därför är det värt tio tusen: en spaeftermiddag förbrukas. Det här ackumuleras. Varje användning gör nästa starkare, och det som byggs är inte en produkt utan en förmåga: att hitta närvaro, värme, lätthet, lugn på egen hand. Och det kräver ingenting av kunden. Hon ska inte bli bättre, inte prestera, inte laga något. Hon ska bara upprepa något som är vackert, så gör hjärnan resten.
+
+Det är meningen. Lyx som vanligtvis konsumeras, här investeras den.
+
+**Den vetenskapliga kärnan att upprepa på sajten:** inte all upprepning är lika. Ett vanligt ögonblick lämnar nästan inget spår. Det som skriver in ett ögonblick är uppmärksamhet (andningen), flera sinnen samtidigt (doft, beröring, röst) och känslomässig laddning (savoring). Hebbs regel: nervceller som aktiveras samtidigt stärker kopplingen mellan sig. "We call it magic. Science calls it Hebbian learning: what fires together, wires together."
+
 ## Varför ChatGPT-raden inte håller
 
 > Natural skincare with guided sensory rituals, bringing moments of conscious care into your everyday life.
