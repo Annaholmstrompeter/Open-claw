@@ -1,6 +1,15 @@
 # BME – varumärkesbeskrivning och sektionscopy (2026-10-12)
 
-Status: **förslag, inget publicerat.** Underlag: Annas sammanställning av det överenskomna konceptet (kundlöfte, kärnvärden, Sensory Enrichment Method, Ritual/Deepening/Together, Science, Ingredients). Språk: engelska i copy, svenska i kommentarer.
+Status: **hero låst 2026-10-12, övriga sektioner förslag.** Arbetsdokumentet för hemsidan (BONJIL-referens mot vår text, sektion för sektion) ligger i Google Drive: mappen `hemsida` → "BME hemsida – sektion för sektion".
+
+## Låst hero (2026-10-12)
+
+> SENSORY ENRICHMENT SKINCARE
+> **What feels like magic has a science behind it.**
+> [Knappar: avvaktar]
+> Fine skincare, composed with a guided sensory ritual. What a spa reserves for an afternoon, we place in the palm of your hand.
+
+Nästa sektion: The Experience. Underlag: Annas sammanställning av det överenskomna konceptet (kundlöfte, kärnvärden, Sensory Enrichment Method, Ritual/Deepening/Together, Science, Ingredients). Språk: engelska i copy, svenska i kommentarer.
 
 ## Varför ChatGPT-raden inte håller
 
