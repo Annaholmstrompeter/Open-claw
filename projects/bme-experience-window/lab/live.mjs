@@ -25,6 +25,15 @@ if(mode==='tour'&&!info.err){
   for(let i=0;i<info.films.length;i++){await shot(`3-ch${i+1}a`,info.films[i]-H*.78,900);await shot(`3-ch${i+1}b`,info.films[i]-H*.3,2800);}
   await shot('4-tail',info.tail-H*.3,1800);
 }
+if(mode==='full'&&!info.err){
+  const H=+h;const hh=+w<750?80:102;
+  for(let i=0;i<info.films.length;i++){
+    const fh=await p.evaluate(i=>document.querySelectorAll('[data-bwin-film]')[i].offsetHeight,i);
+    const top=Math.max(hh+24,(H-fh)/2+hh/2);
+    await p.evaluate(y=>scrollTo(0,y),info.films[i]-top); await p.waitForTimeout(4200);
+    await p.screenshot({path:`shots/${prefix}-full-ch${i+1}.png`});
+  }
+}
 const st = await p.evaluate(()=>[...document.querySelectorAll('[data-bwin] video')].map(v=>({cur:(v.getAttribute('data-cur')||'').slice(-24),paused:v.paused,rs:v.readyState,err:v.error&&v.error.code})));
 console.log(JSON.stringify(st)); console.log(logs.slice(0,12).join('\n')||'inga fel');
 await b.close();

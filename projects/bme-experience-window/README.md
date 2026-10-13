@@ -99,5 +99,5 @@ python3 -m http.server 8765 --bind 127.0.0.1 &
 node shoot.mjs 1440 900 d tour 0     # skärmdumpar i shots/ (CHROMIUM=/sökväg vid behov)
 node shoot.mjs 390 844 m tour 0      # mobil
 node extra.mjs                       # reducerad rörelse, utan JS, 1920, 1024
-node live.mjs 1440 900 live-d tour   # RIKTIGA förhandsvisningen (kräver HTTPS_PROXY i molnet)
+node live.mjs 1440 900 live-d tour   # (eller "full" = varje kapitel centrerat) RIKTIGA förhandsvisningen (kräver HTTPS_PROXY i molnet)
 ```
