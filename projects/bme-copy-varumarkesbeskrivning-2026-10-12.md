@@ -199,7 +199,7 @@ Rullande paneler (byter automatiskt, pil fram och tillbaka):
 > Scent. Evoke.
 > Touch. Embody.
 > Feel. Amplify.
-> Anchor. Associate.
+> Anchor. Direct.
 >
 > **Panel 4**
 > Five moments. One direction. A mind that finds its way there more easily, every time.
@@ -230,10 +230,31 @@ Källa för tonen: den opublicerade Science-sidan i utvecklingstemat (`templates
 > Sensation says: something is happening. Feeling says: this matters.
 > Every second, the nervous system is flooded. Most of it cannot matter equally. Then feeling enters, and gives the moment its weight. The voice invites you to notice what is pleasant, and to let it grow. We do not decide what you feel. We give it room.
 
-> **05 ANCHOR · Associate**
+> **05 ANCHOR · Direct (ersatt, se nedan)**
 > Now choose. Give the moment a direction.
 > A thought is light. It can cross the mind and vanish. These words arrive with aroma, with touch, with feeling, with attention, and the ritual turns a thought into part of an experience. The affirmation is not a verdict. It is a direction: presence, balance, luminance, serenity, kindness. Returned to again and again, the pieces begin to belong together, until the aroma alone can arrive first and say: this is that moment.
 
 **Att åtgärda på Science-sidan när vi kommer dit:** "The Spell" saknar Breathe och delar Anchor i Intention + Return. Ska linjeras med metoden.
 
 **Science i butiken (läge 2026-10-13):** den rika Science-sidan (`the-science-1`) är opublicerad. Publicerad är den gamla "The Science" (`the-science`) med "Bio-Hacking for the Soul"-texten, och "The Science of Soul" som bara säger "Content coming soon". Utkastmenyn visar COLLECTION · THE RITUAL · OUR WORLD, ingen Science. Beslut: publicera `the-science-1` och lägg in Science i menyn.
+
+
+## Rättelse 2026-10-13: Anchor är riktning, inte Associate
+
+Anchor = **Direct** (riktning). Det är ögonblicket då fönstret är som mest öppet och affirmationen placeras som riktning. Panel 3 lyder därför: Breathe. Regulate. / Scent. Evoke. / Touch. Embody. / Feel. Amplify. / Anchor. Direct. "Return" utgår som delnamn. Science-sidans "Intention / Now choose" är samma steg.
+
+## Boxarna i The Experience, version för låsning (2026-10-13)
+
+Kort stängt (framsida), öppnat (rubrik, text, forskningsrad). Öppna kort är nytt jämfört med BONJIL.
+
+**01 BREATHE · Regulate**. Stängt: The way in. Öppnat: Before anything else, a breath. Slow, comfortable, unforced. Learning begins with attention, and the breath gathers it: from the day's demands to the body's present sensations. Here the window begins to open. *Research:* Studies of slow, structured breathing point to possible benefits for mood and physiological arousal.
+
+**02 SCENT · Evoke**. Stängt: The first key is invisible. Öppnat: A key does not contain the room. It only knows how to open it. Each ritual has its own fragrance, and it arrives before the water, before the hand, before the words. At first, it is only fragrance. Met again in the same moment, it begins to carry the feeling. In time, it may arrive first and say: this is that moment. *Research:* The sense of smell is wired closely to emotion and learning, and a scent can take on the feeling of what it keeps company with. We work with new moments, not old memories.
+
+**03 TOUCH · Embody**. Stängt: Then the body is invited in. Öppnat: Your hands are part of the formula. Warmth. Tempo. Pressure. Movement. The ritual sets the pace, slow and unhurried, until the feeling is no longer a thought but something the body knows. *Research:* In laboratory studies, slow stroking at around three centimetres a second is rated especially pleasant. We take it as inspiration for the tempo, not as a measurement of your own hands.
+
+**04 FEEL · Amplify**. Stängt: Sensation says: something is happening. Feeling says: this matters. Öppnat: Most of what reaches us passes without a trace. Feeling is what marks a moment as worth keeping. A warm voice invites you to notice what is pleasant, to stay with it, and to let it grow. We never decide what you should feel. We make room for it. *Research:* Savouring, the deliberate prolonging of positive experience, is well described in research on positive emotion and wellbeing. Emotion shapes what we attend to and what we remember.
+
+**05 ANCHOR · Direct**. Stängt: The window, open at its widest. Öppnat: The whole ritual has led here. Scent has opened the way, touch has brought you into the body, feeling has given the moment its weight. And now, while the window is open, the words arrive: your ritual's affirmation, and one small gesture. Not a verdict. A direction: presence, balance, luminance, serenity or kindness. Returned to again and again, it becomes easier to find, until the scent alone may be enough to bring you there. *Research:* Associative learning is well described: the brain learns what tends to arrive together, and repetition gives it another chance. That our rituals change specific pathways has not been tested, and we do not claim it.
+
+**06 THE RITUAL**. Stängt: Five moments. Three minutes. Complete in itself. Öppnat: Breathe, scent, touch, feel, direct, in one unbroken sequence, spoken while you apply. Each product has its own ritual, its own fragrance, its own direction. Stay longer with Deepening, with the product or without it. Knapp: Discover the rituals.
