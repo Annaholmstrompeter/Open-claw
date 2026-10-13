@@ -209,3 +209,31 @@ Fast underst:
 > It may look like magic. Neuroscience calls it long-term potentiation. We call it the window, and the ritual is how we open it.
 
 **Förslag, ej låst:** block A ("Skincare was only the beginning" / "Most skincare ends at the skin. Ours begins there.") och karusellen Five Connected Moments med längre texter per moment (01 Breathe · Regulate … 05 Anchor · Associate, "The feeling, given its direction").
+
+## Utkast 2026-10-13: The Experience, de fem boxarna (efter block B)
+
+Källa för tonen: den opublicerade Science-sidan i utvecklingstemat (`templates/page.the-science-1.json`, "The Spell": Scent, Touch, Feel, Intention, Return). Boxarna följer metoden (Breathe, Scent, Touch, Feel, Anchor) och lånar Science-sidans bästa rader.
+
+> **01 BREATHE · Regulate**
+> The way in.
+> Before anything arrives, a breath. Slow, comfortable, unforced. It moves attention from the day to the body, and opens the window the rest of the ritual walks through.
+
+> **02 SCENT · Evoke**
+> The first key is invisible.
+> A key does not contain the room. It only knows how to open it. An aroma arrives before the water, before the hand, before the words. At first, it is only fragrance. With time, it becomes the opening note of the feeling it keeps company with.
+
+> **03 TOUCH · Embody**
+> Then the body is invited in.
+> Your hands are part of the formula. Warmth. Tempo. Pressure. Movement. Pleasure. The body notices how it is touched, and we let the slow pace the skin prefers set the tempo.
+
+> **04 FEEL · Amplify**
+> Sensation says: something is happening. Feeling says: this matters.
+> Every second, the nervous system is flooded. Most of it cannot matter equally. Then feeling enters, and gives the moment its weight. The voice invites you to notice what is pleasant, and to let it grow. We do not decide what you feel. We give it room.
+
+> **05 ANCHOR · Associate**
+> Now choose. Give the moment a direction.
+> A thought is light. It can cross the mind and vanish. These words arrive with aroma, with touch, with feeling, with attention, and the ritual turns a thought into part of an experience. The affirmation is not a verdict. It is a direction: presence, balance, luminance, serenity, kindness. Returned to again and again, the pieces begin to belong together, until the aroma alone can arrive first and say: this is that moment.
+
+**Att åtgärda på Science-sidan när vi kommer dit:** "The Spell" saknar Breathe och delar Anchor i Intention + Return. Ska linjeras med metoden.
+
+**Science i butiken (läge 2026-10-13):** den rika Science-sidan (`the-science-1`) är opublicerad. Publicerad är den gamla "The Science" (`the-science`) med "Bio-Hacking for the Soul"-texten, och "The Science of Soul" som bara säger "Content coming soon". Utkastmenyn visar COLLECTION · THE RITUAL · OUR WORLD, ingen Science. Beslut: publicera `the-science-1` och lägg in Science i menyn.
