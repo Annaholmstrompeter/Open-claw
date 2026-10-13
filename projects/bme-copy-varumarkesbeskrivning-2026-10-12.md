@@ -171,3 +171,41 @@ Av det svenska utkastet är tre saker guld och finns med i A ovan: att vi **tar 
 1. Anna väljer A, B eller C (eller blandar) som varumärkesbeskrivning.
 2. Därefter låses sektionstexterna en i taget i samma ordning som sidan: Hero, Experience, Rituals, Collection, Science, Ingredients.
 3. Inga nya sektioner. Copyn ovan fyller bara de platser som redan är beslutade.
+
+## Låst 2026-10-13: sidordning och The Experience, block B
+
+**Sidordning:** Hero → The Collection (butiken direkt; klick ger ingredienser och ritualen) → The Experience (metoden) → The Rituals / Sanctuary → Science → Ingredients / Our World.
+
+**BONJIL:s motsvarighet (referens):** "What if we've been missing part of the story / Your skin remembers stress even when you don't" med fyra hudproblem (dryness, fine lines, dullness, loss of firmness), därefter "The senses come first / Modern living floods all five senses with stress / Your senses are the fastest route to your nervous system. They're also the fastest route to cortisol." med karusell Sight, Scent, Touch, Taste, Sound, The Ritual. Vi hoppar hudproblemen (butiken kommer där) och vänder underskott till begär.
+
+**Vår sektion, låst:**
+
+Fast överst:
+
+> SENSORY ENRICHMENT
+> **WHERE THE SENSES LEAD, *THE FEELING DEEPENS***
+> The brain can change its own biology, at any age. Science calls it neuroplasticity.
+
+Rullande paneler (byter automatiskt, pil fram och tillbaka):
+
+> **Panel 1**
+> Not every moment matters equally.
+>
+> **Panel 2**
+> Under the right conditions, when the senses carry a moment, attention holds it and feeling seals it, the brain learns more deeply, and keeps what it learns.
+>
+> **Panel 3**
+> Breathe. Regulate.
+> Scent. Evoke.
+> Touch. Embody.
+> Feel. Amplify.
+> Anchor. Associate.
+>
+> **Panel 4**
+> Five moments. One direction. A mind that finds its way there more easily, every time.
+
+Fast underst:
+
+> It may look like magic. Neuroscience calls it long-term potentiation. We call it the window, and the ritual is how we open it.
+
+**Förslag, ej låst:** block A ("Skincare was only the beginning" / "Most skincare ends at the skin. Ours begins there.") och karusellen Five Connected Moments med längre texter per moment (01 Breathe · Regulate … 05 Anchor · Associate, "The feeling, given its direction").
