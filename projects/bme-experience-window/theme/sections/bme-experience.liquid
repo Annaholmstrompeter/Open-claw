@@ -53,17 +53,20 @@
   {%- if pairs_block != blank -%}
     {%- assign lines = pairs_block.settings.text | strip | newline_to_br | split: '<br />' -%}
     <div class='bwin__films' {{ pairs_block.shopify_attributes }}>
-      <div class='bwin__ctl'><button type='button' class='bwin__pause' data-bwin-pause aria-pressed='false'><i aria-hidden='true'></i><span data-bwin-pause-txt>Pause films</span></button></div>
+      <div class='bwin__ctl'><button type='button' class='bwin__pause' data-bwin-pause aria-label='Pause films' title='Pause films'><i aria-hidden='true'></i></button></div>
       {%- for ln in lines -%}
-        {%- assign idx = forloop.index -%}
         {%- assign clean = ln | strip -%}
+        {%- if clean == blank -%}{%- continue -%}{%- endif -%}
+        {%- assign n_pairs = n_pairs | plus: 1 -%}
+        {%- assign idx = n_pairs -%}
+        {%- assign li = idx | minus: 1 -%}
         {%- assign parts = clean | split: '. ' -%}
         {%- assign vk = 'video_' | append: idx -%}
         {%- assign tk = 'tone_' | append: idx -%}
         {%- assign vobj = section.settings[vk] -%}
         {%- assign tone = section.settings[tk] | default: 'ink' -%}
-        {%- assign layout = layouts[forloop.index0] | default: 'bleed' -%}
-        {%- assign place = places[forloop.index0] | default: 'bl' -%}
+        {%- assign layout = layouts[li] | default: 'bleed' -%}
+        {%- assign place = places[li] | default: 'bl' -%}
         {%- assign lq = '' -%}
         {%- case idx -%}{%- when 1 -%}{%- assign lq = lq_1 -%}{%- when 2 -%}{%- assign lq = lq_2 -%}{%- when 3 -%}{%- assign lq = lq_3 -%}{%- when 4 -%}{%- assign lq = lq_4 -%}{%- when 5 -%}{%- assign lq = lq_5 -%}{%- endcase -%}
         {%- assign wide = '' -%}
@@ -90,18 +93,21 @@
           {%- assign p_wide = base | append: idx | append: '-wide.jpg' -%}
           {%- assign p_tall = base | append: idx | append: '-tall.jpg' -%}
         {%- endif -%}
+        {%- if wide == blank -%}
+        <div class='bwin__plain bwin__reveal'><p class='bwin__stmt'>{{ clean | escape }}</p></div>
+        {%- else -%}
         <article class='bwin__ch is-{{ layout }} is-{{ place }} is-{{ tone }}' data-bwin-ch>
           <i class='bwin__link' data-bwin-link aria-hidden='true'></i>
-          <figure class='bwin__film' data-bwin-film{% if lq != blank %} style='background-image:url({{ lq }})'{% endif %}>
+          <figure class='bwin__film' data-bwin-film{% if lq != blank and has_pick == false %} style='background-image:url({{ lq }})'{% endif %}>
             {%- if has_pick -%}
               {%- if vobj.preview_image != blank -%}
                 <picture class='bwin__poster'>{{ vobj.preview_image | image_url: width: 1600 | image_tag: loading: 'lazy', alt: '', widths: '800, 1200, 1600', sizes: '100vw' }}</picture>
               {%- endif -%}
             {%- elsif p_wide != blank -%}
-              <picture class='bwin__poster'>{%- if layout != 'center' -%}<source media='(min-width:750px)' srcset='{{ p_wide }}'>{%- endif -%}<img src='{{ p_tall }}' alt='' loading='lazy' decoding='async'></picture>
+              <picture class='bwin__poster'>{%- if layout != 'center' -%}<source media='(min-width:750px)' srcset='{{ p_wide | escape }}'>{%- endif -%}<img src='{{ p_tall | escape }}' alt='' loading='lazy' decoding='async'></picture>
             {%- endif -%}
             {%- if wide != blank -%}
-              <video muted loop playsinline preload='none' aria-hidden='true' tabindex='-1' data-wide='{{ wide }}' data-tall='{{ tall }}'{% if layout == 'center' %} data-shape='tall'{% endif %}></video>
+              <video muted loop playsinline preload='none' aria-hidden='true' tabindex='-1' data-wide='{{ wide | escape }}' data-tall='{{ tall | escape }}'{% if layout == 'center' %} data-shape='tall'{% endif %}></video>
             {%- endif -%}
             <span class='bwin__veil' aria-hidden='true'></span>
             <figcaption class='bwin__words'>
@@ -115,7 +121,7 @@
             </figcaption>
           </figure>
         </article>
-        {%- assign n_pairs = idx -%}
+        {%- endif -%}
       {%- endfor -%}
     </div>
   {%- endif -%}

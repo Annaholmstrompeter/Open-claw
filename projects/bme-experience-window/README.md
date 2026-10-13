@@ -16,6 +16,26 @@ Copyn är **låst och oförändrad** (block B). Det som gjorts är formatering.
 
 Varför v45 föll (mina egna ord, utan försvar): fem smala valv bredvid varandra läses som **färgprov**, inte som film. Klippen hade olika färgvärldar (senapsgul rök, orange stockring, blågrön vatten, olivgrön mossa), så raden såg billig ut. Fem saker att visa samtidigt tar ifrån varje bild dess verkan. Valvformen i klunga lånade dessutom kyrkfönster.
 
+## Rättningar samma kväll (v46b): Annas "det fanns lite fel"
+
+Anna sa att det fanns lite fel (utan att peka ut vilka). Granskat och rättat av mig, utan att hon behövde leda:
+
+| Fel | Rättat |
+|---|---|
+| **Copyn på sidan sa "Anchor. Associate."** men det låsta dokumentet (Annas rättelse) säger **"Anchor. Direct."** | `templates/index.json` i utkastet ändrat (en rad). Skrevs via `themeFilesUpsert` med `body.type: URL` (se skillen). Shopify minifierade filen och tog bort två föräldralösa v43-inställningar (`autoplay`, `seconds`); i övrigt identisk, verifierad strukturellt. Backuper: `assets/backup-index-before-direct-…` (före) och `…-after-direct-…`/`…-v46b-direct-…` (efter) |
+| Pausknappen låg ovanpå orden ("Amplify.") på alla bredder | Rund ikonknapp (44 px) vid mitten av högerkanten som tonar bort när den skulle ligga över text, nåbar med tangentbord (Tab, Enter/mellanslag) |
+| `play()` som avbröts (snabb scroll, långsamt nät) pausade ALLA filmer och visade "Play films" | Bara `NotAllowedError` (autoplay blockerad) pausar nu. Testat med alla tre feltyper |
+| Guldtexten hade kontrast 4,09:1 (under 4,5 för liten text) | Guld `#7d6338` = 4,89:1 |
+| Tomma rader i paret-blocket gav tomma kapitel; rad 6+ gav en tom ruta | Tomma rader hoppas över (numreringen fortsätter 01, 02 …), rad 6+ utan egen film visas som ren text |
+| Tredje inledande textblocket bröts ord för ord | Egen bredd |
+| Ord kunde brytas mitt i på smala skärmar | Ord hålls ihop (bokstäverna delas inom ord) |
+| Reducerad rörelse efterlevdes delvis (orden drev, spärren rörde sig) | Helt stilla |
+| Filmer släpptes aldrig ur minnet; gamla lyssnare hopade sig i temaredigeraren | Filmer släpps efter 8 s utom räckhåll; rensning vid `shopify:section:unload` och omrendering |
+| Scroll läste och skrev layout om vartannat | Alla mätningar först, sedan alla skrivningar |
+| Attribut skrevs utan `escape`; vald egen film visade standardfilmens platshållare | Åtgärdat |
+
+**Mätt (riktiga förhandsvisningen, 11 skärmar 320–2560 px, `lab/audit.mjs`)**: inga överlapp mellan pausknapp och text, ingen text utanför filmen, ingen sidledsscroll, inga sidfel, max två filmer samtidigt. H.264 High yuv420p faststart på alla 10 videor, loopsömmar högst 1,4× ett normalt bildruteskifte.
+
 ## Konceptet i v46
 
 **En film i taget, stor, i vanlig scroll (inget fastnålat).** Varje ögonblick är ett kapitel:
@@ -65,7 +85,7 @@ Varför v45 föll (mina egna ord, utan försvar): fem smala valv bredvid varandr
 ## Tillgänglighet och prestanda
 
 - Filmerna är `muted loop playsinline`, aria-hidden. Spelas **bara när de syns**, max två samtidigt (de som ligger närmast skärmens mitt). Laddas först när de är nära (60 % av skärmen).
-- **Pausknapp** ("Pause films"/"Play films", sticky uppe till höger medan filmerna syns). Vid reducerad rörelse och vid "data saver" startar ingen film av sig själv.
+- **Pausknapp** (rund ikon, "Pause films"/"Play films" som aria-label, sticky vid mitten av högerkanten medan filmerna syns, tonar bort över text, nåbar med Tab). Vid reducerad rörelse och vid "data saver" startar ingen film av sig själv.
 - Ord delas i bokstäver med JS; skärmläsare får vanlig text (dold kopia). Utan JS: statiska affischer, alla ord synliga.
 - Ingen scroll-kapning, inget fastnålat, inga bibliotek.
 
@@ -83,7 +103,7 @@ Riktiga telefoner (iOS lågenergiläge stoppar autoplay: då syns affischen och 
 ## Öppna punkter / vet inte
 
 1. **Stockfilm är en stand-in.** Världsklass = egna klipp (Flow). Annas nästa beslut: vill hon ha Flow-prompter per ögonblick (i skillens format) eller godkänner hon riktningen med stocken först?
-2. **Copyrättelse ej införd i temat:** kopiadokumentet säger "Anchor. **Direct.**", temats `index.json` (panel_3) säger "Anchor. Associate." (förinställningen i sektionen säger "Direct"). Ändras i temaredigeraren: The Experience → blocket med de fem raderna → sista raden. Koden behöver inte ändras.
+2. ~~Copyrättelse ej införd~~ **Införd i utkastet 13 okt kväll** ("Anchor. Direct."). Gäller bara utkast-temat; när temat publiceras följer den med.
 3. **De fem boxarna** (01 BREATHE … 06 THE RITUAL, version 3 i copy-dokumentet) ingår inte.
 4. Ingen film har egen ton i ljud (tyst, med flit).
 5. Shopifys förhandsgranskningsrad täcker ca 65 px längst ned i skärmdumpar av utkastet, inte på riktiga sajten.
@@ -100,5 +120,9 @@ python3 -m http.server 8765 --bind 127.0.0.1 &
 node shoot.mjs 1440 900 d tour 0     # skärmdumpar i shots/ (CHROMIUM=/sökväg vid behov)
 node shoot.mjs 390 844 m tour 0      # mobil
 node extra.mjs                       # reducerad rörelse, utan JS, 1920, 1024
+STRESS=1 node build.mjs              # tomma rader, rad 6-7, tredje inledande block -> page-stress.html
+node errtest.mjs                     # hur spelaren reagerar på AbortError / NotAllowedError / NotSupportedError
+node kbtest.mjs                      # tangentbord: Tab till pausknappen, Enter/mellanslag
+node audit.mjs                       # RIKTIGA förhandsvisningen i 11 skärmstorlekar: överlapp, utanför, sidledsscroll, max samtidiga filmer
 node live.mjs 1440 900 live-d tour   # (eller "full" = varje kapitel centrerat) RIKTIGA förhandsvisningen (kräver HTTPS_PROXY i molnet)
 ```
