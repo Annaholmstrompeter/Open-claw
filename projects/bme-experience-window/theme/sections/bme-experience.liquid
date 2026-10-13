@@ -1,0 +1,147 @@
+{%- comment -%}
+  v44 (2026-10-13) "The Window": The Experience, block B. Draft theme 199116816758 only. Anchor #the-experience.
+  Replaces v43 (photograph spread) in place. v43 is saved as assets/backup-bme-experience-v43-2026-10-13.txt: copy it back to sections/bme-experience.liquid to revert.
+  Same setting ids and "panel" block as v43, so templates/index.json is untouched.
+  A tall arch with a living field of light. Scroll walks through the five moments (breath, scent, touch, feeling, anchor); a node lights and a thread is drawn for each: what fires together, wires together. The window widens and, on the closing line, opens to full width.
+  One typeface (theme heading font), one weight; hierarchy by scale, italic, case and gold. Setting "emphasis" = phrases shown in italic gold (one per line, exact match).
+  No JS or reduced motion = stacked layout with all copy visible. Optional setting window_image (screen blend, use a dark background).
+  Files: snippets/bme-window-css, bme-window-em, bme-window-js-1 + js-2 (one script, rendered back to back).
+{%- endcomment -%}
+{%- liquid
+  assign h2_id = 'bwin-h2-' | append: section.id
+  assign plate = section.settings.window_image
+  assign phrases = section.settings.emphasis | strip | newline_to_br | split: '<br />'
+  assign pairs_block = blank
+  for block in section.blocks
+    assign l = block.settings.text | strip | newline_to_br | split: '<br />'
+    if l.size > 1 and pairs_block == blank
+      assign pairs_block = block
+    endif
+  endfor
+  assign stmt_n = 0
+-%}
+{%- render 'bme-window-css' -%}
+<section class='bwin' id='the-experience' data-bwin data-step='{{ section.settings.step_length | default: 48 }}' aria-labelledby='{{ h2_id }}'>
+  <div class='bwin__intro'>
+    {%- if section.settings.eyebrow != blank -%}
+      <p class='bwin__eyebrow'>{{ section.settings.eyebrow | escape }}</p>
+    {%- endif -%}
+    <h2 class='bwin__h2' id='{{ h2_id }}'>{%- render 'bme-window-em', text: section.settings.heading, phrases: phrases -%}</h2>
+    {%- if section.settings.text != blank -%}
+      <p class='bwin__sub'>{{ section.settings.text | escape }}</p>
+    {%- endif -%}
+    <span class='bwin__cue' aria-hidden='true'></span>
+  </div>
+
+  <div class='bwin__track' data-bwin-track>
+    <div class='bwin__stage' data-bwin-stage>
+      <svg class='bwin__frame' aria-hidden='true' focusable='false'><path data-bwin-frame d=''></path><path data-bwin-rim class='is-rim' d=''></path></svg>
+      <div class='bwin__win' data-bwin-win aria-hidden='true'>
+        <div class='bwin__glass'></div>
+        {%- if plate != blank -%}
+          {{
+            plate
+            | image_url: width: 1600
+            | image_tag:
+              widths: '800, 1200, 1600',
+              sizes: '(min-width: 900px) 50vw, 100vw',
+              class: 'bwin__plate',
+              loading: 'lazy',
+              alt: ''
+          }}
+        {%- endif -%}
+        <canvas class='bwin__cv' data-bwin-cv></canvas>
+        <div class='bwin__glow' data-bwin-glow></div>
+        <div class='bwin__ring' data-bwin-ring></div>
+        <svg class='bwin__wire' data-bwin-wire aria-hidden='true' focusable='false'>
+          <path data-bwin-ghost fill='none' stroke='rgba(236,210,154,.2)' stroke-width='1' pathLength='1' vector-effect='non-scaling-stroke'></path>
+          <path data-bwin-lit fill='none' stroke='rgba(236,210,154,.95)' stroke-width='1.25' stroke-linecap='round' pathLength='1' vector-effect='non-scaling-stroke'></path>
+          <path data-bwin-pulse fill='none' stroke='rgba(255,246,222,1)' stroke-width='2' stroke-linecap='round' pathLength='1' vector-effect='non-scaling-stroke'></path>
+        </svg>
+        <ol class='bwin__nodes' data-bwin-nodes></ol>
+      </div>
+      <div class='bwin__scrim' data-bwin-scrim aria-hidden='true'></div>
+
+      <div class='bwin__copy' data-bwin-copy>
+        {%- for block in section.blocks -%}
+          {%- if block == pairs_block -%}
+            {%- assign lines = block.settings.text | strip | newline_to_br | split: '<br />' -%}
+            <div class='bwin__panel' data-bwin-panel data-kind='pairs' {{ block.shopify_attributes }}>
+              <ul class='bwin__pairs'>
+                {%- for ln in lines -%}
+                  {%- assign clean = ln | strip -%}
+                  {%- assign parts = clean | split: '. ' -%}
+                  <li class='bwin__pair' data-bwin-pair>
+                    <span class='bwin__num'>0{{ forloop.index }}</span>
+                    {%- if parts.size > 1 -%}
+                      <span class='bwin__sense'>{{ parts[0] | escape }}.</span>
+                      <span class='bwin__effect'>{{ parts[1] | escape }}</span>
+                    {%- else -%}
+                      <span class='bwin__sense'>{{ clean | escape }}</span>
+                    {%- endif -%}
+                  </li>
+                {%- endfor -%}
+              </ul>
+            </div>
+          {%- else -%}
+            {%- assign stmt_n = stmt_n | plus: 1 -%}
+            {%- assign long = block.settings.text | size -%}
+            <div class='bwin__panel' data-bwin-panel data-kind='statement' data-w='{% if stmt_n == 1 %}0.9{% else %}1{% endif %}' {{ block.shopify_attributes }}>
+              <p class='bwin__stmt{% if long > 70 %} is-sentence{% endif %}'>{%- render 'bme-window-em', text: block.settings.text, phrases: phrases -%}</p>
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+
+      {%- if section.settings.closing != blank -%}
+        <p class='bwin__close' data-bwin-close>{%- render 'bme-window-em', text: section.settings.closing, phrases: phrases -%}</p>
+      {%- endif -%}
+      <div class='bwin__meter' aria-hidden='true'><i data-bwin-meter></i></div>
+    </div>
+  </div>
+</section>
+<script>
+(function(){
+{%- render 'bme-window-js-1' -%}{%- render 'bme-window-js-2' -%}
+})();
+</script>
+
+{% schema %}
+{
+  "name": "BME experience (window)",
+  "max_blocks": 8,
+  "settings": [
+    { "type": "header", "content": "Text" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "SENSORY ENRICHMENT" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "WHERE THE SENSES LEAD, THE FEELING DEEPENS" },
+    { "type": "textarea", "id": "text", "label": "Intro line", "default": "The brain can change its own biology, at any age. Science calls it neuroplasticity." },
+    { "type": "textarea", "id": "closing", "label": "Closing line", "default": "It may look like magic. Neuroscience calls it long-term potentiation. We call it the window, and the ritual is how we open it." },
+    { "type": "textarea", "id": "emphasis", "label": "Words in italic gold (one per line)", "default": "THE FEELING DEEPENS\nequally.\nOne direction.", "info": "Exact match, including capitals and punctuation. Works in the heading, the panels and the closing line." },
+    { "type": "header", "content": "Scroll" },
+    { "type": "range", "id": "step_length", "label": "Scroll length per step (vh)", "min": 30, "max": 90, "step": 2, "default": 48, "info": "Higher = the story takes more scrolling." },
+    { "type": "header", "content": "Window image (optional)" },
+    { "type": "paragraph", "content": "Leave empty to use the living light alone. A picture here is placed inside the arch with the blend mode 'screen', so it should have a dark or black background. Portrait, at least 1200 x 1600 px." },
+    { "type": "image_picker", "id": "window_image", "label": "Image inside the window" }
+  ],
+  "blocks": [
+    {
+      "type": "panel",
+      "name": "Statement",
+      "settings": [
+        { "type": "textarea", "id": "text", "label": "Text (many lines = the five pairs, one per line)", "default": "Not every moment matters equally." }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "BME experience (window)",
+      "blocks": [
+        { "type": "panel", "settings": { "text": "Not every moment matters equally." } },
+        { "type": "panel", "settings": { "text": "Under the right conditions, when the senses carry a moment, attention holds it and feeling seals it, the brain learns more deeply, and keeps what it learns." } },
+        { "type": "panel", "settings": { "text": "Breathe. Regulate.\nScent. Evoke.\nTouch. Embody.\nFeel. Amplify.\nAnchor. Associate." } },
+        { "type": "panel", "settings": { "text": "Five moments. One direction. A mind that finds its way there more easily, every time." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

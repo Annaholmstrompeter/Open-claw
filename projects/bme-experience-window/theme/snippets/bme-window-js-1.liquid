@@ -1,0 +1,90 @@
+  var root=document.querySelector('[data-bwin]');if(!root||root.__bw)return;root.__bw=1;
+  var track=root.querySelector('[data-bwin-track]'),stage=root.querySelector('[data-bwin-stage]'),win=root.querySelector('[data-bwin-win]'),cv=root.querySelector('[data-bwin-cv]'),
+      frame=root.querySelector('[data-bwin-frame]'),rim=root.querySelector('[data-bwin-rim]'),ghost=root.querySelector('[data-bwin-ghost]'),lit=root.querySelector('[data-bwin-lit]'),pulse=root.querySelector('[data-bwin-pulse]'),
+      nodesEl=root.querySelector('[data-bwin-nodes]'),glow=root.querySelector('[data-bwin-glow]'),ring=root.querySelector('[data-bwin-ring]'),scrim=root.querySelector('[data-bwin-scrim]'),
+      meter=root.querySelector('[data-bwin-meter]'),closeEl=root.querySelector('[data-bwin-close]');
+  var ctx=cv.getContext('2d');if(!ctx)return;
+  var reduce=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var live=!reduce;
+  var panels=[].slice.call(root.querySelectorAll('[data-bwin-panel]'));
+  var pairRows=[].slice.call(root.querySelectorAll('[data-bwin-pair]'));
+  var nPairs=pairRows.length;
+
+  /* ---------- timeline: one segment per statement, per pair, and the closing ---------- */
+  var segs=[];
+  panels.forEach(function(el){
+    if(el.getAttribute('data-kind')==='pairs'){[].forEach.call(el.querySelectorAll('[data-bwin-pair]'),function(r,i){segs.push({k:'p',el:el,row:r,i:i,w:.9});});}
+    else segs.push({k:'s',el:el,w:parseFloat(el.getAttribute('data-w'))||1});
+  });
+  if(closeEl)segs.push({k:'c',el:closeEl,w:1.3});
+  var tot=0;segs.forEach(function(s){s.a=tot;tot+=s.w;});segs.forEach(function(s){s.a/=tot;s.b=s.a+s.w/tot;});
+  var firstPair=null,lastPair=null,closeSeg=null,lastBody=null;
+  segs.forEach(function(s){if(s.k==='p'){if(!firstPair)firstPair=s;lastPair=s;}if(s.k==='c')closeSeg=s;else lastBody=s;});
+  var tP0=firstPair?firstPair.a:1,tP1=lastPair?lastPair.b:1;
+  var tG0=segs.length>1?segs[1].a:0,tG1=lastBody?lastBody.b:1;
+  var tC0=closeSeg?closeSeg.a:1,tC1=closeSeg?closeSeg.b:1;
+  var attSeg=(segs[1]&&segs[1].k==='s')?segs[1]:null;
+
+  /* ---------- helpers ---------- */
+  function clamp(v,a,b){return v<a?a:v>b?b:v;}
+  function lerp(a,b,t){return a+(b-a)*t;}
+  function ss(t){t=clamp(t,0,1);return t*t*(3-2*t);}
+  function ease(t){t=clamp(t,0,1);return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;}
+  function makeNoise(seed){var perm=new Uint8Array(256),p=new Uint8Array(512),i,s=seed|0||1;for(i=0;i<256;i++)perm[i]=i;for(i=255;i>0;i--){s=(s*1664525+1013904223)|0;var j=(s>>>8)%(i+1),t=perm[i];perm[i]=perm[j];perm[j]=t;}for(i=0;i<512;i++)p[i]=perm[i&255];
+    var g=[[1,1],[-1,1],[1,-1],[-1,-1],[1,0],[-1,0],[0,1],[0,-1]],F2=.5*(Math.sqrt(3)-1),G2=(3-Math.sqrt(3))/6;
+    return function(x,y){var s=(x+y)*F2,i=Math.floor(x+s),j=Math.floor(y+s),t=(i+j)*G2,x0=x-(i-t),y0=y-(j-t),i1=x0>y0?1:0,j1=x0>y0?0:1,x1=x0-i1+G2,y1=y0-j1+G2,x2=x0-1+2*G2,y2=y0-1+2*G2,ii=i&255,jj=j&255,n0=0,n1=0,n2=0,tt,gg;
+      tt=.5-x0*x0-y0*y0;if(tt>0){gg=g[p[ii+p[jj]]&7];tt*=tt;n0=tt*tt*(gg[0]*x0+gg[1]*y0);}
+      tt=.5-x1*x1-y1*y1;if(tt>0){gg=g[p[ii+i1+p[jj+j1]]&7];tt*=tt;n1=tt*tt*(gg[0]*x1+gg[1]*y1);}
+      tt=.5-x2*x2-y2*y2;if(tt>0){gg=g[p[ii+1+p[jj+1]]&7];tt*=tt;n2=tt*tt*(gg[0]*x2+gg[1]*y2);}
+      return 70*(n0+n1+n2);};}
+  var noise=makeNoise(7319);
+
+  /* ---------- nodes (the five moments) ---------- */
+  var NU=[],NV=[],nodeEls=[];
+  for(var q=0;q<nPairs;q++){
+    var u=(q===0||q===nPairs-1)?0:((q%2===1?-1:1)*(.64-.09*(q-1)));
+    NU.push(u);NV.push(nPairs>1?.86-q*(.73/(nPairs-1)):.5);
+    var li=document.createElement('li');li.className='bwin__node'+(u>0?'':' is-left');if(q===0||q===nPairs-1)li.className='bwin__node';
+    li.innerHTML='<b></b><i></i><span>0'+(q+1)+'</span>';nodesEl.appendChild(li);nodeEls.push(li);
+  }
+  var NP=[];for(q=0;q<nPairs;q++)NP.push({x:0,y:0});
+
+  /* ---------- geometry ---------- */
+  var W=0,H=0,dpr=1,mobile=false,G={L:0,T:0,R:0,B:0,r:0,cx:0};
+  var MAXP_LIVE=1000,PCOUNT=0,parts=[],hasMouse=!!(window.matchMedia&&window.matchMedia('(pointer:fine)').matches);
+  function resize(){
+    W=win.clientWidth;H=win.clientHeight;if(!W||!H)return;
+    mobile=window.innerWidth<900;dpr=Math.min(window.devicePixelRatio||1,mobile?1.5:2);
+    cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);cv.style.width=W+'px';cv.style.height=H+'px';
+    wire=root.querySelector('[data-bwin-wire]');wire.setAttribute('viewBox','0 0 '+W+' '+H);wire.setAttribute('preserveAspectRatio','none');
+    frame.parentNode.setAttribute('viewBox','0 0 '+W+' '+H);
+    var want=mobile?560:MAXP_LIVE;if(want!==PCOUNT){PCOUNT=want;parts=[];for(var i=0;i<PCOUNT;i++)parts.push({i:i,x:0,y:0,age:0,life:0,bi:0,hot:0,dying:0,amb:i%7===0?1:0,si:0,sp:1,init:0});}
+    parts.forEach(function(p){p.init=0;});
+    ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+  }
+  var wire;
+  function geom(g,k){
+    var L,T,R,B,cx,w0,w1;
+    if(!live){L=0;T=0;R=W;B=H;G.L=L;G.T=T;G.R=R;G.B=B;G.r=W/2;G.cx=W/2;G.ek=0;return;}
+    if(mobile){cx=W*.5;w0=W*.5;w1=W*.86;var T0=H*.03,B0=H*.64,T1=H*.02,B1=H*.69;
+      var e=ease(g);var ww=lerp(w0,w1,e);L=cx-ww/2;R=cx+ww/2;T=lerp(T0,T1,e);B=lerp(B0,B1,e);}
+    else{cx=W*.73;w0=clamp(W*.22,260,350);w1=W*.455;var T0d=H*.06,B0d=H*.95,T1d=H*.035,B1d=H*.975;
+      var e2=ease(g);var ww2=lerp(w0,w1,e2);L=cx-ww2/2;R=cx+ww2/2;T=lerp(T0d,T1d,e2);B=lerp(B0d,B1d,e2);}
+    var ek=ease(k);L=lerp(L,0,ek);R=lerp(R,W,ek);T=lerp(T,0,ek);B=lerp(B,H,ek);
+    G.L=L;G.T=T;G.R=R;G.B=B;G.r=(R-L)/2*(1-ek);G.cx=(L+R)/2;G.ek=ek;
+  }
+  function layoutNodes(){
+    var ww=G.R-G.L,hh=G.B-G.T;
+    var ncx=(live&&!mobile)?lerp(G.cx,W*.655,G.ek):G.cx;
+    if(live&&mobile)hh=lerp(G.B,H*.6,G.ek)-G.T;
+    for(var i=0;i<nPairs;i++){NP[i].x=ncx+NU[i]*ww*.3;NP[i].y=G.T+NV[i]*hh;}
+  }
+  function spline(pts,n){ /* catmull-rom, sampled */
+    var out=[],m=pts.length;if(m<2)return pts.slice();
+    for(var i=0;i<m-1;i++){var p0=pts[Math.max(0,i-1)],p1=pts[i],p2=pts[i+1],p3=pts[Math.min(m-1,i+2)];
+      for(var s=0;s<n;s++){var t=s/n,t2=t*t,t3=t2*t;
+        out.push({x:.5*((2*p1.x)+(-p0.x+p2.x)*t+(2*p0.x-5*p1.x+4*p2.x-p3.x)*t2+(-p0.x+3*p1.x-3*p2.x+p3.x)*t3),y:.5*((2*p1.y)+(-p0.y+p2.y)*t+(2*p0.y-5*p1.y+4*p2.y-p3.y)*t2+(-p0.y+3*p1.y-3*p2.y+p3.y)*t3)});}}
+    out.push({x:pts[m-1].x,y:pts[m-1].y});return out;
+  }
+  var PATH=[];
+

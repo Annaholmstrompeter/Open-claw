@@ -1,0 +1,9 @@
+{%- assign t = text | strip | escape -%}
+{%- for ph in phrases -%}
+  {%- assign p = ph | strip | escape -%}
+  {%- if p != blank -%}
+    {%- assign w = '<em>' | append: p | append: '</em>' -%}
+    {%- assign t = t | replace: p, w -%}
+  {%- endif -%}
+{%- endfor -%}
+{{- t -}}

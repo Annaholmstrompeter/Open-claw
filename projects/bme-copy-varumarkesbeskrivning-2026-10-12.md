@@ -237,3 +237,7 @@ Källa för tonen: den opublicerade Science-sidan i utvecklingstemat (`templates
 **Att åtgärda på Science-sidan när vi kommer dit:** "The Spell" saknar Breathe och delar Anchor i Intention + Return. Ska linjeras med metoden.
 
 **Science i butiken (läge 2026-10-13):** den rika Science-sidan (`the-science-1`) är opublicerad. Publicerad är den gamla "The Science" (`the-science`) med "Bio-Hacking for the Soul"-texten, och "The Science of Soul" som bara säger "Content coming soon". Utkastmenyn visar COLLECTION · THE RITUAL · OUR WORLD, ingen Science. Beslut: publicera `the-science-1` och lägg in Science i menyn.
+
+## Byggt 2026-10-13: The Experience block B som "The Window"
+
+Block B (låst copy ovan) är byggt i utvecklingstemat som en scrollberättelse med valv och ljusfält i stället för foto. Copyn är oförändrad. Se `projects/bme-experience-window/README.md` (bl.a. bildprompter till ChatGPT/Gemini och hur man backar till v43). De fem boxarna ovan är inte byggda än.
