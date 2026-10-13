@@ -1,95 +1,103 @@
-# BME — The Experience, block B: "The Window" (2026-10-13)
+# BME: The Experience, block B, "Five Films" (v46, 2026-10-13)
 
-Status: **byggt i utvecklingstemat, inget publicerat.** Tema: `Atelier – Rituals-stil (utveckling 2026-09-02)` (id `199116816758`, roll `UNPUBLISHED`).
+Status: **byggd i utvecklingstemat, inget publicerat.** Tema: `Atelier – Rituals-stil (utveckling 2026-09-02)` (id `199116816758`, roll `UNPUBLISHED`).
 Förhandsvisning: `https://9w0qpc-07.myshopify.com/?preview_theme_id=199116816758`, sektionen `#the-experience`.
 
-## Varför det gjordes om
+Copyn är **låst och oförändrad** (block B). Det som gjorts är formatering.
 
-Anna jämförde v43 mot BONJIL ("Ritual in a Box") och bedömde att vår inte höll måttet. Hennes kritik, och vad som låg bakom den i koden:
+## Vägen hit (Annas omdömen i ordning)
 
-| Annas kritik | Orsak i v43 |
-|---|---|
-| "Flera olika typsnitt" | Cormorant (rubriker) + kursiv Cormorant + systemets sans-serif (`system-ui`) för brödtext, etikett och bildtext |
-| "Inga arty coola take" | Foto vänster, text höger i två kolumner: standardlayout |
-| "Bilden är för snäll" | Stockig stillbild av kvinna med AirPod som luktar på handen |
-
-## Vad det är nu
-
-Copyn är **oförändrad** (låst block B). Bilden är inte ett foto utan ett **valv** ("fönstret") med ett levande ljusfält. Scrollen går genom de fem ögonblicken; varje ögonblick ändrar fältet och tänder en nod, och en tråd ritas mellan noderna: *det som tänds tillsammans kopplas ihop* (Hebb). Fönstret vidgas för varje ögonblick och öppnas till full bredd på slutraden *"We call it the window, and the ritual is how we open it."*
-
-| Scroll | Text | Ljusfältet |
+| Version | Vad | Annas omdöme |
 |---|---|---|
-| Intro | Eyebrow, rubrik (andra raden i guldkursiv), "The brain can change its own biology…" | (rullar förbi normalt, ingen fästning) |
-| 1 | Not every moment matters *equally.* | Likvärdigt, dämpat flöde: inget ögonblick väger mer |
-| 2 | Under the right conditions… | Uppmärksamheten samlas vid första noden |
-| 3 | Breathe. Regulate. | Ringar som andas (10 s, ca sex andetag per minut) |
-| 4 | Scent. Evoke. | Gyllene strängar som stiger |
-| 5 | Touch. Embody. | Virvel som ett fingeravtryck (långsam, jämn rörelse) |
-| 6 | Feel. Amplify. | Koppar-glöd som dras in mot en punkt |
-| 7 | Anchor. (se öppen punkt 5 nedan) | Alla fem noder kopplas ihop till en enda tråd uppåt |
-| 8 | Five moments. *One direction.* A mind… | Tråden pulserar uppåt |
-| 9 | It may look like magic… | Fönstret öppnas helt, texten ligger över |
+| v43 | Foto vänster, text höger | "flera typsnitt, inga arty coola take, bilden för snäll" |
+| v44 | Mörk fastnålad scroll-berättelse med ljusfält (canvas) | "wow, bra" men "för mörkt, lite för stor text, går inte att scrolla (texten ska flyttas med först), jag vill ha färg och rörlig bild som lyfter, sensuella material, orden i bilderna" |
+| v45 | Fem smala valv i rad med stockvideo | "det här ser konstigt ut, det passar inte … du måste hitta ett annat sätt att presentera bildvideo" |
+| **v46** | **Fem filmkapitel i vanlig scroll** | (väntar på Annas omdöme) |
 
-Designregler som gäller (se även `skills/webbdesign-varldsklass/SKILL.md`): **ett enda typsnitt** (temats Cormorant, en vikt; hierarki med skala, kursiv, versaler och guld), **mörkt band** för rytm (temats egen grön-svart `#0a0e0c` + guld `#c4a268`), inga extra färger, inget scroll-kapande (vanlig sticky), fullt fungerande reservläge.
+Varför v45 föll (mina egna ord, utan försvar): fem smala valv bredvid varandra läses som **färgprov**, inte som film. Klippen hade olika färgvärldar (senapsgul rök, orange stockring, blågrön vatten, olivgrön mossa), så raden såg billig ut. Fem saker att visa samtidigt tar ifrån varje bild dess verkan. Valvformen i klunga lånade dessutom kyrkfönster.
+
+## Konceptet i v46
+
+**En film i taget, stor, i vanlig scroll (inget fastnålat).** Varje ögonblick är ett kapitel:
+
+- Filmen **kommer in som en smal springa och öppnas till full bredd när den rör sig upp i bild**. Det är "the window" (varumärkets egen metafor) som görs med scrollen, inte en dekor. Anchor (femte) öppnas i höjdled i stället.
+- **Orden ligger inne i filmen**, små och vida: `01 ——` / `BREATHE.` (versaler, spärrade) / *Regulate.* (kursiv, ca 45 px). Bokstäverna tonar fram ur oskärpa, en och en. Spärren på sense-ordet vidgas långsamt medan man scrollar genom filmen (ordet "andas"). Läget växlar per kapitel (nere vänster, uppe vänster, nere höger, uppe höger, nere mitt) så att sidan inte blir en mall.
+- **En guldtråd** (1 px) binder ihop kapitlen och ritas med scrollen: det som tänds tillsammans kopplas ihop (Hebb), som i v44 men i tystare form.
+- **Rytm**: full bredd, höger-inskjuten, vänster-inskjuten, full bredd, smal och rak (Anchor). Mobil: alla fullbredd, 4:5.
+- **Ett enda typsnitt** (temats Cormorant, en vikt), hierarki med skala, kursiv, versaler, guld. Ljus ivory-sida (`#f3eee3`), grön-svart text (`#1c2320`), guld (`#8a6f43`). Inget mörkt band.
+- **En gradering över alla fem filmer** (viktigast): lyfta svärtor, mjuka högdagrar (max ~95 %), dämpad mättnad, varm pärlton. Satin/gardin = salvia + elfenben, rök = taupe, mossa = dämpad grön, vatten = rosa pärlskymning, trä = grågrått ljus.
+
+| # | Ord (copy) | Film (Pexels, licens: fri kommersiell, ingen attribuering) | Layout | Textfärg |
+|---|---|---|---|---|
+| 1 | Breathe. Regulate. | 38675645, vindrörda lingardiner i fönster (4K) | full bredd, nere vänster | mörk |
+| 2 | Scent. Evoke. | 7302972, rök | höger-inskjuten, uppe vänster | mörk |
+| 3 | Touch. Embody. | 3224617, mossa i närbild | vänster-inskjuten, nere höger | ljus |
+| 4 | Feel. Amplify. | 856327, stilla vatten i skymning | full bredd, uppe höger | mörk |
+| 5 | Anchor. Associate. (se öppna punkter) | 8553230, träskiva med spricka | smal 4:5, nere mitt | ljus |
+
+**Allt detta är stockfilm = platshållare.** Den riktiga lösningen är egna klipp (Flow, skillen `reklamfilm-regissor`, med prompter) som Anna lägger in via videoväljaren per ögonblick. Stocken är vald för att visa riktningen och för att vara en hederlig reserv.
 
 ## Filer (kopior i `theme/`, originalen ligger i Shopify)
 
 | Fil i temat | Innehåll |
 |---|---|
-| `sections/bme-experience.liquid` | Markup + schema. **Ersatte v43 på plats**: samma filnamn, samma inställnings-id, samma blocktyp `panel` → `templates/index.json` är orörd |
+| `sections/bme-experience.liquid` | Markup + schema. Samma filnamn, samma inställnings-id och blocktyp `panel` som v43/v44 → `templates/index.json` är orörd (kontrollsumma identisk) |
 | `snippets/bme-window-css.liquid` | All CSS |
-| `snippets/bme-window-em.liquid` | Liten hjälpare: lägger guldkursiv på fraserna i inställningen "Words in italic gold" |
-| `snippets/bme-window-js-1.liquid` + `-js-2.liquid` | Ett enda `<script>`, delat i två för att varje fil ska rymmas under Shopifys gräns på 16 384 tecken per GraphQL-dokument |
-| `sections/bme-window.liquid` | **Tom stub** ("UNUSED - delete me"). Radering av temafiler blockeras av verktyget. Ta bort i Shopify admin → Edit code |
-| `assets/backup-bme-experience-v43-2026-10-13.txt` | v43 före bytet |
-| `assets/backup-index-pre-window-2026-10-13.txt` | index.json före bytet (index.json ändrades ändå inte, kontrollsumman är identisk) |
+| `snippets/bme-window-js-1.liquid` | All JS (ett `<script>`) |
+| `snippets/bme-window-em.liquid` | Hjälpare: guldkursiv på fraserna i inställningen "Words in italic gold" |
+| `snippets/bme-window-js-2.liquid` | **Oanvänd stub** sedan v46 (kan raderas i Edit code; verktyget får inte radera) |
+| `sections/bme-window.liquid` | Oanvänd stub sedan v44 (radera i admin) |
+| `assets/backup-bme-experience-v43-2026-10-13.txt` | v43 före bytet. v44 finns i git: `git show 2fe1618:projects/bme-experience-window/theme/…` |
 
-## Backa till v43
+**Filmerna ligger i Shopify → Innehåll → Filer** (CDN), 10 videor + 10 affischer (`bme-film-N-wide|tall.mp4|jpg`, N = 1–5). Videorna är H.264 faststart utan ljud, 16:10 1600×1000 (desktop) och 3:4 900×1200 (mobil, och Anchor på desktop): 0,3–3,0 MB styck, totalt ca 14 MB men bara de som är nära bild laddas. De är sömlösa loopar (1,2 s tvärtoning inbakad). Affischerna (JPEG, 16–155 kB) visas före filmen, utan JavaScript och vid reducerad rörelse.
 
-`themeFilesCopy`: `assets/backup-bme-experience-v43-2026-10-13.txt` → `sections/bme-experience.liquid` (eller kopiera in texten i Edit code).
+`films/make-films.sh` återskapar alla 20 filer från Pexels-originalen (8 av 10 videor blir byte-identiska; Anchor skiljer några kB).
 
 ## Redigera i temaredigeraren (utan kod)
 
-- **Words in italic gold** (en fras per rad, exakt träff): standard `THE FEELING DEEPENS`, `equally.`, `One direction.`. Gäller rubrik, paneler och slutrad. Texten i `index.json` ändrades inte.
-- **Scroll length per step** (30–90 vh, standard 48): hur lång berättelsen blir. Standard ≈ 5 skärmhöjder totalt.
-- **Image inside the window**: valfri bild i valvet (se nästa avsnitt).
-- Panelernas text: blocket med flera rader = de fem paren (ett par per rad, "Ord. Verb.").
+- Texter: eyebrow, rubrik, introrad, slutrad. **Words in italic gold** (en fras per rad, exakt träff).
+- Panelernas text: blocket med flera rader = de fem paren ("Ord. Verb." per rad).
+- **Per ögonblick (1–5)**: *Film (replaces the default)* = Shopifys videoväljare (egen film ersätter stocken, används då för både desktop och mobil), och *Words* = mörk/ljus textfärg (mörk på ljus film, ljus på mörk film).
+- *Default films: file name prefix*: ändra inte.
+- Fler än fem rader i paret-blocket: ögonblick 6+ får ingen film om ingen video läggs in.
 
-## Vill du ha en bild i valvet? Prompter till ChatGPT eller Gemini
+## Tillgänglighet och prestanda
 
-Bilden läggs **under** ljuslinjerna med blandningsläget *screen*, så den ska ha **äkta svart bakgrund** (svart blir genomskinligt, ljus blir ljus). Stående 3:4, minst 1200 × 1600 px, **inga ansikten, ingen text, ingen logotyp, inget vattenmärke**. Ladda upp i Shopify: Anpassa → The Experience → "Image inside the window". Prova gärna 3–4 varianter och välj efter ögat. Behåll gärna ingen bild alls: ljusfältet står på egna ben.
+- Filmerna är `muted loop playsinline`, aria-hidden. Spelas **bara när de syns**, max två samtidigt (de som ligger närmast skärmens mitt). Laddas först när de är nära (60 % av skärmen).
+- **Pausknapp** ("Pause films"/"Play films", sticky uppe till höger medan filmerna syns). Vid reducerad rörelse och vid "data saver" startar ingen film av sig själv.
+- Ord delas i bokstäver med JS; skärmläsare får vanlig text (dold kopia). Utan JS: statiska affischer, alla ord synliga.
+- Ingen scroll-kapning, inget fastnålat, inga bibliotek.
 
-Gemensamt tillägg till varje prompt: *"Photorealistic, ultra-detailed, shot on a macro lens, true black background (#000000), no text, no logo, no watermark, no face, 3:4 portrait."*
+## Verifierat (2026-10-13)
 
-1. **Fingertoppen blir nervbana (Touch).** "Extreme macro of a single fingertip pressing lightly into a bead of white cream on black. The fingerprint ridges turn into glowing rose-gold filaments that branch and fork like neurons and dendrites, fading into darkness. Warm rim light, shallow depth of field, tiny floating sparks of light."
-2. **Fem punkter som tänds ihop (Hebb).** "Hundreds of ultra-fine golden threads in total darkness, converging into five glowing nodes that are joined by one luminous line rising upward, like neurons firing together. Looks like ink dispersing in water, long exposure, soft bokeh sparks, warm champagne-gold light."
-3. **Doften som arkitektur (Scent).** "A slow plume of golden vapour rising from a single point in total darkness and curling into the shape of a tall arched doorway, lit from within, like long-exposure smoke photography, high-end perfumery campaign, champagne and amber tones."
-4. **Händer som håller ljus (om du vill ha något mänskligt).** "Two bare hands cupped together as if holding water, shot from the side in total darkness. From the palms rise thousands of fine golden filaments like a fibre-optic fountain, thin rim light on the knuckles, no jewellery, no face."
+- **Testbänk** (liquidjs + Chromium, desktop 1440, 1920, 1024, mobil 390, reducerad rörelse, utan JS): layout, öppning, bokstavsreveal, tråd, pausknapp, max två filmer spelar.
+- **Riktig förhandsvisning** (utkast-temat, desktop 1440 och mobil 390): sektionen laddas, `Cormorant` överallt, rubrik 68 px / 34 px, inga horisontella scrollbalkar, 72 bokstäver, 5 videor kopplade, inga sidfel (i konsolen bara Shopifys eget brus: `shop.app` 403/ram och en 404 som fanns innan).
+- **Kontrollsummor (MD5)**: CSS, JS och sektion stämmer mot lokala kopior. Alla 10 videor på CDN är byte-identiska med de lokala. `index.json` orörd.
+- **OBS filmerna i skärmdumparna**: headless Chromium saknar H.264. I testet (`lab/live.mjs`) byts CDN-filerna mot VP9-kopior av samma klipp. **Att just H.264-filerna spelar i Chrome/Safari/Firefox med riktig dekoder är därför inte sett med egna ögon här.** H.264 + faststart + `playsinline` är standard och bör fungera, men Anna bör titta på en riktig enhet.
 
-## Verifierat
+## Inte testat
 
-- **Riktig förhandsvisning (Chromium, desktop 1440×900 och mobil 390×844):** sticky fungerar (inga överflödande förfäder), temats header (102 px / 80 px), Cormorant överallt i sektionen, hela berättelsen, inga sidfel. I konsolen finns bara Shopifys eget brus (shop.app-ram, en 403 och en 404 som fanns innan).
-- **Reservlägen (testbänken):** reducerad rörelse och utan JavaScript ger vanlig staplad layout, all copy synlig, valvet med en stilla bild.
-- **Kontrollsummor (MD5)** för alla uppladdade filer stämmer mot lokala kopior (index.json identisk med backupen).
-- **Prestanda:** ca 1 ms per bildruta för partiklar och ritning i headless-Chromium (1000 partiklar desktop, 560 mobil). Sänker partikelantalet automatiskt om bildrutorna blir långsamma. **Inte testat** på riktiga telefoner, Safari eller Firefox.
-- Interaktion: musen virvlar i fältet på desktop (inte på touch).
+Riktiga telefoner (iOS lågenergiläge stoppar autoplay: då syns affischen och knappen står på "Play films"), Safari, Firefox, långsamt nät. Prestanda på äldre mobiler.
 
 ## Öppna punkter / vet inte
 
-1. Bedöms på riktiga enheter: långsam mobil och Safari.
-2. **De fem boxarna** (01 BREATHE … 05 ANCHOR + 06 THE RITUAL, version 3 i copy-dokumentet) ingår inte. Scenen har plats för dem som nästa steg, t.ex. att varje rad fälls ut när dess ögonblick är aktivt. Beslut behövs.
-3. Längden på scroll: ca 5 skärmhöjder. Kortare = sänk "Scroll length per step".
-4. Shopifys egen förhandsgranskningsrad täcker ca 65 px längst ned i skärmdumpar av utkastet, inte på den riktiga sajten.
-5. **Copyrättelse ej införd i temat:** `projects/bme-copy-varumarkesbeskrivning-2026-10-12.md` ('Rättelse 2026-10-13') säger "Anchor. **Direct.**" i panel 3, men temats `templates/index.json` (panel_3) och sektionens förinställning säger fortfarande "Anchor. Associate.". Ändras i temaredigeraren: The Experience → blocket med de fem raderna → sista raden. Koden behöver inte ändras.
-6. Befintligt headerfel (kontoikonen högre än sök/varukorg) är oförändrat, se `projects/bme-startsida-strukturrevision-2026-10-09.md`.
+1. **Stockfilm är en stand-in.** Världsklass = egna klipp (Flow). Annas nästa beslut: vill hon ha Flow-prompter per ögonblick (i skillens format) eller godkänner hon riktningen med stocken först?
+2. **Copyrättelse ej införd i temat:** kopiadokumentet säger "Anchor. **Direct.**", temats `index.json` (panel_3) säger "Anchor. Associate." (förinställningen i sektionen säger "Direct"). Ändras i temaredigeraren: The Experience → blocket med de fem raderna → sista raden. Koden behöver inte ändras.
+3. **De fem boxarna** (01 BREATHE … 06 THE RITUAL, version 3 i copy-dokumentet) ingår inte.
+4. Ingen film har egen ton i ljud (tyst, med flit).
+5. Shopifys förhandsgranskningsrad täcker ca 65 px längst ned i skärmdumpar av utkastet, inte på riktiga sajten.
+6. Befintligt headerfel (kontoikonen högre än sök/varukorg), se `projects/bme-startsida-strukturrevision-2026-10-09.md`.
 
 ## Testbänk (lokalt)
 
 ```
 cd projects/bme-experience-window/lab
-npm i liquidjs playwright     # första gången
-node build.mjs                # renderar sektionen med riktig Liquid + temats Cormorant
-node shoot.mjs 1440 900 d 0,0.3,0.6,1        # skärmdumpar i lab/shots/ (CHROMIUM=/sökväg om webbläsaren inte hittas)
-node shoot.mjs 390 844 m 0,0.3,0.6,1         # mobil
-node shoot.mjs 1440 900 r 0.6 1              # reducerad rörelse
+npm i liquidjs playwright            # första gången
+bash make-test-media.sh              # hämtar filmerna från CDN och gör VP9-kopior (bara för testet)
+node build.mjs                       # renderar sektionen med riktig Liquid + temats Cormorant -> page.html
+python3 -m http.server 8765 --bind 127.0.0.1 &
+node shoot.mjs 1440 900 d tour 0     # skärmdumpar i shots/ (CHROMIUM=/sökväg vid behov)
+node shoot.mjs 390 844 m tour 0      # mobil
+node extra.mjs                       # reducerad rörelse, utan JS, 1920, 1024
+node live.mjs 1440 900 live-d tour   # RIKTIGA förhandsvisningen (kräver HTTPS_PROXY i molnet)
 ```

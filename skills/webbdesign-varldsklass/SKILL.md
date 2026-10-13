@@ -22,11 +22,26 @@ Skapad 2026-10-13 efter att Anna underkände v43 av The Experience ("flera typsn
 
 - **Ett enda typsnitt per sektion** (temats Cormorant, en vikt). Hierarki med skala, kursiv, versaler med bred spärr, guld. Inget `system-ui`. Det som ser ut som "flera typsnitt" är det oftast.
 - **Palett = temats egen**: grön-svart `#0a0e0c`/`#1c2320`, elfenben `#f3eee3`, guld `#c4a268`/`#ecd29a`. Inga nya färger. Ett varmt koppar-/bärnstensskimmer är ok som ögonblickets accent.
-- **Rytm**: växla mörkt och ljust. Ett mörkt band gör mer för "dyrt" än mer innehåll.
+- **Rytm**: växla mörkt och ljust, men Anna sa om v44 (helt mörk): "för mörkt". Håll sidan ljus (elfenben) och låt filmerna/bilderna bära det mörka. Ett mörkt band i sig är inte längre standardsvaret.
 - **Skalkontrast**: ett mycket stort element per vy (80–110 px rubrik, 60–80 px ord) mot små, tysta etiketter. Hårlinjer, siffror (01–05), en guldtråd som visar framsteg.
 - **Rörelse bär betydelse**, inte dekor. Varje rörelse ska betyda något (andning 10 s, fingeravtryck, tråd som kopplar). Respektera `prefers-reduced-motion`, ge fullgod statisk layout.
 - **Ingen scroll-kapning.** `position: sticky` + beräkna framsteg från `getBoundingClientRect()`.
 - Copy som är låst ändras inte: formatera den, men ändra aldrig orden. Betoning görs via en inställning (fraser i guldkursiv), inte genom att skriva om texten.
+
+## Rörlig bild (video) på sidan: lärdomar från v45 → v46 (13 okt, Annas "det här ser konstigt ut")
+
+Anna: *"du måste i varje beslut bära din roll som världsledande … du måste hitta ett annat sätt att presentera bildvideo."* Ett underkänt förslag (fem smala valv med stockvideo i rad) lärde mer än tre godkända.
+
+- **Visa en film i taget, stor.** Flera små rörliga rutor bredvid varandra läser som färgprov och tar ifrån varje bild dess verkan. Ett kapitel per film, helbredd eller stor, i vanlig scroll (aldrig fastnålat).
+- **Låt formen göra ett jobb.** Här: filmen öppnas från en smal springa till full bredd med scrollen (= "the window", varumärkets metafor). Inte dekor, utan mening. Valv i klunga och andra "färdiga" former: undvik.
+- **En enda gradering över alla klipp är viktigare än vilka klipp.** Olika färgvärldar (senap, orange, blågrönt) ser billiga ut tillsammans. Lyft svärtor (`curves 0/0.04`), kapa högdagrar (`1/0.955`), dämpa mättnad, varm pärlton. Sedan bedömer du alla fem på ett kontaktblad bredvid varandra på sidans bakgrundsfärg innan något byggs.
+- **Välj klipp som redan bär varumärkets material**, inte "snygga klipp": skira gardiner som andas i ett fönster (= window + breath) slår skarpt men mycket suddig satin. Vatten ska vara stilla skymning, inte glitter. Undvik klipp med konstant kamerarörelse (testa med frame-differens).
+- **Orden i bilden**: små, spärrade versaler för sinnet och kursiv för effekten, olika läge per kapitel, bokstäverna tonar fram ur oskärpa, textfärg per film (mörk på ljus, ljus på mörk) + en mjuk lokal slöja bakom. Aldrig stora ord över hela bilden (Anna: "lite för stor text").
+- **Sömlös loop**: `xfade` (1,2 s) av slutet över början, `format=yuv420p` efter xfade (annars 4:4:4 som inte går att spela), H.264 high, `-an`, faststart, `crf 28`, `maxrate 2600k` (desktop 1600×1000) / `1800k` (mobil 900×1200). Två format: 16:10 och 3:4 (JS väljer; en smal centrerad film använder alltid 3:4).
+- **Spela bara det som syns**: `IntersectionObserver`, max två samtidigt (närmast skärmens mitt), ladda först när nära, `preload=none` i markup, affisch (JPEG) + liten base64-bakgrund som reserv, **pausknapp** (WCAG 2.2.2), respektera `prefers-reduced-motion` och `saveData`, `play()` kan avvisas (iOS lågenergi): fånga det och visa "Play".
+- **Kontrollera ALLTID hela vägen i den riktiga förhandsvisningen med riktiga filer**, inte bara i testbänken. Headless Chromium har ingen H.264: bygg VP9-kopior av samma klipp och mata in dem som `Blob` via `addInitScript` (en `src`-setter som byter CDN-URL mot blob). Localhost från en https-sida går inte (proxy/PNA, 405). Säg ärligt att riktig H.264-uppspelning inte setts.
+- **Stockfilm är platshållare.** Säg det. Den riktiga lösningen är egna klipp (Flow, skillen `reklamfilm-regissor`) via sektionens videoväljare. Lägg alltid in den vägen (`video_N` ersätter standardfilmen).
+- **Källor**: Pexels (fri kommersiell, ingen attribuering). `WebFetch` på `pexels.com/search/videos/<fråga>/?orientation=landscape` ger id-listan; `curl -A <webbläsar-UA> https://www.pexels.com/download/video/<ID>/` ger 302 till originalfilen. Pinterest-material är bara referens, aldrig på sajten.
 
 ## Canvas-konst: lärdomar
 
@@ -50,6 +65,9 @@ Skapad 2026-10-13 efter att Anna underkände v43 av The Experience ("flera typsn
 - I liquidjs (testbänken) finns inte `blank`: byt till `nil` i testbänken, aldrig i den riktiga filen.
 - `justify-self` från ett grid-läge gäller även `position:absolute` och kan krympa bredden till 0. Nollställ (`justify-self:stretch`) i det läge som inte är grid.
 - **En sektion som ska bytas ut**: byt innehåll i den befintliga filen i stället för att peka om mallen.
+- **Lämna aldrig utkastet i ett mellanläge.** Sektion, CSS och JS hänger ihop: ladda upp i en ordning där varje steg är konsistent (nytt CSS+JS först, sektionen sist) och kontrollera direkt. Efter ett avbrutet arbete: kolla `checksumMd5` på alla delar innan du säger något om läget.
+- **Filer i Shopify (video, bilder)**: `stagedUploadsCreate` (resource `FILE` för mp4, `IMAGE` för jpg, `httpMethod: POST`, max 20 MB per fil) → `curl --form-string` med *alla* parametrar i tur och ordning och `file` sist (signatur och policy kopieras exakt) → `fileCreate` (contentType `FILE`/`IMAGE`) → fråga `files(query:"filename:…")` tills `READY` → hämta från `cdn.shopify.com/s/files/…/files/<namn>` (utan `?v=`) och jämför MD5 (videor blir byte-identiska; JPEG får några byte metadata). Använd unika filnamn.
+- **Ett prefix i en textinställning** (`film_files_url` + nummer + `-wide.mp4`) ger en hel filuppsättning med en enda inställning, i stället för 20 fält i temaredigeraren.
 
 ## Innan du säger "klart"
 

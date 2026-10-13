@@ -1,15 +1,12 @@
 {%- comment -%}
-  v44 (2026-10-13) "The Window": The Experience, block B. Draft theme 199116816758 only. Anchor #the-experience.
-  Replaces v43 (photograph spread) in place. v43 is saved as assets/backup-bme-experience-v43-2026-10-13.txt: copy it back to sections/bme-experience.liquid to revert.
-  Same setting ids and "panel" block as v43, so templates/index.json is untouched.
-  A tall arch with a living field of light. Scroll walks through the five moments (breath, scent, touch, feeling, anchor); a node lights and a thread is drawn for each: what fires together, wires together. The window widens and, on the closing line, opens to full width.
-  One typeface (theme heading font), one weight; hierarchy by scale, italic, case and gold. Setting "emphasis" = phrases shown in italic gold (one per line, exact match).
-  No JS or reduced motion = stacked layout with all copy visible. Optional setting window_image (screen blend, use a dark background).
-  Files: snippets/bme-window-css, bme-window-em, bme-window-js-1 + js-2 (one script, rendered back to back).
+  v46 (2026-10-13) "Five Films": The Experience, block B. Draft theme 199116816758 only. Anchor #the-experience.
+  Replaces v44 (dark, pinned) and v45 (arch row) in place. v43 = assets/backup-bme-experience-v43-2026-10-13.txt. Same setting ids and "panel" block, so templates/index.json is untouched.
+  Light page, normal scrolling, nothing pinned. The five moments are five film chapters (breath = fabric, scent = smoke, touch = moss, feel = water, anchor = wood), one shared grade. Each film arrives as a narrow slit and opens to its full width as it enters the screen (the window); the words sit inside the film, small and widely spaced; a thin gold thread links the chapters.
+  One typeface (theme heading font), one weight. Files: setting "film_files_url" + number = bme-film-N-wide.mp4/.jpg and bme-film-N-tall.mp4/.jpg (in Files). Setting "video_N" (Shopify video picker) replaces the default film for moment N.
+  No JS or reduced motion: static posters, all words visible, play button available. Files: snippets/bme-window-css, bme-window-em, bme-window-js-1.
 {%- endcomment -%}
 {%- liquid
   assign h2_id = 'bwin-h2-' | append: section.id
-  assign plate = section.settings.window_image
   assign phrases = section.settings.emphasis | strip | newline_to_br | split: '<br />'
   assign pairs_block = blank
   for block in section.blocks
@@ -18,10 +15,20 @@
       assign pairs_block = block
     endif
   endfor
-  assign stmt_n = 0
+  assign base = section.settings.film_files_url | strip
+  assign lq_1 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAGAAZAAD//gAQTGF2YzYwLjMxLjEwMgD/2wBDAAgYGBwYHCEhISEhISckJygoKCcnJycoKCgrKyszMzMrKysoKCsrMDAzMzc5NzQ0MzQ5OTw8PEhIRUVUVFdnZ3z/xABbAAEAAwEBAAAAAAAAAAAAAAAGBAECAwUBAQEAAAAAAAAAAAAAAAAAAAIDEAACAgMAAwEAAAAAAAAAAAAAARECcSISMWGBMxEBAQAAAAAAAAAAAAAAAAAAAAH/wAARCAAMABQDASIAAhEAAxEA/9oADAMBAAIRAxEAPwDpZ9cv3USUWkgtPWmajlfn9IDHpFyRJ8YMyFR//9k='
+  assign lq_2 = 'data:image/jpeg;base64,/9j//gAQTGF2YzYwLjMxLjEwMgD/2wBDAAgYGBwYHCEhISEhISckJygoKCcnJycoKCgrKyszMzMrKysoKCsrMDAzMzc5NzQ0MzQ5OTw8PEhIRUVUVFdnZ3z/xABZAAEBAQEBAAAAAAAAAAAAAAAEAQADBQEBAQEAAAAAAAAAAAAAAAAAAgEDEAACAgIDAQAAAAAAAAAAAAAAAQIRUSEDEmEiEQEAAAAAAAAAAAAAAAAAAAAA/8AAEQgADAAUAwEiAAIRAAMRAP/aAAwDAQACEQMRAD8A9CHGr3dZwGnGKfyzv2evNhZu3eQmGQpjNX//2Q=='
+  assign lq_3 = 'data:image/jpeg;base64,/9j//gAQTGF2YzYwLjMxLjEwMgD/2wBDAAgYGBwYHCEhISEhISckJygoKCcnJycoKCgrKyszMzMrKysoKCsrMDAzMzc5NzQ0MzQ5OTw8PEhIRUVUVFdnZ3z/xABVAAACAwEAAAAAAAAAAAAAAAAABAUDAgYBAQEBAAAAAAAAAAAAAAAAAAABBBABAQEBAQAAAAAAAAAAAAAAAAERkUERAQAAAAAAAAAAAAAAAAAAAAD/wAARCAAMABQDASIAAhEAAxEA/9oADAMBAAIRAxEAPwDhdi30mJayiR0cJNIP/9k='
+  assign lq_4 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAGAAZAAD//gAQTGF2YzYwLjMxLjEwMgD/2wBDAAgYGBwYHCEhISEhISckJygoKCcnJycoKCgrKyszMzMrKysoKCsrMDAzMzc5NzQ0MzQ5OTw8PEhIRUVUVFdnZ3z/xABWAAEBAQEAAAAAAAAAAAAAAAAGBAECAQEBAQAAAAAAAAAAAAAAAAAAAQIQAQEBAQEBAQAAAAAAAAAAAAEAAgMUEgQRAQEAAAAAAAAAAAAAAAAAAAAR/8AAEQgADAAUAwEiAAIRAAMRAP/aAAwDAQACEQMRAD8AXPele8Jd6pHbI0ZP6LPRA3bc/bIr/9k='
+  assign lq_5 = 'data:image/jpeg;base64,/9j//gAQTGF2YzYwLjMxLjEwMgD/2wBDAAgYGBwYHCEhISEhISckJygoKCcnJycoKCgrKyszMzMrKysoKCsrMDAzMzc5NzQ0MzQ5OTw8PEhIRUVUVFdnZ3z/xABdAAEBAQEBAAAAAAAAAAAAAAAGBQIABwEBAQAAAAAAAAAAAAAAAAAAAgQQAQACAQQCAwEAAAAAAAAAAAECABEEA1EhEhOhYXExEQEBAAAAAAAAAAAAAAAAAAAAMf/AABEIAAwAFAMBIgACEQADEQD/2gAMAwEAAhEDEQA/AI802xz24/nH2/lQ6cjPEsifFM7fbYWoXRb2NpQe2L2WKqY9iZXPlQ3tkg8l72S5pJ//2Q=='
+  assign layouts = 'bleed,right,left,bleed,center' | split: ','
+  assign places = 'bl,tl,br,tr,bc' | split: ','
+  assign lead_html = ''
+  assign tail_html = ''
+  assign n_pairs = 0
 -%}
 {%- render 'bme-window-css' -%}
-<section class='bwin' id='the-experience' data-bwin data-step='{{ section.settings.step_length | default: 48 }}' aria-labelledby='{{ h2_id }}'>
+<section class='bwin' id='the-experience' data-bwin aria-labelledby='{{ h2_id }}'>
   <div class='bwin__intro'>
     {%- if section.settings.eyebrow != blank -%}
       <p class='bwin__eyebrow'>{{ section.settings.eyebrow | escape }}</p>
@@ -30,85 +37,116 @@
     {%- if section.settings.text != blank -%}
       <p class='bwin__sub'>{{ section.settings.text | escape }}</p>
     {%- endif -%}
-    <span class='bwin__cue' aria-hidden='true'></span>
   </div>
 
-  <div class='bwin__track' data-bwin-track>
-    <div class='bwin__stage' data-bwin-stage>
-      <svg class='bwin__frame' aria-hidden='true' focusable='false'><path data-bwin-frame d=''></path><path data-bwin-rim class='is-rim' d=''></path></svg>
-      <div class='bwin__win' data-bwin-win aria-hidden='true'>
-        <div class='bwin__glass'></div>
-        {%- if plate != blank -%}
-          {{
-            plate
-            | image_url: width: 1600
-            | image_tag:
-              widths: '800, 1200, 1600',
-              sizes: '(min-width: 900px) 50vw, 100vw',
-              class: 'bwin__plate',
-              loading: 'lazy',
-              alt: ''
-          }}
-        {%- endif -%}
-        <canvas class='bwin__cv' data-bwin-cv></canvas>
-        <div class='bwin__glow' data-bwin-glow></div>
-        <div class='bwin__ring' data-bwin-ring></div>
-        <svg class='bwin__wire' data-bwin-wire aria-hidden='true' focusable='false'>
-          <path data-bwin-ghost fill='none' stroke='rgba(236,210,154,.2)' stroke-width='1' pathLength='1' vector-effect='non-scaling-stroke'></path>
-          <path data-bwin-lit fill='none' stroke='rgba(236,210,154,.95)' stroke-width='1.25' stroke-linecap='round' pathLength='1' vector-effect='non-scaling-stroke'></path>
-          <path data-bwin-pulse fill='none' stroke='rgba(255,246,222,1)' stroke-width='2' stroke-linecap='round' pathLength='1' vector-effect='non-scaling-stroke'></path>
-        </svg>
-        <ol class='bwin__nodes' data-bwin-nodes></ol>
-      </div>
-      <div class='bwin__scrim' data-bwin-scrim aria-hidden='true'></div>
+  {%- capture lead_html -%}
+    {%- for block in section.blocks -%}
+      {%- if block == pairs_block -%}{%- break -%}{%- endif -%}
+      {%- assign long = block.settings.text | size -%}
+      <div class='bwin__reveal' {{ block.shopify_attributes }}><p class='bwin__stmt{% if long > 70 %} is-sentence{% endif %}'>{%- render 'bme-window-em', text: block.settings.text, phrases: phrases -%}</p></div>
+    {%- endfor -%}
+  {%- endcapture -%}
+  {%- if lead_html != blank -%}
+    <div class='bwin__lead'>{{ lead_html }}</div>
+  {%- endif -%}
 
-      <div class='bwin__copy' data-bwin-copy>
-        {%- for block in section.blocks -%}
-          {%- if block == pairs_block -%}
-            {%- assign lines = block.settings.text | strip | newline_to_br | split: '<br />' -%}
-            <div class='bwin__panel' data-bwin-panel data-kind='pairs' {{ block.shopify_attributes }}>
-              <ul class='bwin__pairs'>
-                {%- for ln in lines -%}
-                  {%- assign clean = ln | strip -%}
-                  {%- assign parts = clean | split: '. ' -%}
-                  <li class='bwin__pair' data-bwin-pair>
-                    <span class='bwin__num'>0{{ forloop.index }}</span>
-                    {%- if parts.size > 1 -%}
-                      <span class='bwin__sense'>{{ parts[0] | escape }}.</span>
-                      <span class='bwin__effect'>{{ parts[1] | escape }}</span>
-                    {%- else -%}
-                      <span class='bwin__sense'>{{ clean | escape }}</span>
-                    {%- endif -%}
-                  </li>
-                {%- endfor -%}
-              </ul>
-            </div>
-          {%- else -%}
-            {%- assign stmt_n = stmt_n | plus: 1 -%}
-            {%- assign long = block.settings.text | size -%}
-            <div class='bwin__panel' data-bwin-panel data-kind='statement' data-w='{% if stmt_n == 1 %}0.9{% else %}1{% endif %}' {{ block.shopify_attributes }}>
-              <p class='bwin__stmt{% if long > 70 %} is-sentence{% endif %}'>{%- render 'bme-window-em', text: block.settings.text, phrases: phrases -%}</p>
-            </div>
+  {%- if pairs_block != blank -%}
+    {%- assign lines = pairs_block.settings.text | strip | newline_to_br | split: '<br />' -%}
+    <div class='bwin__films' {{ pairs_block.shopify_attributes }}>
+      <div class='bwin__ctl'><button type='button' class='bwin__pause' data-bwin-pause aria-pressed='false'><i aria-hidden='true'></i><span data-bwin-pause-txt>Pause films</span></button></div>
+      {%- for ln in lines -%}
+        {%- assign idx = forloop.index -%}
+        {%- assign clean = ln | strip -%}
+        {%- assign parts = clean | split: '. ' -%}
+        {%- assign vk = 'video_' | append: idx -%}
+        {%- assign tk = 'tone_' | append: idx -%}
+        {%- assign vobj = section.settings[vk] -%}
+        {%- assign tone = section.settings[tk] | default: 'ink' -%}
+        {%- assign layout = layouts[forloop.index0] | default: 'bleed' -%}
+        {%- assign place = places[forloop.index0] | default: 'bl' -%}
+        {%- assign lq = '' -%}
+        {%- case idx -%}{%- when 1 -%}{%- assign lq = lq_1 -%}{%- when 2 -%}{%- assign lq = lq_2 -%}{%- when 3 -%}{%- assign lq = lq_3 -%}{%- when 4 -%}{%- assign lq = lq_4 -%}{%- when 5 -%}{%- assign lq = lq_5 -%}{%- endcase -%}
+        {%- assign wide = '' -%}
+        {%- assign tall = '' -%}
+        {%- assign p_wide = '' -%}
+        {%- assign p_tall = '' -%}
+        {%- assign has_pick = false -%}
+        {%- if vobj != blank -%}
+          {%- assign mp4s = vobj.sources | where: 'mime_type', 'video/mp4' | sort: 'height' -%}
+          {%- assign picked = '' -%}
+          {%- for s in mp4s -%}
+            {%- if s.height >= 720 and picked == blank -%}{%- assign picked = s.url -%}{%- endif -%}
+          {%- endfor -%}
+          {%- if picked == blank -%}{%- assign picked = mp4s.last.url -%}{%- endif -%}
+          {%- if picked != blank -%}
+            {%- assign has_pick = true -%}
+            {%- assign wide = picked -%}
+            {%- assign tall = picked -%}
           {%- endif -%}
-        {%- endfor -%}
-      </div>
-
-      {%- if section.settings.closing != blank -%}
-        <p class='bwin__close' data-bwin-close>{%- render 'bme-window-em', text: section.settings.closing, phrases: phrases -%}</p>
-      {%- endif -%}
-      <div class='bwin__meter' aria-hidden='true'><i data-bwin-meter></i></div>
+        {%- endif -%}
+        {%- if has_pick == false and idx <= 5 and base != blank -%}
+          {%- assign wide = base | append: idx | append: '-wide.mp4' -%}
+          {%- assign tall = base | append: idx | append: '-tall.mp4' -%}
+          {%- assign p_wide = base | append: idx | append: '-wide.jpg' -%}
+          {%- assign p_tall = base | append: idx | append: '-tall.jpg' -%}
+        {%- endif -%}
+        <article class='bwin__ch is-{{ layout }} is-{{ place }} is-{{ tone }}' data-bwin-ch>
+          <i class='bwin__link' data-bwin-link aria-hidden='true'></i>
+          <figure class='bwin__film' data-bwin-film{% if lq != blank %} style='background-image:url({{ lq }})'{% endif %}>
+            {%- if has_pick -%}
+              {%- if vobj.preview_image != blank -%}
+                <picture class='bwin__poster'>{{ vobj.preview_image | image_url: width: 1600 | image_tag: loading: 'lazy', alt: '', widths: '800, 1200, 1600', sizes: '100vw' }}</picture>
+              {%- endif -%}
+            {%- elsif p_wide != blank -%}
+              <picture class='bwin__poster'>{%- if layout != 'center' -%}<source media='(min-width:750px)' srcset='{{ p_wide }}'>{%- endif -%}<img src='{{ p_tall }}' alt='' loading='lazy' decoding='async'></picture>
+            {%- endif -%}
+            {%- if wide != blank -%}
+              <video muted loop playsinline preload='none' aria-hidden='true' tabindex='-1' data-wide='{{ wide }}' data-tall='{{ tall }}'{% if layout == 'center' %} data-shape='tall'{% endif %}></video>
+            {%- endif -%}
+            <span class='bwin__veil' aria-hidden='true'></span>
+            <figcaption class='bwin__words'>
+              <span class='bwin__no' aria-hidden='true'>0{{ idx }}</span>
+              {%- if parts.size > 1 -%}
+                <span class='bwin__sense' data-split>{{ parts[0] | escape }}.</span>
+                <span class='bwin__effect' data-split>{{ parts[1] | escape }}</span>
+              {%- else -%}
+                <span class='bwin__sense' data-split>{{ clean | escape }}</span>
+              {%- endif -%}
+            </figcaption>
+          </figure>
+        </article>
+        {%- assign n_pairs = idx -%}
+      {%- endfor -%}
     </div>
+  {%- endif -%}
+
+  {%- capture tail_html -%}
+    {%- assign after = false -%}
+    {%- for block in section.blocks -%}
+      {%- if block == pairs_block -%}{%- assign after = true -%}{%- continue -%}{%- endif -%}
+      {%- if after -%}
+        {%- assign long = block.settings.text | size -%}
+        <div class='bwin__reveal' {{ block.shopify_attributes }}><p class='bwin__stmt{% if long > 70 %} is-sentence{% endif %}'>{%- render 'bme-window-em', text: block.settings.text, phrases: phrases -%}</p></div>
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endcapture -%}
+  <div class='bwin__tail'>
+    <i class='bwin__link' data-bwin-link aria-hidden='true'></i>
+    {{ tail_html }}
+    {%- if section.settings.closing != blank -%}
+      <div class='bwin__reveal'><p class='bwin__close'>{%- render 'bme-window-em', text: section.settings.closing, phrases: phrases -%}</p></div>
+    {%- endif -%}
   </div>
 </section>
 <script>
 (function(){
-{%- render 'bme-window-js-1' -%}{%- render 'bme-window-js-2' -%}
+{%- render 'bme-window-js-1' -%}
 })();
 </script>
 
 {% schema %}
 {
-  "name": "BME experience (window)",
+  "name": "BME experience (films)",
   "max_blocks": 8,
   "settings": [
     { "type": "header", "content": "Text" },
@@ -117,11 +155,24 @@
     { "type": "textarea", "id": "text", "label": "Intro line", "default": "The brain can change its own biology, at any age. Science calls it neuroplasticity." },
     { "type": "textarea", "id": "closing", "label": "Closing line", "default": "It may look like magic. Neuroscience calls it long-term potentiation. We call it the window, and the ritual is how we open it." },
     { "type": "textarea", "id": "emphasis", "label": "Words in italic gold (one per line)", "default": "THE FEELING DEEPENS\nequally.\nOne direction.", "info": "Exact match, including capitals and punctuation. Works in the heading, the panels and the closing line." },
-    { "type": "header", "content": "Scroll" },
-    { "type": "range", "id": "step_length", "label": "Scroll length per step (vh)", "min": 30, "max": 90, "step": 2, "default": 48, "info": "Higher = the story takes more scrolling." },
-    { "type": "header", "content": "Window image (optional)" },
-    { "type": "paragraph", "content": "Leave empty to use the living light alone. A picture here is placed inside the arch with the blend mode 'screen', so it should have a dark or black background. Portrait, at least 1200 x 1600 px." },
-    { "type": "image_picker", "id": "window_image", "label": "Image inside the window" }
+    { "type": "header", "content": "Films" },
+    { "type": "paragraph", "content": "The five default films live in Files (Content > Files). To use your own film for a moment, add it under that moment below. It replaces the default." },
+    { "type": "text", "id": "film_files_url", "label": "Default films: file name prefix", "default": "https://cdn.shopify.com/s/files/1/0961/8377/9702/files/bme-film-", "info": "Moment 1 uses ...bme-film-1-wide.mp4 and -tall.mp4 plus .jpg posters with the same names. Leave as is." },
+    { "type": "header", "content": "Moment 1: Breathe" },
+    { "type": "video", "id": "video_1", "label": "Film (replaces the default)" },
+    { "type": "select", "id": "tone_1", "label": "Words", "options": [{ "value": "ink", "label": "Dark (on a light film)" }, { "value": "ivory", "label": "Light (on a dark film)" }], "default": "ink" },
+    { "type": "header", "content": "Moment 2: Scent" },
+    { "type": "video", "id": "video_2", "label": "Film (replaces the default)" },
+    { "type": "select", "id": "tone_2", "label": "Words", "options": [{ "value": "ink", "label": "Dark (on a light film)" }, { "value": "ivory", "label": "Light (on a dark film)" }], "default": "ink" },
+    { "type": "header", "content": "Moment 3: Touch" },
+    { "type": "video", "id": "video_3", "label": "Film (replaces the default)" },
+    { "type": "select", "id": "tone_3", "label": "Words", "options": [{ "value": "ink", "label": "Dark (on a light film)" }, { "value": "ivory", "label": "Light (on a dark film)" }], "default": "ivory" },
+    { "type": "header", "content": "Moment 4: Feel" },
+    { "type": "video", "id": "video_4", "label": "Film (replaces the default)" },
+    { "type": "select", "id": "tone_4", "label": "Words", "options": [{ "value": "ink", "label": "Dark (on a light film)" }, { "value": "ivory", "label": "Light (on a dark film)" }], "default": "ink" },
+    { "type": "header", "content": "Moment 5: Anchor" },
+    { "type": "video", "id": "video_5", "label": "Film (replaces the default)" },
+    { "type": "select", "id": "tone_5", "label": "Words", "options": [{ "value": "ink", "label": "Dark (on a light film)" }, { "value": "ivory", "label": "Light (on a dark film)" }], "default": "ivory" }
   ],
   "blocks": [
     {
@@ -134,11 +185,11 @@
   ],
   "presets": [
     {
-      "name": "BME experience (window)",
+      "name": "BME experience (films)",
       "blocks": [
         { "type": "panel", "settings": { "text": "Not every moment matters equally." } },
         { "type": "panel", "settings": { "text": "Under the right conditions, when the senses carry a moment, attention holds it and feeling seals it, the brain learns more deeply, and keeps what it learns." } },
-        { "type": "panel", "settings": { "text": "Breathe. Regulate.\nScent. Evoke.\nTouch. Embody.\nFeel. Amplify.\nAnchor. Associate." } },
+        { "type": "panel", "settings": { "text": "Breathe. Regulate.\nScent. Evoke.\nTouch. Embody.\nFeel. Amplify.\nAnchor. Direct." } },
         { "type": "panel", "settings": { "text": "Five moments. One direction. A mind that finds its way there more easily, every time." } }
       ]
     }
