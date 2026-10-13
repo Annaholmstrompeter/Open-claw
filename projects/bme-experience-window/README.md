@@ -26,7 +26,7 @@ Copyn är **oförändrad** (låst block B). Bilden är inte ett foto utan ett **
 | 4 | Scent. Evoke. | Gyllene strängar som stiger |
 | 5 | Touch. Embody. | Virvel som ett fingeravtryck (långsam, jämn rörelse) |
 | 6 | Feel. Amplify. | Koppar-glöd som dras in mot en punkt |
-| 7 | Anchor. Associate. | Alla fem noder kopplas ihop till en enda tråd uppåt |
+| 7 | Anchor. (se öppen punkt 5 nedan) | Alla fem noder kopplas ihop till en enda tråd uppåt |
 | 8 | Five moments. *One direction.* A mind… | Tråden pulserar uppåt |
 | 9 | It may look like magic… | Fönstret öppnas helt, texten ligger över |
 
@@ -77,10 +77,11 @@ Gemensamt tillägg till varje prompt: *"Photorealistic, ultra-detailed, shot on 
 ## Öppna punkter / vet inte
 
 1. Bedöms på riktiga enheter: långsam mobil och Safari.
-2. **De fem boxarna** (01 BREATHE … 05 ANCHOR, utkast i copy-dokumentet) ingår inte. Scenen har plats för dem som nästa steg, t.ex. att varje rad fälls ut när dess ögonblick är aktivt. Beslut behövs.
+2. **De fem boxarna** (01 BREATHE … 05 ANCHOR + 06 THE RITUAL, version 3 i copy-dokumentet) ingår inte. Scenen har plats för dem som nästa steg, t.ex. att varje rad fälls ut när dess ögonblick är aktivt. Beslut behövs.
 3. Längden på scroll: ca 5 skärmhöjder. Kortare = sänk "Scroll length per step".
 4. Shopifys egen förhandsgranskningsrad täcker ca 65 px längst ned i skärmdumpar av utkastet, inte på den riktiga sajten.
-5. Befintligt headerfel (kontoikonen högre än sök/varukorg) är oförändrat, se `projects/bme-startsida-strukturrevision-2026-10-09.md`.
+5. **Copyrättelse ej införd i temat:** `projects/bme-copy-varumarkesbeskrivning-2026-10-12.md` ('Rättelse 2026-10-13') säger "Anchor. **Direct.**" i panel 3, men temats `templates/index.json` (panel_3) och sektionens förinställning säger fortfarande "Anchor. Associate.". Ändras i temaredigeraren: The Experience → blocket med de fem raderna → sista raden. Koden behöver inte ändras.
+6. Befintligt headerfel (kontoikonen högre än sök/varukorg) är oförändrat, se `projects/bme-startsida-strukturrevision-2026-10-09.md`.
 
 ## Testbänk (lokalt)
 
