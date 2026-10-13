@@ -243,7 +243,7 @@ Källa för tonen: den opublicerade Science-sidan i utvecklingstemat (`templates
 
 Anchor = **Direct** (riktning). Det är ögonblicket då fönstret är som mest öppet och affirmationen placeras som riktning. Panel 3 lyder därför: Breathe. Regulate. / Scent. Evoke. / Touch. Embody. / Feel. Amplify. / Anchor. Direct. "Return" utgår som delnamn. Science-sidans "Intention / Now choose" är samma steg.
 
-## Boxarna i The Experience, version för låsning (2026-10-13)
+## AVFÄRDAD 2026-10-13 (för mycket forskning och poesi, säljer inte nyttan): boxarna, version 1
 
 Kort stängt (framsida), öppnat (rubrik, text, forskningsrad). Öppna kort är nytt jämfört med BONJIL.
 
@@ -258,3 +258,20 @@ Kort stängt (framsida), öppnat (rubrik, text, forskningsrad). Öppna kort är 
 **05 ANCHOR · Direct**. Stängt: The window, open at its widest. Öppnat: The whole ritual has led here. Scent has opened the way, touch has brought you into the body, feeling has given the moment its weight. And now, while the window is open, the words arrive: your ritual's affirmation, and one small gesture. Not a verdict. A direction: presence, balance, luminance, serenity or kindness. Returned to again and again, it becomes easier to find, until the scent alone may be enough to bring you there. *Research:* Associative learning is well described: the brain learns what tends to arrive together, and repetition gives it another chance. That our rituals change specific pathways has not been tested, and we do not claim it.
 
 **06 THE RITUAL**. Stängt: Five moments. Three minutes. Complete in itself. Öppnat: Breathe, scent, touch, feel, direct, in one unbroken sequence, spoken while you apply. Each product has its own ritual, its own fragrance, its own direction. Stay longer with Deepening, with the product or without it. Knapp: Discover the rituals.
+
+
+## Boxarna i The Experience, version 2 (utkast 2026-10-13, säljer nyttan, ingen forskning, den hör till Science)
+
+Titlarna (01 BREATHE · Regulate ... 05 ANCHOR · Direct) är godkända. Varje kort: framsida, öppnat, YOU GAIN.
+
+**01 BREATHE · Regulate.** Framsida: Arrive. The day steps back. Öppnat: A guided breath, slow and unforced, settles your system and gathers your attention in the body. Attention is what lets a moment be learned. This is where the window begins to open. YOU GAIN: A settled, present start, wherever you are.
+
+**02 SCENT · Evoke.** Framsida: A fragrance that learns the feeling. Öppnat: Each ritual has its own scent, chosen to carry its feeling. Smell has a direct line to the brain's emotional centres. Meet the same fragrance in the same calm, again and again, and the brain learns to link them. YOU GAIN: In time, the scent alone may be enough to bring the state back.
+
+**03 TOUCH · Embody.** Framsida: The feeling moves from thought into the body. Öppnat: Guided application, slow and deliberate, at the pace the skin was made to enjoy. The ritual stops being something you think about and becomes something you feel. YOU GAIN: The most present minute of your day, in your own hands.
+
+**04 FEEL · Amplify.** Framsida: Sensation says: something is happening. Feeling says: this matters. Öppnat: A warm voice guides you to notice what is pleasant and stay with it, until it grows. Feeling is what tells the brain a moment is worth keeping. This is the heart of the method. We never decide what you feel. We make room for it. YOU GAIN: Your own feeling, made larger.
+
+**05 ANCHOR · Direct.** Framsida: Your intention, placed where the window is widest. Öppnat: Now the words arrive: your ritual's affirmation, with one small gesture. Spoken with scent, touch and feeling, it is no longer a passing thought but part of an experience. Not a verdict. A direction, toward presence, balance, luminance, serenity or kindness. Repeated, the brain learns the way there. YOU GAIN: A state you can return to anywhere: on the train, in the taxi, before the meeting.
+
+**06 THE RITUAL.** Framsida: Five moments. Three minutes. A state you can return to. Öppnat: One unbroken sequence, spoken in your ear while you apply the product you already use every day. What a spa gives you for an afternoon, built into the minute that comes every morning and every evening. Each repetition makes the next one stronger. YOU GAIN: Not a moment. A capacity you build.
