@@ -1,9 +1,9 @@
 {%- comment -%}
-  v46 (2026-10-13) "Five Films": The Experience, block B. Draft theme 199116816758 only. Anchor #the-experience.
-  Replaces v44 (dark, pinned) and v45 (arch row) in place. v43 = assets/backup-bme-experience-v43-2026-10-13.txt. Same setting ids and "panel" block, so templates/index.json is untouched.
-  Light page, normal scrolling, nothing pinned. The five moments are five film chapters (breath = fabric, scent = smoke, touch = moss, feel = water, anchor = wood), one shared grade. Each film arrives as a narrow slit and opens to its full width as it enters the screen (the window); the words sit inside the film, small and widely spaced; a thin gold thread links the chapters.
+  v47 (2026-10-13) "Five Films, carousel": The Experience, block B. Draft theme 199116816758 only. Anchor #the-experience.
+  Replaces v44 (dark, pinned), v45 (arch row) and v46 (films one under another; saved as assets/backup-*-v46b-2026-10-13.txt) in place. v43 = assets/backup-bme-experience-v43-2026-10-13.txt. Same setting ids and "panel" block, so templates/index.json is untouched.
+  Light page, normal vertical scrolling, nothing pinned. The five moments are one horizontal carousel of films (swipe, arrows, keys; the neighbours peek in at the edges; the active film opens like a window): breath = fabric, scent = smoke, touch = moss, feel = water, anchor = wood, one shared grade. The words sit inside each film, small and widely spaced.
   One typeface (theme heading font), one weight. Files: setting "film_files_url" + number = bme-film-N-wide.mp4/.jpg and bme-film-N-tall.mp4/.jpg (in Files). Setting "video_N" (Shopify video picker) replaces the default film for moment N.
-  No JS or reduced motion: static posters, all words visible, play button available. Files: snippets/bme-window-css, bme-window-em, bme-window-js-1.
+  No JS: the carousel still swipes (scroll-snap), posters and all words visible, no controls. Reduced motion: no autoplay, play button available. Files: snippets/bme-window-css, bme-window-em, bme-window-js-1.
 {%- endcomment -%}
 {%- liquid
   assign h2_id = 'bwin-h2-' | append: section.id
@@ -21,7 +21,6 @@
   assign lq_3 = 'data:image/jpeg;base64,/9j//gAQTGF2YzYwLjMxLjEwMgD/2wBDAAgYGBwYHCEhISEhISckJygoKCcnJycoKCgrKyszMzMrKysoKCsrMDAzMzc5NzQ0MzQ5OTw8PEhIRUVUVFdnZ3z/xABVAAACAwEAAAAAAAAAAAAAAAAABAUDAgYBAQEBAAAAAAAAAAAAAAAAAAABBBABAQEBAQAAAAAAAAAAAAAAAAERkUERAQAAAAAAAAAAAAAAAAAAAAD/wAARCAAMABQDASIAAhEAAxEA/9oADAMBAAIRAxEAPwDhdi30mJayiR0cJNIP/9k='
   assign lq_4 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAGAAZAAD//gAQTGF2YzYwLjMxLjEwMgD/2wBDAAgYGBwYHCEhISEhISckJygoKCcnJycoKCgrKyszMzMrKysoKCsrMDAzMzc5NzQ0MzQ5OTw8PEhIRUVUVFdnZ3z/xABWAAEBAQEAAAAAAAAAAAAAAAAGBAECAQEBAQAAAAAAAAAAAAAAAAAAAQIQAQEBAQEBAQAAAAAAAAAAAAEAAgMUEgQRAQEAAAAAAAAAAAAAAAAAAAAR/8AAEQgADAAUAwEiAAIRAAMRAP/aAAwDAQACEQMRAD8AXPele8Jd6pHbI0ZP6LPRA3bc/bIr/9k='
   assign lq_5 = 'data:image/jpeg;base64,/9j//gAQTGF2YzYwLjMxLjEwMgD/2wBDAAgYGBwYHCEhISEhISckJygoKCcnJycoKCgrKyszMzMrKysoKCsrMDAzMzc5NzQ0MzQ5OTw8PEhIRUVUVFdnZ3z/xABdAAEBAQEBAAAAAAAAAAAAAAAGBQIABwEBAQAAAAAAAAAAAAAAAAAAAgQQAQACAQQCAwEAAAAAAAAAAAECABEEA1EhEhOhYXExEQEBAAAAAAAAAAAAAAAAAAAAMf/AABEIAAwAFAMBIgACEQADEQD/2gAMAwEAAhEDEQA/AI802xz24/nH2/lQ6cjPEsifFM7fbYWoXRb2NpQe2L2WKqY9iZXPlQ3tkg8l72S5pJ//2Q=='
-  assign layouts = 'bleed,right,left,bleed,center' | split: ','
   assign places = 'bl,tl,br,tr,bc' | split: ','
   assign lead_html = ''
   assign tail_html = ''
@@ -50,10 +49,12 @@
     <div class='bwin__lead'>{{ lead_html }}</div>
   {%- endif -%}
 
+  {%- capture plain_html -%}{%- endcapture -%}
   {%- if pairs_block != blank -%}
     {%- assign lines = pairs_block.settings.text | strip | newline_to_br | split: '<br />' -%}
     <div class='bwin__films' {{ pairs_block.shopify_attributes }}>
-      <div class='bwin__ctl'><button type='button' class='bwin__pause' data-bwin-pause aria-label='Pause films' title='Pause films'><i aria-hidden='true'></i></button></div>
+      <i class='bwin__link' data-bwin-link aria-hidden='true'></i>
+      <div class='bwin__track' data-bwin-track role='region' aria-roledescription='carousel' aria-label='The five moments' tabindex='0'>
       {%- for ln in lines -%}
         {%- assign clean = ln | strip -%}
         {%- if clean == blank -%}{%- continue -%}{%- endif -%}
@@ -65,7 +66,6 @@
         {%- assign tk = 'tone_' | append: idx -%}
         {%- assign vobj = section.settings[vk] -%}
         {%- assign tone = section.settings[tk] | default: 'ink' -%}
-        {%- assign layout = layouts[li] | default: 'bleed' -%}
         {%- assign place = places[li] | default: 'bl' -%}
         {%- assign lq = '' -%}
         {%- case idx -%}{%- when 1 -%}{%- assign lq = lq_1 -%}{%- when 2 -%}{%- assign lq = lq_2 -%}{%- when 3 -%}{%- assign lq = lq_3 -%}{%- when 4 -%}{%- assign lq = lq_4 -%}{%- when 5 -%}{%- assign lq = lq_5 -%}{%- endcase -%}
@@ -94,20 +94,20 @@
           {%- assign p_tall = base | append: idx | append: '-tall.jpg' -%}
         {%- endif -%}
         {%- if wide == blank -%}
-        <div class='bwin__plain bwin__reveal'><p class='bwin__stmt'>{{ clean | escape }}</p></div>
+          {%- capture one -%}<div class='bwin__plain bwin__reveal'><p class='bwin__stmt'>{{ clean | escape }}</p></div>{%- endcapture -%}
+          {%- assign plain_html = plain_html | append: one -%}
         {%- else -%}
-        <article class='bwin__ch is-{{ layout }} is-{{ place }} is-{{ tone }}' data-bwin-ch>
-          <i class='bwin__link' data-bwin-link aria-hidden='true'></i>
+        <article class='bwin__ch bwin__slide is-{{ place }} is-{{ tone }}' data-bwin-ch role='group' aria-roledescription='slide'>
           <figure class='bwin__film' data-bwin-film{% if lq != blank and has_pick == false %} style='background-image:url({{ lq }})'{% endif %}>
             {%- if has_pick -%}
               {%- if vobj.preview_image != blank -%}
-                <picture class='bwin__poster'>{{ vobj.preview_image | image_url: width: 1600 | image_tag: loading: 'lazy', alt: '', widths: '800, 1200, 1600', sizes: '100vw' }}</picture>
+                <picture class='bwin__poster'>{{ vobj.preview_image | image_url: width: 1600 | image_tag: loading: 'lazy', alt: '', widths: '800, 1200, 1600', sizes: '80vw' }}</picture>
               {%- endif -%}
             {%- elsif p_wide != blank -%}
-              <picture class='bwin__poster'>{%- if layout != 'center' -%}<source media='(min-width:750px)' srcset='{{ p_wide | escape }}'>{%- endif -%}<img src='{{ p_tall | escape }}' alt='' loading='lazy' decoding='async'></picture>
+              <picture class='bwin__poster'><source media='(min-width:750px)' srcset='{{ p_wide | escape }}'><img src='{{ p_tall | escape }}' alt='' loading='lazy' decoding='async'></picture>
             {%- endif -%}
             {%- if wide != blank -%}
-              <video muted loop playsinline preload='none' aria-hidden='true' tabindex='-1' data-wide='{{ wide | escape }}' data-tall='{{ tall | escape }}'{% if layout == 'center' %} data-shape='tall'{% endif %}></video>
+              <video muted loop playsinline preload='none' aria-hidden='true' tabindex='-1' data-wide='{{ wide | escape }}' data-tall='{{ tall | escape }}'></video>
             {%- endif -%}
             <span class='bwin__veil' aria-hidden='true'></span>
             <figcaption class='bwin__words'>
@@ -123,7 +123,19 @@
         </article>
         {%- endif -%}
       {%- endfor -%}
+      </div>
+      <div class='bwin__bar' data-bwin-bar>
+        <span class='bwin__count' data-bwin-count aria-hidden='true'></span>
+        <div class='bwin__segs' data-bwin-segs aria-hidden='true'></div>
+        <div class='bwin__btns'>
+          <button type='button' class='bwin__btn bwin__prev' data-bwin-prev aria-label='Previous moment'><i aria-hidden='true'></i></button>
+          <button type='button' class='bwin__btn bwin__next' data-bwin-next aria-label='Next moment'><i aria-hidden='true'></i></button>
+          <button type='button' class='bwin__btn bwin__pause' data-bwin-pause aria-label='Pause films' title='Pause films'><i aria-hidden='true'></i></button>
+        </div>
+        <p class='bwin__sr' data-bwin-live aria-live='polite'></p>
+      </div>
     </div>
+    {{ plain_html }}
   {%- endif -%}
 
   {%- capture tail_html -%}

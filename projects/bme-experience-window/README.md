@@ -1,4 +1,4 @@
-# BME: The Experience, block B, "Five Films" (v46, 2026-10-13)
+# BME: The Experience, block B, "Five Films" (v47 karusell, 2026-10-13)
 
 Status: **byggd i utvecklingstemat, inget publicerat.** Tema: `Atelier – Rituals-stil (utveckling 2026-09-02)` (id `199116816758`, roll `UNPUBLISHED`).
 Förhandsvisning: `https://9w0qpc-07.myshopify.com/?preview_theme_id=199116816758`, sektionen `#the-experience`.
@@ -12,9 +12,30 @@ Copyn är **låst och oförändrad** (block B). Det som gjorts är formatering.
 | v43 | Foto vänster, text höger | "flera typsnitt, inga arty coola take, bilden för snäll" |
 | v44 | Mörk fastnålad scroll-berättelse med ljusfält (canvas) | "wow, bra" men "för mörkt, lite för stor text, går inte att scrolla (texten ska flyttas med först), jag vill ha färg och rörlig bild som lyfter, sensuella material, orden i bilderna" |
 | v45 | Fem smala valv i rad med stockvideo | "det här ser konstigt ut, det passar inte … du måste hitta ett annat sätt att presentera bildvideo" |
-| **v46** | **Fem filmkapitel i vanlig scroll** | (väntar på Annas omdöme) |
+| v46 | Fem filmkapitel under varandra i vanlig scroll | "Det där kan du vara nöjd med … spara detta" men "det fanns lite fel" (rättat i v46b, se nedan) |
+| **v47** | **Samma filmer som en karusell** | Anna: "Sätt bilderna som en karusell istället för under varandra" (väntar på omdöme) |
 
 Varför v45 föll (mina egna ord, utan försvar): fem smala valv bredvid varandra läses som **färgprov**, inte som film. Klippen hade olika färgvärldar (senapsgul rök, orange stockring, blågrön vatten, olivgrön mossa), så raden såg billig ut. Fem saker att visa samtidigt tar ifrån varje bild dess verkan. Valvformen i klunga lånade dessutom kyrkfönster.
+
+## v47: karusell i stället för under varandra (Annas önskemål)
+
+> "Sätt bilderna som en karusell istället för under varandra"
+
+Samma fem filmer, samma ord och samma gradering, men i ett **horisontellt spår, en film i taget i mitten, grannfilmerna tittar fram vid kanterna**. Sidan scrollar fortfarande helt vanligt uppåt och nedåt (inget fångas, testat med riktiga touch-svep).
+
+- **Fönstret** (varumärkets metafor) följer svepet: filmen i mitten är helt öppen, grannarna är lite lägre och dämpade, och mitt i ett svep är två fönster halvöppna. Orden tonar fram bokstav för bokstav när en film blir aktiv.
+- **Styrning i en egen rad under filmerna** (ingenting ligger över bilden): räknare `01 / 05`, ett streck i fem delar som fylls, pil bakåt, pil framåt och paus. Raden är lika bred som filmen i mitten. Därmed är krocken mellan pausknapp och ord borta.
+- **Sätt att styra**: svep (snäpper alltid till en film, aldrig fler än en per svep), pilknappar, tangentbord (pilar, Home, End när spåret har fokus), klick på grannfilmen, klick på strecket. Ingen automatisk växling (lugnare, och inget som tar kontrollen).
+- **Uppspelning**: bara aktiv film och en granne spelar (max två); aktiv + grannar förladdas, övriga släpps ur minnet efter 8 s. Pausknappen och `prefers-reduced-motion`/data saver som förut.
+- **Tillgänglighet**: spåret är en `region` med `aria-roledescription="carousel"`, varje film en `slide` ("2 of 5"), en dold `aria-live`-rad säger "Moment 2 of 5: Scent. Evoke." när man byter. Knappar 44 px med `aria-label`.
+- **Utan JS**: karusellen går ändå att svepa (CSS scroll-snap), affischer och alla ord syns, kontrollraden döljs. **Reducerad rörelse**: alla filmer helt öppna, ingen autoplay, play-knapp.
+- **Mobil**: film 82 % av bredden (4:5, 3:4-filmerna), nästa tittar fram, strecket ovanför räknare och knappar.
+- Filmernas ordning och lägen: samma som förut (nere vänster, uppe vänster, nere höger, uppe höger, nere mitt). Alla filmer är nu 16:10 på desktop (inte bara de tre första).
+- Version v46b (under varandra) är sparad: `assets/backup-bme-experience-v46b-2026-10-13.txt` (+ css, js-1) och i git (commit `7910b6a`). v47: `assets/backup-…-v47-carousel-2026-10-13.txt`.
+
+**Mätt i riktiga förhandsvisningen (11 skärmar 320–2560, `lab/audit2.mjs`)**: aktiv film alltid centrerad (±3 px), text inom filmen, grannen syns (≥24 px) på desktop, pilarna ≥44 px och överlappar inte, aldrig fler än två spelande, aktiv film spelar, ingen sidledsscroll på sidan, inga sidfel. Touch (dispatchade touchhändelser): svep byter film, lodrätt svep över filmerna scrollar sidan.
+
+**Vet inte / inte testat**: riktiga telefoner (fingerfart/tröghet), Safari/Firefox, riktig H.264 (headless använder VP9-kopior). Muspekare kan inte dra filmerna (pilar, tangentbord, klick och styrplatta/shift+hjul fungerar).
 
 ## Rättningar samma kväll (v46b): Annas "det fanns lite fel"
 
@@ -36,7 +57,7 @@ Anna sa att det fanns lite fel (utan att peka ut vilka). Granskat och rättat av
 
 **Mätt (riktiga förhandsvisningen, 11 skärmar 320–2560 px, `lab/audit.mjs`)**: inga överlapp mellan pausknapp och text, ingen text utanför filmen, ingen sidledsscroll, inga sidfel, max två filmer samtidigt. H.264 High yuv420p faststart på alla 10 videor, loopsömmar högst 1,4× ett normalt bildruteskifte.
 
-## Konceptet i v46
+## Konceptet (v46, orden/graderingen/materialen gäller fortfarande; layouten är sedan v47 en karusell)
 
 **En film i taget, stor, i vanlig scroll (inget fastnålat).** Varje ögonblick är ett kapitel:
 
@@ -61,7 +82,7 @@ Anna sa att det fanns lite fel (utan att peka ut vilka). Granskat och rättat av
 
 | Fil i temat | Innehåll |
 |---|---|
-| `sections/bme-experience.liquid` | Markup + schema. Samma filnamn, samma inställnings-id och blocktyp `panel` som v43/v44 → `templates/index.json` är orörd (kontrollsumma identisk) |
+| `sections/bme-experience.liquid` | Markup + schema (v47). Samma filnamn, samma inställnings-id och blocktyp `panel` som v43/v44 → `templates/index.json` är orörd (kontrollsumma identisk) |
 | `snippets/bme-window-css.liquid` | All CSS |
 | `snippets/bme-window-js-1.liquid` | All JS (ett `<script>`) |
 | `snippets/bme-window-em.liquid` | Hjälpare: guldkursiv på fraserna i inställningen "Words in italic gold" |
@@ -85,7 +106,7 @@ Anna sa att det fanns lite fel (utan att peka ut vilka). Granskat och rättat av
 ## Tillgänglighet och prestanda
 
 - Filmerna är `muted loop playsinline`, aria-hidden. Spelas **bara när de syns**, max två samtidigt (de som ligger närmast skärmens mitt). Laddas först när de är nära (60 % av skärmen).
-- **Pausknapp** (rund ikon, "Pause films"/"Play films" som aria-label, sticky vid mitten av högerkanten medan filmerna syns, tonar bort över text, nåbar med Tab). Vid reducerad rörelse och vid "data saver" startar ingen film av sig själv.
+- **Pausknapp** (rund ikon i kontrollraden under karusellen, "Pause films"/"Play films" som aria-label). Vid reducerad rörelse och vid "data saver" startar ingen film av sig själv.
 - Ord delas i bokstäver med JS; skärmläsare får vanlig text (dold kopia). Utan JS: statiska affischer, alla ord synliga.
 - Ingen scroll-kapning, inget fastnålat, inga bibliotek.
 
@@ -114,15 +135,14 @@ Riktiga telefoner (iOS lågenergiläge stoppar autoplay: då syns affischen och 
 ```
 cd projects/bme-experience-window/lab
 npm i liquidjs playwright            # första gången
-bash make-test-media.sh              # hämtar filmerna från CDN och gör VP9-kopior (bara för testet)
-node build.mjs                       # renderar sektionen med riktig Liquid + temats Cormorant -> page.html
+bash make-test-media.sh              # hämtar filmerna från CDN och gör VP9-kopior (bara för testet; headless saknar H.264)
+node build.mjs                       # renderar sektionen med riktig Liquid + temats Cormorant -> page.html (STRESS=1 -> page-stress.html: tomma rader, rad 6-7, tredje inledande block)
 python3 -m http.server 8765 --bind 127.0.0.1 &
-node shoot.mjs 1440 900 d tour 0     # skärmdumpar i shots/ (CHROMIUM=/sökväg vid behov)
-node shoot.mjs 390 844 m tour 0      # mobil
-node extra.mjs                       # reducerad rörelse, utan JS, 1920, 1024
-STRESS=1 node build.mjs              # tomma rader, rad 6-7, tredje inledande block -> page-stress.html
+node carousel.mjs 1440 900 c full http://127.0.0.1:8765/page.html   # pilar, tangentbord, snap, klick på granne, paus, mitt-i-svep; även 390 844 m full. Lägen: rm (reducerad rörelse), nojs
 node errtest.mjs                     # hur spelaren reagerar på AbortError / NotAllowedError / NotSupportedError
-node kbtest.mjs                      # tangentbord: Tab till pausknappen, Enter/mellanslag
-node audit.mjs                       # RIKTIGA förhandsvisningen i 11 skärmstorlekar: överlapp, utanför, sidledsscroll, max samtidiga filmer
-node live.mjs 1440 900 live-d tour   # (eller "full" = varje kapitel centrerat) RIKTIGA förhandsvisningen (kräver HTTPS_PROXY i molnet)
+node audit2.mjs                      # RIKTIGA förhandsvisningen i 11 skärmstorlekar (kräver HTTPS_PROXY i molnet; ONLY=390x844 för en)
+node touch2.mjs                      # riktiga touch-händelser: sidledssvep byter film, lodrätt svep scrollar sidan
+node live.mjs 1440 900 live-d tour   # skärmdumpar från den riktiga förhandsvisningen med filmer inmatade som blobbar
 ```
+
+Shopifys fasta utkastrad (en iframe längst ner, ca 68 px) täcker knappar på låga skärmar i förhandsvisningen; den finns inte på riktiga sajten. Ta bort den i mätskript (`iframe` i en `position:fixed`-förälder), annars scrollar Playwright sidan när den klickar.
