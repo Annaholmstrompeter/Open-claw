@@ -260,7 +260,7 @@ Kort stängt (framsida), öppnat (rubrik, text, forskningsrad). Öppna kort är 
 **06 THE RITUAL**. Stängt: Five moments. Three minutes. Complete in itself. Öppnat: Breathe, scent, touch, feel, direct, in one unbroken sequence, spoken while you apply. Each product has its own ritual, its own fragrance, its own direction. Stay longer with Deepening, with the product or without it. Knapp: Discover the rituals.
 
 
-## Boxarna i The Experience, version 2 (utkast 2026-10-13, säljer nyttan, ingen forskning, den hör till Science)
+## AVFÄRDAD 2026-10-13 (ordet 'smell', för vardaglig ton): boxarna, version 2
 
 Titlarna (01 BREATHE · Regulate ... 05 ANCHOR · Direct) är godkända. Varje kort: framsida, öppnat, YOU GAIN.
 
@@ -275,3 +275,20 @@ Titlarna (01 BREATHE · Regulate ... 05 ANCHOR · Direct) är godkända. Varje k
 **05 ANCHOR · Direct.** Framsida: Your intention, placed where the window is widest. Öppnat: Now the words arrive: your ritual's affirmation, with one small gesture. Spoken with scent, touch and feeling, it is no longer a passing thought but part of an experience. Not a verdict. A direction, toward presence, balance, luminance, serenity or kindness. Repeated, the brain learns the way there. YOU GAIN: A state you can return to anywhere: on the train, in the taxi, before the meeting.
 
 **06 THE RITUAL.** Framsida: Five moments. Three minutes. A state you can return to. Öppnat: One unbroken sequence, spoken in your ear while you apply the product you already use every day. What a spa gives you for an afternoon, built into the minute that comes every morning and every evening. Each repetition makes the next one stronger. YOU GAIN: Not a moment. A capacity you build.
+
+
+## Boxarna i The Experience, version 3 (utkast 2026-10-13, Gucci-register)
+
+Regler: aldrig 'smell', alltid scent/fragrance. Ingen forskning (hör till Science). Nyttan ligger i texten. Titlarna är godkända.
+
+**01 BREATHE · Regulate.** Kort: Arrive. Öppnat: The ritual opens with a breath, guided and unhurried. The day recedes. Attention gathers in the body, and what is learned is learned through attention. This is where the window opens, and where you begin, each time, fully present.
+
+**02 SCENT · Evoke.** Kort: A fragrance that learns the feeling. Öppnat: Each ritual has a fragrance of its own, composed to carry its feeling. Fragrance travels a direct road to the brain's emotional centres. Meet the same fragrance in the same calm, again and again, and the two begin to belong together. In time, the fragrance alone may be enough to bring the feeling back.
+
+**03 TOUCH · Embody.** Kort: The feeling enters the body. Öppnat: Application becomes choreography: slow, deliberate, at the pace skin is made to enjoy. What was a thought becomes a sensation. You do not think the feeling. You wear it.
+
+**04 FEEL · Amplify.** Kort: Sensation says: something is happening. Feeling says: this matters. Öppnat: A warm voice invites you to notice what is pleasing and to stay with it until it grows. Feeling is how the brain decides a moment is worth keeping. This is the heart of the method. We never decide what you feel. We give it room.
+
+**05 ANCHOR · Direct.** Kort: Your intention, at the moment the window is widest. Öppnat: Now the words arrive: the ritual's affirmation, and one small gesture. Spoken with fragrance, touch and feeling, they are no longer a passing thought but part of an experience. Not a verdict. A direction: presence, balance, luminance, serenity or kindness. Repeated, the brain learns the way there. And then it is yours to carry: on a night flight, in the back of a taxi, before the room you must walk into.
+
+**06 THE RITUAL.** Kort: Five moments. Three minutes. A state you can return to. Öppnat: One unbroken sequence, spoken in your ear as you apply what you already reach for every day. The depth of a spa afternoon, built into the minute that arrives each morning and each evening. Every repetition makes the next one stronger. Not a moment. A capacity.
