@@ -48,6 +48,7 @@ Varför v45 föll (mina egna ord, utan försvar): fem smala valv bredvid varandr
 | `snippets/bme-window-js-2.liquid` | **Oanvänd stub** sedan v46 (kan raderas i Edit code; verktyget får inte radera) |
 | `sections/bme-window.liquid` | Oanvänd stub sedan v44 (radera i admin) |
 | `assets/backup-bme-experience-v43-2026-10-13.txt` | v43 före bytet. v44 finns i git: `git show 2fe1618:projects/bme-experience-window/theme/…` |
+| `assets/backup-bme-experience-v46-2026-10-13.txt` (+ `…-window-css-…`, `…-window-js-1-…`, `…-window-em-…`) | **Sparad version v46 (Annas "det där kan du vara nöjd med", 13 okt).** Återställ med `themeFilesCopy` tillbaka till `sections/bme-experience.liquid` och `snippets/bme-window-*.liquid`. I git: taggen `bme-experience-v46` |
 
 **Filmerna ligger i Shopify → Innehåll → Filer** (CDN), 10 videor + 10 affischer (`bme-film-N-wide|tall.mp4|jpg`, N = 1–5). Videorna är H.264 faststart utan ljud, 16:10 1600×1000 (desktop) och 3:4 900×1200 (mobil, och Anchor på desktop): 0,3–3,0 MB styck, totalt ca 14 MB men bara de som är nära bild laddas. De är sömlösa loopar (1,2 s tvärtoning inbakad). Affischerna (JPEG, 16–155 kB) visas före filmen, utan JavaScript och vid reducerad rörelse.
 
