@@ -5,7 +5,7 @@ The code is static: it simply contains the address, so it keeps working for as l
 the address does. Make it only once the final address is decided, before anything is printed.
 
 Needs:  pip install segno
-Usage:  python3 sanctuary/tools/make-qr.py https://ritual.example.se  [output-name]
+Usage:  python3 paralellsida-for-spakunder/tools/make-qr.py https://ritual.example.se  [output-name]
 
 Writes <output-name>.svg (vector, for print) and <output-name>.png (1200 px).
 Dark brown on a light ground, with a quiet zone and high error correction, so it

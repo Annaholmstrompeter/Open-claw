@@ -4,7 +4,7 @@
 Fonts, pictures and texture are embedded, the service worker is left out. The file has no
 <html>/<head>/<body> wrapper, which is what the Artifact page contract expects.
 
-Usage:  python3 sanctuary/tools/make-preview.py out.html
+Usage:  python3 paralellsida-for-spakunder/tools/make-preview.py out.html
 """
 import base64
 import pathlib

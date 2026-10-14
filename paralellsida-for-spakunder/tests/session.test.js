@@ -1,4 +1,4 @@
-// Unit tests for the shared session (no browser, no network).  Run:  node --test sanctuary/tests/
+// Unit tests for the shared session (no browser, no network).  Run:  node --test paralellsida-for-spakunder/tests/
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const Core = require('../public/assets/together/session.js');

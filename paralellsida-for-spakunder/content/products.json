@@ -1,5 +1,5 @@
 {
-  "_note": "Product facts, copied as printed on the five label PDFs (176 x 96 mm) in 2026-10-08, plus the Shopify product ids. The labels are the source: the Shopify product pages differ in a few places (ritual lines, tone words, one ingredient list) and should be updated to match them. 'color' is the exact ground colour of each label. Edit here, then run: python3 sanctuary/tools/build-content.py",
+  "_note": "Product facts, copied as printed on the five label PDFs (176 x 96 mm) in 2026-10-08, plus the Shopify product ids. The labels are the source: the Shopify product pages differ in a few places (ritual lines, tone words, one ingredient list) and should be updated to match them. 'color' is the exact ground colour of each label. Edit here, then run: python3 paralellsida-for-spakunder/tools/build-content.py",
   "rituals": [
     {
       "id": "balance",

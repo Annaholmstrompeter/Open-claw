@@ -66,21 +66,21 @@ spelas som ström), så gästerna behöver täckning när de lyssnar.
    dra in innehållet i mappen `public/` (med alla elva ljudfiler i `assets/audio/`) och tryck
    *Deploy*. Du får en adress som `body-mind-earth.pages.dev`. En enskild fil får vara högst 25 MB;
    dina är högst 10 MB.
-   - Alternativ: *Connect to Git* mot det här repot med *Root directory* `sanctuary`,
+   - Alternativ: *Connect to Git* mot det här repot med *Root directory* `paralellsida-for-spakunder`,
      *Build output directory* `public` och inget byggkommando. Då uppdateras sidan automatiskt
      när `master` ändras.
 3. Egen adress (rekommenderas innan något trycks): i projektet, *Custom domains → Set up a
    domain*, t.ex. `ritual.bodymindearth.se`. Cloudflare säger vilken DNS-rad som ska läggas
    in hos den som sköter bodymindearth.se.
 4. Gör QR-koden med den slutliga adressen och skanna den med en telefon innan tryck:
-   `pip install segno` och sedan `python3 sanctuary/tools/make-qr.py https://din-adress`.
+   `pip install segno` och sedan `python3 paralellsida-for-spakunder/tools/make-qr.py https://din-adress`.
 
 ### Provsida på GitHub Pages (för att prova Together på riktiga telefoner)
 
 Innan sidan ligger på sin riktiga adress kan den läggas ut som en provsida, utan nya konton:
 
 ```
-sanctuary/tools/publish-test-site.sh sökväg/till/testljud.mp3
+paralellsida-for-spakunder/tools/publish-test-site.sh sökväg/till/testljud.mp3
 ```
 
 Skriptet bygger sidan (bara `public/`, inga manus eller anteckningar), lägger testljudet som Together-inspelning (bara på provsidan) och pushar den som grenen `gh-pages`. En gång i GitHub: *Settings → Pages → Deploy from a branch → `gh-pages`, `/ (root)` → Save*. Adressen blir `https://<användare>.github.io/<arkiv>/`. Kör skriptet igen efter varje ändring: det skriver ut en ny länk (med `?v=<tid>` så att telefonen hämtar den nya versionen i stället för den gamla), och den länken ska Anna ha varje gång något är klart. Grenen är en byggprodukt: redigera den aldrig för hand. Provsidan är publik men inte länkad och har `noindex`; stäng av den under *Settings → Pages*. GitHub Pages läser inte `_headers`, så säkerhetshuvudena (CSP m.m.) gäller först på Cloudflare.
@@ -90,7 +90,7 @@ Skriptet bygger sidan (bara `public/`, inga manus eller anteckningar), lägger t
 Texter eller citat: ändra i `content/…` (eller be mig synka från Google-dokumentet) och kör
 
 ```
-python3 sanctuary/tools/build-content.py
+python3 paralellsida-for-spakunder/tools/build-content.py
 ```
 
 Det räcker. Skriptet kontrollerar citaten och håller offline-cachen i takt med sidan, så att gäster
@@ -119,7 +119,7 @@ Delade sessioner behöver en tjänst som låter de två telefonerna hitta varand
 
 1. Skapa ett konto och ett projekt på <https://supabase.com> (välj en EU-region). Databasen används inte.
 2. **Project Settings → API:** kopiera *Project URL* och den **publika** nyckeln. Den heter *anon public* (börjar `eyJ…`) eller *Publishable key* (börjar `sb_publishable_…`), beroende på hur panelen ser ut just nu.
-3. Klistra in dem i `public/assets/together/config.js` (`supabaseUrl` och `supabaseAnonKey`) och kör `python3 sanctuary/tools/build-content.py`.
+3. Klistra in dem i `public/assets/together/config.js` (`supabaseUrl` och `supabaseAnonKey`) och kör `python3 paralellsida-for-spakunder/tools/build-content.py`.
 4. I projektet: **Realtime → Settings**: kontrollera att publika kanaler är tillåtna (så är det som standard). Rummen är publika kanaler vars namn är hemligt.
 5. Lägg ut sidan som vanligt (se ovan). Delade sessioner kräver `https://` (Cloudflare Pages ger det).
 
@@ -157,7 +157,7 @@ Meningen på Sensory Enrichment-sidan ("This sanctuary keeps nothing about you")
 ### Tester
 
 ```
-cd sanctuary/tests && npm install
+cd paralellsida-for-spakunder/tests && npm install
 node --test --test-force-exit session.test.js     # sessionslogiken (enhetstester)
 node e2e/run.mjs                                 # två telefoner i webbläsare (kräver Chromium och ffmpeg)
 node e2e/regression.mjs                          # är de fem ritualerna oförändrade jämfört med före Together?
@@ -211,7 +211,7 @@ Samma sida, men med ett spas egen bild, namn, tack och väg till bokning. Adress
 **Så görs ett spa** (en minut, ingen programmering):
 
 ```
-python3 sanctuary/tools/make-spa.py --slug horizon-hill --name "Horizon Hill Spa" --photo foto.jpg \
+python3 paralellsida-for-spakunder/tools/make-spa.py --slug horizon-hill --name "Horizon Hill Spa" --photo foto.jpg \
     --book-url https://spats-bokning.se/boka --thanks "Tack för att ni tog er tid med oss."
 ```
 

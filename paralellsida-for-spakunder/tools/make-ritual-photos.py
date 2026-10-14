@@ -12,7 +12,7 @@ not the real product (hand wash, hand cream ...): it stands in until there are r
 
 Writes public/assets/img/ritual-<id>.webp (900 x 1125).
 Needs: pillow, numpy, fonttools + brotli (to read the site's woff2 fonts).
-Usage:  python3 sanctuary/tools/make-ritual-photos.py [--preview]     (--preview also writes a zoomed check picture)
+Usage:  python3 paralellsida-for-spakunder/tools/make-ritual-photos.py [--preview]     (--preview also writes a zoomed check picture)
 """
 import io
 import pathlib

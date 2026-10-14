@@ -1,6 +1,6 @@
 // Browser tests for TOGETHER: two phones (two separate browser contexts) in one shared ritual.
 //
-//   cd sanctuary/tests && npm install && node e2e/run.mjs
+//   cd paralellsida-for-spakunder/tests && npm install && node e2e/run.mjs
 //
 // What is real here: the site's own files and Content-Security-Policy, two separate browsers with
 // their own clocks (the guest's is set several seconds wrong on purpose), @supabase/realtime-js

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Make one spa's own page: its photograph, its name, a thank-you and a link to book.
 
-    python3 sanctuary/tools/make-spa.py --slug horizon-hill --name "Horizon Hill Spa" --photo path/to/photo.jpg \\
+    python3 paralellsida-for-spakunder/tools/make-spa.py --slug horizon-hill --name "Horizon Hill Spa" --photo path/to/photo.jpg \\
         --book-url https://example.com/book --thanks "Thank you for taking this moment with us." [--logo logo.png] [--demo]
 
 Writes public/spas/<slug>/hero.webp (+ logo.webp) and spa.js. The page is then   <site>/?s=<slug>#/

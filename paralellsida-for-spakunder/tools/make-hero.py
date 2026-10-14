@@ -5,7 +5,7 @@ It is a crop of the olive branch on the sunlit wall in the kit photo, enlarged a
 reads as a photographic soft focus. Replace public/assets/img/hero.webp with a proper photo whenever
 there is one: the page only needs a warm, light, portrait-friendly image.
 
-Usage:  python3 sanctuary/tools/make-hero.py  <kit-photo.png>  [out.webp]
+Usage:  python3 paralellsida-for-spakunder/tools/make-hero.py  <kit-photo.png>  [out.webp]
 """
 import pathlib
 import sys

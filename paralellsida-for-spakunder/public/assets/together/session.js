@@ -2,7 +2,7 @@
  * Body Mind Earth — TOGETHER
  * The shared session: who is in the room, who is ready, and one timeline both phones follow.
  * No audio, no screen and no network code lives here; it talks to a transport (transport.js) and
- * reports changes. That keeps it small enough to test on its own (see sanctuary/tests).
+ * reports changes. That keeps it small enough to test on its own (see paralellsida-for-spakunder/tests).
  *
  * The idea in four lines:
  *  - A room is a long random name. Nothing is stored anywhere; the room exists while two phones are in it.

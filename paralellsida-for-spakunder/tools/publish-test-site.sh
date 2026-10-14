@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Puts the sanctuary on the internet as a TEST site, on GitHub Pages, so Together can be tried on real phones.
 #
-#   sanctuary/tools/publish-test-site.sh [test-recording.mp3]
-#   sanctuary/tools/publish-test-site.sh --build-only DIR [test-recording.mp3]     (only assembles the site in DIR)
+#   paralellsida-for-spakunder/tools/publish-test-site.sh [test-recording.mp3]
+#   paralellsida-for-spakunder/tools/publish-test-site.sh --build-only DIR [test-recording.mp3]     (only assembles the site in DIR)
 #
-# What it does: builds content.js, copies sanctuary/public (nothing else: no manuscripts, no notes) to a
+# What it does: builds content.js, copies paralellsida-for-spakunder/public (nothing else: no manuscripts, no notes) to a
 # clean folder, and force-pushes that folder as the branch "gh-pages". GitHub Pages then serves it at
 #   https://<owner>.github.io/<repo>/
 # The branch is a build product: never edit it by hand, run this script again instead.
@@ -22,11 +22,11 @@ BUILD_ONLY=""
 if [ "${1:-}" = "--build-only" ]; then BUILD_ONLY="${2:?folder needed}"; shift 2; fi
 REC="${1:-}"
 
-python3 "$ROOT/sanctuary/tools/build-content.py" > /dev/null
+python3 "$ROOT/paralellsida-for-spakunder/tools/build-content.py" > /dev/null
 
 SITE="${BUILD_ONLY:-$(mktemp -d)}"
 mkdir -p "$SITE"
-cp -R "$ROOT/sanctuary/public/." "$SITE/"
+cp -R "$ROOT/paralellsida-for-spakunder/public/." "$SITE/"
 rm -f "$SITE/_headers"                 # GitHub Pages does not read it
 touch "$SITE/.nojekyll"                # serve the files as they are
 # Every publish gets its own link: the scripts and styles are asked for as ?v=<time>, and the link we hand out ends in the
@@ -65,7 +65,7 @@ git -c user.name="${GIT_AUTHOR_NAME:-$(git -C "$ROOT" config user.name || echo p
     commit -q -F - <<EOF
 Testsida: fristaden med Together (byggd från $SRC)
 
-Byggprodukt från sanctuary/tools/publish-test-site.sh. Redigeras inte för hand.
+Byggprodukt från paralellsida-for-spakunder/tools/publish-test-site.sh. Redigeras inte för hand.
 
 Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_01ECPs2YrbQPeDdGpYZqUbRn

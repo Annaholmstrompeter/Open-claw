@@ -23,8 +23,11 @@ const REV = process.argv[2] || 'origin/ccr-b32990fc-q1bykk';
 const CHROME = process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 const repo = execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd: here }).toString().trim();
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'bme-old-'));
-execFileSync('sh', ['-c', `git -C "${repo}" archive "${REV}" sanctuary/public | tar -x -C "${tmp}"`]);
-const OLD = path.join(tmp, 'sanctuary/public');
+// Older revisions (before 2026-10-14) keep the site in the folder "sanctuary"; it is now "paralellsida-for-spakunder".
+let oldDir = 'paralellsida-for-spakunder/public';
+try { execFileSync('git', ['-C', repo, 'cat-file', '-e', REV + ':' + oldDir]); } catch (e) { oldDir = 'sanctuary/public'; }
+execFileSync('sh', ['-c', `git -C "${repo}" archive "${REV}" ${oldDir} | tar -x -C "${tmp}"`]);
+const OLD = path.join(tmp, oldDir);
 
 const routes = ['#/', '#/rituals', '#/about', '#/close'];
 for (const id of ['balance', 'luminance', 'kindness', 'serenity', 'presence']) routes.push('#/r/' + id, '#/r/' + id + '/s', '#/r/' + id + '/e', '#/r/' + id + '/done');

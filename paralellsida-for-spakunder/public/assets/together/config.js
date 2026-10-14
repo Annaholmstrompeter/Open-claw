@@ -1,5 +1,5 @@
 /*
- * TOGETHER — where shared sessions connect (Supabase Realtime). See sanctuary/README.md, "Together".
+ * TOGETHER — where shared sessions connect (Supabase Realtime). See paralellsida-for-spakunder/README.md, "Together".
  *
  * Fill in the two values from your own free Supabase project (Project Settings → API):
  *   supabaseUrl      the "Project URL", for example https://abcdefghijkl.supabase.co

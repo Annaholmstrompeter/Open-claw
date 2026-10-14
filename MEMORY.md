@@ -157,7 +157,7 @@
 - Rensa känslig information från minnet efter användning
 - Endast använda känslig information i säkra miljöer
 
-## Projekt: Fristaden (Body Mind Earth Sanctuary) — spa-kundernas QR-sida
-- Annas stängda, statiska QR-sida för spa-kunder: fem lyssnarritualer (kort + lång), Together (parlyssning), spa-sidor (`?s=<spa>`). Koden ligger på grenen `claude/parallel-page-spakunder-9t2qcg` (inte mergad till `master`; utkast-PR).
-- **Överlämning med allt överenskommet, gjort och planerat: `projects/fristaden-overlamning.md`. Läs den först.** Detaljlogg på grenen: `projects/fristaden-logg.md`.
+## Projekt: Paralellsida för spakunder (fristaden / Body Mind Earth Sanctuary) — spa-kundernas QR-sida
+- Annas stängda, statiska QR-sida för spa-kunder: fem lyssnarritualer (kort + lång), Together (parlyssning), spa-sidor (`?s=<spa>`). **Koden ligger på `master` i mappen `paralellsida-for-spakunder/`** (hette förut `sanctuary/`).
+- **Överlämning med allt överenskommet, gjort och planerat: `projects/paralellsida-for-spakunder.md`. Läs den först.** Detaljlogg: `projects/paralellsida-for-spakunder-logg.md`. Mapp-README: `paralellsida-for-spakunder/README.md`.
 - Anna vill **alltid ha en ny, uppdaterad testlänk** när något är klart, och att jag gör sakerna åt henne (hon är mycket oteknisk). Hon kollar på iPhone (Brave, ca 390×737).

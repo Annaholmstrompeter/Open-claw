@@ -140,7 +140,7 @@ Thank you for sharing this moment.
 
 | | |
 |---|---|
-| Filnamn | `heart-to-heart.mp3`, i `sanctuary/public/assets/audio/together/` |
+| Filnamn | `heart-to-heart.mp3`, i `paralellsida-for-spakunder/public/assets/audio/together/` |
 | Format | mp3, **konstant bitrate** (CBR), 128 till 192 kbps, 44,1 kHz. Samma som de andra inspelningarna. Variabel bitrate (VBR) kan göra att telefonen hamnar några tiondelar fel när den hoppar i filen. |
 | Början | **Minst 1,5 sekunds tystnad** först. Telefonen "tänder" ljudet vid Ready-trycket genom att spela en kort tystnad, men en del telefoner släpper ut de första hundradelarna av filen. Tystnad där är osynlig; ett ord där hörs. |
 | Slut | 1 till 2 sekunders tystnad. Spelaren går till slutvyn när filen är slut. |

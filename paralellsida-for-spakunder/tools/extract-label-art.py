@@ -13,7 +13,7 @@ makes, in public/assets/img/:
 Text on the labels is never copied as pictures: it lives in content/products.json as real text.
 
 Needs:  poppler's pdftoppm, and  pip install numpy scipy pillow
-Usage:  python3 sanctuary/tools/extract-label-art.py  <folder-with-the-five-label-PDFs>  [out-dir]
+Usage:  python3 paralellsida-for-spakunder/tools/extract-label-art.py  <folder-with-the-five-label-PDFs>  [out-dir]
 (the PDF file names must contain Balance, Luminance, Kindness, Serenity and Presence)
 """
 import pathlib

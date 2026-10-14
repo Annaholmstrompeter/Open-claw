@@ -1,4 +1,4 @@
-// Serves sanctuary/public the way Cloudflare Pages would, for the browser tests:
+// Serves paralellsida-for-spakunder/public the way Cloudflare Pages would, for the browser tests:
 //  - the site's own _headers (including its Content-Security-Policy) are applied, so a blocked
 //    script, style or connection shows up as a test failure. Only connect-src gains the local mock.
 //  - an unknown path answers with index.html and 200, as Pages does for a site without 404.html

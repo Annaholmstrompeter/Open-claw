@@ -11,7 +11,7 @@ Writes (into public/assets/together/img/):
   light-b.webp   broader, softer ones
 Both tile, so the picture can drift without a seam.
 
-Needs: numpy, pillow.   Usage: python3 sanctuary/tools/make-together-art.py
+Needs: numpy, pillow.   Usage: python3 paralellsida-for-spakunder/tools/make-together-art.py
 """
 import pathlib
 
