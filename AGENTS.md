@@ -148,6 +148,8 @@ Datoranvändning (Beta) är påslaget i Claude-skrivbordsappen (Inställningar �
 
 Skills provide your tools. When you need one, check its `SKILL.md`. Keep local notes (camera names, SSH details, voice preferences) in `TOOLS.md`.
 
+**Hemsidan (Body Mind Earth, Shopify):** läs `HEMSIDAN.md` först, sedan `skills/webbdesign-varldsklass/SKILL.md`. Allt byggs i utkast-temat, aldrig live. Film: `skills/reklamfilm-regissor/`.
+
 **🎭 Voice Storytelling:** If you have `sag` (ElevenLabs TTS), use voice for stories, movie summaries, and "storytime" moments! Way more engaging than walls of text. Surprise people with funny voices.
 
 **📝 Platform Formatting:**

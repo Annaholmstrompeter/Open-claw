@@ -1,0 +1,216 @@
+{%- comment -%}
+  v47 (2026-10-13) "Five Films, carousel": The Experience, block B. Draft theme 199116816758 only. Anchor #the-experience.
+  Replaces v44 (dark, pinned), v45 (arch row) and v46 (films one under another; saved as assets/backup-*-v46b-2026-10-13.txt) in place. v43 = assets/backup-bme-experience-v43-2026-10-13.txt. Same setting ids and "panel" block, so templates/index.json is untouched.
+  Light page, normal vertical scrolling, nothing pinned. The five moments are one horizontal carousel of films (swipe, arrows, keys; the neighbours peek in at the edges; the active film opens like a window): breath = fabric, scent = smoke, touch = moss, feel = water, anchor = wood, one shared grade. The words sit inside each film, small and widely spaced.
+  One typeface (theme heading font), one weight. Files: setting "film_files_url" + number = bme-film-N-wide.mp4/.jpg and bme-film-N-tall.mp4/.jpg (in Files). Setting "video_N" (Shopify video picker) replaces the default film for moment N.
+  No JS: the carousel still swipes (scroll-snap), posters and all words visible, no controls. Reduced motion: no autoplay, play button available. Files: snippets/bme-window-css, bme-window-em, bme-window-js-1.
+{%- endcomment -%}
+{%- liquid
+  assign h2_id = 'bwin-h2-' | append: section.id
+  assign phrases = section.settings.emphasis | strip | newline_to_br | split: '<br />'
+  assign pairs_block = blank
+  for block in section.blocks
+    assign l = block.settings.text | strip | newline_to_br | split: '<br />'
+    if l.size > 1 and pairs_block == blank
+      assign pairs_block = block
+    endif
+  endfor
+  assign base = section.settings.film_files_url | strip
+  assign lq_1 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAGAAZAAD//gAQTGF2YzYwLjMxLjEwMgD/2wBDAAgYGBwYHCEhISEhISckJygoKCcnJycoKCgrKyszMzMrKysoKCsrMDAzMzc5NzQ0MzQ5OTw8PEhIRUVUVFdnZ3z/xABbAAEAAwEBAAAAAAAAAAAAAAAGBAECAwUBAQEAAAAAAAAAAAAAAAAAAAIDEAACAgMAAwEAAAAAAAAAAAAAARECcSISMWGBMxEBAQAAAAAAAAAAAAAAAAAAAAH/wAARCAAMABQDASIAAhEAAxEA/9oADAMBAAIRAxEAPwDpZ9cv3USUWkgtPWmajlfn9IDHpFyRJ8YMyFR//9k='
+  assign lq_2 = 'data:image/jpeg;base64,/9j//gAQTGF2YzYwLjMxLjEwMgD/2wBDAAgYGBwYHCEhISEhISckJygoKCcnJycoKCgrKyszMzMrKysoKCsrMDAzMzc5NzQ0MzQ5OTw8PEhIRUVUVFdnZ3z/xABZAAEBAQEBAAAAAAAAAAAAAAAEAQADBQEBAQEAAAAAAAAAAAAAAAAAAgEDEAACAgIDAQAAAAAAAAAAAAAAAQIRUSEDEmEiEQEAAAAAAAAAAAAAAAAAAAAA/8AAEQgADAAUAwEiAAIRAAMRAP/aAAwDAQACEQMRAD8A9CHGr3dZwGnGKfyzv2evNhZu3eQmGQpjNX//2Q=='
+  assign lq_3 = 'data:image/jpeg;base64,/9j//gAQTGF2YzYwLjMxLjEwMgD/2wBDAAgYGBwYHCEhISEhISckJygoKCcnJycoKCgrKyszMzMrKysoKCsrMDAzMzc5NzQ0MzQ5OTw8PEhIRUVUVFdnZ3z/xABVAAACAwEAAAAAAAAAAAAAAAAABAUDAgYBAQEBAAAAAAAAAAAAAAAAAAABBBABAQEBAQAAAAAAAAAAAAAAAAERkUERAQAAAAAAAAAAAAAAAAAAAAD/wAARCAAMABQDASIAAhEAAxEA/9oADAMBAAIRAxEAPwDhdi30mJayiR0cJNIP/9k='
+  assign lq_4 = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAGAAZAAD//gAQTGF2YzYwLjMxLjEwMgD/2wBDAAgYGBwYHCEhISEhISckJygoKCcnJycoKCgrKyszMzMrKysoKCsrMDAzMzc5NzQ0MzQ5OTw8PEhIRUVUVFdnZ3z/xABWAAEBAQEAAAAAAAAAAAAAAAAGBAECAQEBAQAAAAAAAAAAAAAAAAAAAQIQAQEBAQEBAQAAAAAAAAAAAAEAAgMUEgQRAQEAAAAAAAAAAAAAAAAAAAAR/8AAEQgADAAUAwEiAAIRAAMRAP/aAAwDAQACEQMRAD8AXPele8Jd6pHbI0ZP6LPRA3bc/bIr/9k='
+  assign lq_5 = 'data:image/jpeg;base64,/9j//gAQTGF2YzYwLjMxLjEwMgD/2wBDAAgYGBwYHCEhISEhISckJygoKCcnJycoKCgrKyszMzMrKysoKCsrMDAzMzc5NzQ0MzQ5OTw8PEhIRUVUVFdnZ3z/xABdAAEBAQEBAAAAAAAAAAAAAAAGBQIABwEBAQAAAAAAAAAAAAAAAAAAAgQQAQACAQQCAwEAAAAAAAAAAAECABEEA1EhEhOhYXExEQEBAAAAAAAAAAAAAAAAAAAAMf/AABEIAAwAFAMBIgACEQADEQD/2gAMAwEAAhEDEQA/AI802xz24/nH2/lQ6cjPEsifFM7fbYWoXRb2NpQe2L2WKqY9iZXPlQ3tkg8l72S5pJ//2Q=='
+  assign places = 'bl,tl,br,tr,bc' | split: ','
+  assign lead_html = ''
+  assign tail_html = ''
+  assign n_pairs = 0
+-%}
+{%- render 'bme-window-css' -%}
+<section class='bwin' id='the-experience' data-bwin aria-labelledby='{{ h2_id }}'>
+  <div class='bwin__intro'>
+    {%- if section.settings.eyebrow != blank -%}
+      <p class='bwin__eyebrow'>{{ section.settings.eyebrow | escape }}</p>
+    {%- endif -%}
+    <h2 class='bwin__h2' id='{{ h2_id }}'>{%- render 'bme-window-em', text: section.settings.heading, phrases: phrases -%}</h2>
+    {%- if section.settings.text != blank -%}
+      <p class='bwin__sub'>{{ section.settings.text | escape }}</p>
+    {%- endif -%}
+  </div>
+
+  {%- capture lead_html -%}
+    {%- for block in section.blocks -%}
+      {%- if block == pairs_block -%}{%- break -%}{%- endif -%}
+      {%- assign long = block.settings.text | size -%}
+      <div class='bwin__reveal' {{ block.shopify_attributes }}><p class='bwin__stmt{% if long > 70 %} is-sentence{% endif %}'>{%- render 'bme-window-em', text: block.settings.text, phrases: phrases -%}</p></div>
+    {%- endfor -%}
+  {%- endcapture -%}
+  {%- if lead_html != blank -%}
+    <div class='bwin__lead'>{{ lead_html }}</div>
+  {%- endif -%}
+
+  {%- capture plain_html -%}{%- endcapture -%}
+  {%- if pairs_block != blank -%}
+    {%- assign lines = pairs_block.settings.text | strip | newline_to_br | split: '<br />' -%}
+    <div class='bwin__films' {{ pairs_block.shopify_attributes }}>
+      <i class='bwin__link' data-bwin-link aria-hidden='true'></i>
+      <div class='bwin__track' data-bwin-track role='region' aria-roledescription='carousel' aria-label='The five moments' tabindex='0'>
+      {%- for ln in lines -%}
+        {%- assign clean = ln | strip -%}
+        {%- if clean == blank -%}{%- continue -%}{%- endif -%}
+        {%- assign n_pairs = n_pairs | plus: 1 -%}
+        {%- assign idx = n_pairs -%}
+        {%- assign li = idx | minus: 1 -%}
+        {%- assign parts = clean | split: '. ' -%}
+        {%- assign vk = 'video_' | append: idx -%}
+        {%- assign tk = 'tone_' | append: idx -%}
+        {%- assign vobj = section.settings[vk] -%}
+        {%- assign tone = section.settings[tk] | default: 'ink' -%}
+        {%- assign place = places[li] | default: 'bl' -%}
+        {%- assign lq = '' -%}
+        {%- case idx -%}{%- when 1 -%}{%- assign lq = lq_1 -%}{%- when 2 -%}{%- assign lq = lq_2 -%}{%- when 3 -%}{%- assign lq = lq_3 -%}{%- when 4 -%}{%- assign lq = lq_4 -%}{%- when 5 -%}{%- assign lq = lq_5 -%}{%- endcase -%}
+        {%- assign wide = '' -%}
+        {%- assign tall = '' -%}
+        {%- assign p_wide = '' -%}
+        {%- assign p_tall = '' -%}
+        {%- assign has_pick = false -%}
+        {%- if vobj != blank -%}
+          {%- assign mp4s = vobj.sources | where: 'mime_type', 'video/mp4' | sort: 'height' -%}
+          {%- assign picked = '' -%}
+          {%- for s in mp4s -%}
+            {%- if s.height >= 720 and picked == blank -%}{%- assign picked = s.url -%}{%- endif -%}
+          {%- endfor -%}
+          {%- if picked == blank -%}{%- assign picked = mp4s.last.url -%}{%- endif -%}
+          {%- if picked != blank -%}
+            {%- assign has_pick = true -%}
+            {%- assign wide = picked -%}
+            {%- assign tall = picked -%}
+          {%- endif -%}
+        {%- endif -%}
+        {%- if has_pick == false and idx <= 5 and base != blank -%}
+          {%- assign wide = base | append: idx | append: '-wide.mp4' -%}
+          {%- assign tall = base | append: idx | append: '-tall.mp4' -%}
+          {%- assign p_wide = base | append: idx | append: '-wide.jpg' -%}
+          {%- assign p_tall = base | append: idx | append: '-tall.jpg' -%}
+        {%- endif -%}
+        {%- if wide == blank -%}
+          {%- capture one -%}<div class='bwin__plain bwin__reveal'><p class='bwin__stmt'>{{ clean | escape }}</p></div>{%- endcapture -%}
+          {%- assign plain_html = plain_html | append: one -%}
+        {%- else -%}
+        <article class='bwin__ch bwin__slide is-{{ place }} is-{{ tone }}' data-bwin-ch role='group' aria-roledescription='slide'>
+          <figure class='bwin__film' data-bwin-film{% if lq != blank and has_pick == false %} style='background-image:url({{ lq }})'{% endif %}>
+            {%- if has_pick -%}
+              {%- if vobj.preview_image != blank -%}
+                <picture class='bwin__poster'>{{ vobj.preview_image | image_url: width: 1600 | image_tag: loading: 'lazy', alt: '', widths: '800, 1200, 1600', sizes: '80vw' }}</picture>
+              {%- endif -%}
+            {%- elsif p_wide != blank -%}
+              <picture class='bwin__poster'><source media='(min-width:750px)' srcset='{{ p_wide | escape }}'><img src='{{ p_tall | escape }}' alt='' loading='lazy' decoding='async'></picture>
+            {%- endif -%}
+            {%- if wide != blank -%}
+              <video muted loop playsinline preload='none' aria-hidden='true' tabindex='-1' data-wide='{{ wide | escape }}' data-tall='{{ tall | escape }}'></video>
+            {%- endif -%}
+            <span class='bwin__veil' aria-hidden='true'></span>
+            <figcaption class='bwin__words'>
+              <span class='bwin__no' aria-hidden='true'>0{{ idx }}</span>
+              {%- if parts.size > 1 -%}
+                <span class='bwin__sense' data-split>{{ parts[0] | escape }}.</span>
+                <span class='bwin__effect' data-split>{{ parts[1] | escape }}</span>
+              {%- else -%}
+                <span class='bwin__sense' data-split>{{ clean | escape }}</span>
+              {%- endif -%}
+            </figcaption>
+          </figure>
+        </article>
+        {%- endif -%}
+      {%- endfor -%}
+      </div>
+      <div class='bwin__bar' data-bwin-bar>
+        <span class='bwin__count' data-bwin-count aria-hidden='true'></span>
+        <div class='bwin__segs' data-bwin-segs aria-hidden='true'></div>
+        <div class='bwin__btns'>
+          <button type='button' class='bwin__btn bwin__prev' data-bwin-prev aria-label='Previous moment'><i aria-hidden='true'></i></button>
+          <button type='button' class='bwin__btn bwin__next' data-bwin-next aria-label='Next moment'><i aria-hidden='true'></i></button>
+          <button type='button' class='bwin__btn bwin__pause' data-bwin-pause aria-label='Pause films' title='Pause films'><i aria-hidden='true'></i></button>
+        </div>
+        <p class='bwin__sr' data-bwin-live aria-live='polite'></p>
+      </div>
+    </div>
+    {{ plain_html }}
+  {%- endif -%}
+
+  {%- capture tail_html -%}
+    {%- assign after = false -%}
+    {%- for block in section.blocks -%}
+      {%- if block == pairs_block -%}{%- assign after = true -%}{%- continue -%}{%- endif -%}
+      {%- if after -%}
+        {%- assign long = block.settings.text | size -%}
+        <div class='bwin__reveal' {{ block.shopify_attributes }}><p class='bwin__stmt{% if long > 70 %} is-sentence{% endif %}'>{%- render 'bme-window-em', text: block.settings.text, phrases: phrases -%}</p></div>
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endcapture -%}
+  <div class='bwin__tail'>
+    <i class='bwin__link' data-bwin-link aria-hidden='true'></i>
+    {{ tail_html }}
+    {%- if section.settings.closing != blank -%}
+      <div class='bwin__reveal'><p class='bwin__close'>{%- render 'bme-window-em', text: section.settings.closing, phrases: phrases -%}</p></div>
+    {%- endif -%}
+  </div>
+</section>
+<script>
+(function(){
+{%- render 'bme-window-js-1' -%}
+})();
+</script>
+
+{% schema %}
+{
+  "name": "BME experience (films)",
+  "max_blocks": 8,
+  "settings": [
+    { "type": "header", "content": "Text" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "SENSORY ENRICHMENT" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "WHERE THE SENSES LEAD, THE FEELING DEEPENS" },
+    { "type": "textarea", "id": "text", "label": "Intro line", "default": "The brain can change its own biology, at any age. Science calls it neuroplasticity." },
+    { "type": "textarea", "id": "closing", "label": "Closing line", "default": "It may look like magic. Neuroscience calls it long-term potentiation. We call it the window, and the ritual is how we open it." },
+    { "type": "textarea", "id": "emphasis", "label": "Words in italic gold (one per line)", "default": "THE FEELING DEEPENS\nequally.\nOne direction.", "info": "Exact match, including capitals and punctuation. Works in the heading, the panels and the closing line." },
+    { "type": "header", "content": "Films" },
+    { "type": "paragraph", "content": "The five default films live in Files (Content > Files). To use your own film for a moment, add it under that moment below. It replaces the default." },
+    { "type": "text", "id": "film_files_url", "label": "Default films: file name prefix", "default": "https://cdn.shopify.com/s/files/1/0961/8377/9702/files/bme-film-", "info": "Moment 1 uses ...bme-film-1-wide.mp4 and -tall.mp4 plus .jpg posters with the same names. Leave as is." },
+    { "type": "header", "content": "Moment 1: Breathe" },
+    { "type": "video", "id": "video_1", "label": "Film (replaces the default)" },
+    { "type": "select", "id": "tone_1", "label": "Words", "options": [{ "value": "ink", "label": "Dark (on a light film)" }, { "value": "ivory", "label": "Light (on a dark film)" }], "default": "ink" },
+    { "type": "header", "content": "Moment 2: Scent" },
+    { "type": "video", "id": "video_2", "label": "Film (replaces the default)" },
+    { "type": "select", "id": "tone_2", "label": "Words", "options": [{ "value": "ink", "label": "Dark (on a light film)" }, { "value": "ivory", "label": "Light (on a dark film)" }], "default": "ink" },
+    { "type": "header", "content": "Moment 3: Touch" },
+    { "type": "video", "id": "video_3", "label": "Film (replaces the default)" },
+    { "type": "select", "id": "tone_3", "label": "Words", "options": [{ "value": "ink", "label": "Dark (on a light film)" }, { "value": "ivory", "label": "Light (on a dark film)" }], "default": "ivory" },
+    { "type": "header", "content": "Moment 4: Feel" },
+    { "type": "video", "id": "video_4", "label": "Film (replaces the default)" },
+    { "type": "select", "id": "tone_4", "label": "Words", "options": [{ "value": "ink", "label": "Dark (on a light film)" }, { "value": "ivory", "label": "Light (on a dark film)" }], "default": "ink" },
+    { "type": "header", "content": "Moment 5: Anchor" },
+    { "type": "video", "id": "video_5", "label": "Film (replaces the default)" },
+    { "type": "select", "id": "tone_5", "label": "Words", "options": [{ "value": "ink", "label": "Dark (on a light film)" }, { "value": "ivory", "label": "Light (on a dark film)" }], "default": "ivory" }
+  ],
+  "blocks": [
+    {
+      "type": "panel",
+      "name": "Statement",
+      "settings": [
+        { "type": "textarea", "id": "text", "label": "Text (many lines = the five pairs, one per line)", "default": "Not every moment matters equally." }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "BME experience (films)",
+      "blocks": [
+        { "type": "panel", "settings": { "text": "Not every moment matters equally." } },
+        { "type": "panel", "settings": { "text": "Under the right conditions, when the senses carry a moment, attention holds it and feeling seals it, the brain learns more deeply, and keeps what it learns." } },
+        { "type": "panel", "settings": { "text": "Breathe. Regulate.\nScent. Evoke.\nTouch. Embody.\nFeel. Amplify.\nAnchor. Direct." } },
+        { "type": "panel", "settings": { "text": "Five moments. One direction. A mind that finds its way there more easily, every time." } }
+      ]
+    }
+  ]
+}
+{% endschema %}
