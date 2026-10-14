@@ -161,3 +161,9 @@
 - Annas stängda, statiska QR-sida för spa-kunder: fem lyssnarritualer (kort + lång), Together (parlyssning), spa-sidor (`?s=<spa>`). Koden ligger på grenen `claude/parallel-page-spakunder-9t2qcg` (inte mergad till `master`; utkast-PR).
 - **Överlämning med allt överenskommet, gjort och planerat: `projects/fristaden-overlamning.md`. Läs den först.** Detaljlogg på grenen: `projects/fristaden-logg.md`.
 - Anna vill **alltid ha en ny, uppdaterad testlänk** när något är klart, och att jag gör sakerna åt henne (hon är mycket oteknisk). Hon kollar på iPhone (Brave, ca 390×737).
+
+## Projekt: Hemsidan (Body Mind Earth, Shopify)
+- Annas hemsida byggs i ett utkast-tema (aldrig live, aldrig publicera utan Anna). Nuläge 2026-10-14: The Experience som filmkarusell (v47), stockfilm som platshållare, väntar på Annas omdöme.
+- **Överlämning med läge, ID:n, återställningspunkter, öppna punkter och hur Anna vill att jag jobbar: `HEMSIDAN.md`. Läs den först.** Playbook: `skills/webbdesign-varldsklass/SKILL.md`. Projektet: `projects/bme-experience-window/README.md`. Referenser: `projects/bme-experience-window/referenser-pinterest.md`.
+- Anna förväntar sig en världsledande creative director som tar egna beslut och själv hittar fel ("det fanns lite fel" = granska och rätta utan att fråga vilka).
+
