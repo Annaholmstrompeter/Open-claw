@@ -8,7 +8,9 @@ Starta en ny **Code-session på det här repot** (molnet räcker för hemsidan; 
 
 > Fortsätt med hemsidan. Läs HEMSIDAN.md och skills/webbdesign-varldsklass/SKILL.md först. Mitt nästa önskemål: …
 
-`CLAUDE.md` leder också dit av sig själv, och projektskillen `webbdesign-varldsklass` finns i `.claude/skills/` så att den dyker upp i listan över skills. Vill hon använda samma kunskap i en vanlig claude.ai-chatt (utan repot): ladda upp zip-filen `webbdesign-varldsklass.zip` under Inställningar → Skills (den skickades i chatten 2026-10-14; innehållet är samma som här). Filmskillen `reklamfilm-regissor` ligger redan i hennes Claude-konto.
+`CLAUDE.md` leder också dit av sig själv, och projektskillen `webbdesign-varldsklass` finns i `.claude/skills/` så att den dyker upp i listan över skills i sessioner på det här repot.
+
+**Skillen ska laddas automatiskt för alla Annas hemsidor, även andra än BME och även utanför det här repot.** Det görs genom att skillen ligger i hennes Claude-konto: filen `webbdesign-varldsklass.skill` skickades till henne 2026-10-14 med en **Spara skill**-knapp. När hon klickat följer den med i alla hennes sessioner och väljs automatiskt utifrån beskrivningen (hemsida, webbshop, Shopify, tema, sektion, karusell, video på sida …). Skillen är allmän; BME-specifikt ligger i `references/bme.md`. Om knappen inte syns: Inställningar → Skills → ladda upp filen. Bygg om paketet med `python -m scripts.package_skill` (skill-creator) från `skills/webbdesign-varldsklass/` när skillen ändrats, och skicka den nya `.skill`-filen igen (kontoversionen uppdateras inte av repot). Filmskillen `reklamfilm-regissor` ligger redan i hennes konto.
 
 ## Rollen och sättet att jobba (Annas ord väger tyngst)
 

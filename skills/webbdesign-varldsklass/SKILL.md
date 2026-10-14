@@ -1,40 +1,57 @@
 ---
 name: webbdesign-varldsklass
-description: "Playbook för allt arbete på Body Mind Earths hemsida (Shopify/Liquid-tema, utkast-tema 199116816758): bygga och förbättra sektioner i världsklass, The Experience (filmkarusellen), rörlig bild och video på sidan, karusell, typografi, gradering, testbänk, mätning i riktiga förhandsvisningen, och fällor i Shopify-verktygen (16 kB-gräns, filuppladdning, JSON-mallar). Använd när Anna nämner hemsidan, sidan, Shopify, temat, en sektion, en karusell, 'hetare', mer nyskapande, eller jämför mot BONJIL. Läs även HEMSIDAN.md i repots rot."
+description: "Playbook för allt arbete på Annas hemsidor: Body Mind Earth (Shopify) och andra sajter, webbshoppar och landningssidor (Shopify, WordPress, Wix, Squarespace, egen kod). Använd ALLTID när Anna jobbar med en hemsida, webbplats, webbshop, Shopify, tema, sektion, Liquid/HTML/CSS/JS för webben, sidlayout, karusell, animation eller video på en sida, typografi, gradering, 'hetare', 'mer nyskapande', eller jämför mot en förebild (t.ex. BONJIL). Innehåller arbetssätt (creative director, bygg i utkast, mät i riktiga förhandsvisningen), Annas smak, designregler, rörlig bild och karusell, tillgänglighet, testbänk och fällor i Shopify-verktygen. English: use for any website, webshop, landing page, theme or section design/build work for Anna."
 ---
 
 # Webbdesign i världsklass: så jobbar vi
 
-Skapad 2026-10-13 efter att Anna underkände v43 av The Experience ("flera typsnitt, inga arty coola take, bilden för snäll"). Uppdaterad 2026-10-14 (v47, filmkarusellen). Exemplet som lärdes av: `projects/bme-experience-window/`.
+Gäller **alla hemsidor Anna arbetar med**: Body Mind Earth (Shopify) och andra sajter och webbshoppar. Skapad 2026-10-13 efter att Anna underkände v43 av The Experience ("flera typsnitt, inga arty coola take, bilden för snäll"), uppdaterad 2026-10-14 (v47, filmkarusellen, och gjord allmän). Exempelprojektet som lärdes av: `projects/bme-experience-window/`.
 
-## Start här (ny chatt)
+## Start här (ny chatt, vilken sajt som helst)
 
-1. Läs **`HEMSIDAN.md`** i repots rot (läge, var allt finns, Shopify-ID:n, öppna punkter) och sedan `projects/bme-experience-window/README.md`.
-2. Anna 13 okt: *"du måste i varje beslut bära din roll som världsledande"*. Du är creative director, inte utförare. Beslut, inte menyer. Hon ska aldrig behöva leda eller rätta samma sak två gånger. Svara på svenska, kort, med bilder från den riktiga förhandsvisningen.
-3. **Utkast-temat** (`gid://shopify/OnlineStoreTheme/199116816758`) är det enda man bygger i. Aldrig live, aldrig publicera.
-4. Säger Anna att "det fanns lite fel" utan att peka ut vad: granska själv (copy mot låsta dokumentet, mät layout i flera skärmstorlekar, kör testerna), rätta, berätta vad du hittade.
-5. Filmer och Flow: skillen `reklamfilm-regissor` (finns i Annas Claude-konto, reservkopia i `skills/reklamfilm-regissor/`).
+1. **Vilken sajt är det?**
+   - **Body Mind Earth**: läs `references/bme.md` (palett, typsnitt, låst copy, Shopify-ID:n, version och Annas omdömen) och, om du har repot `Annaholmstrompeter/Open-claw`, **`HEMSIDAN.md`** i dess rot (läget just nu, återställningspunkter, öppna punkter).
+   - **Annan sajt**: läs sajtens egen kod, tema och eventuell stilguide först och **härled varumärkets verktyg (palett, typsnitt, ton) ur sajten själv** i stället för att fråga. Fråga bara det som inte går att läsa ut (var man får bygga utan att röra live, vad som är låst copy). Skapa en överlämningsfil för sajten (som BME:s `HEMSIDAN.md`: läge, ID:n, återställningspunkter, öppna punkter, Annas omdömen) så nästa chatt kan fortsätta.
+2. **Rollen.** Anna 13 okt: *"du måste i varje beslut bära din roll som världsledande"*. Du är creative director, inte utförare. Beslut, inte menyer. Hon ska aldrig behöva leda eller rätta samma sak två gånger. Svara på svenska, kort, enkla ord, med bilder från den riktiga förhandsvisningen.
+3. **Bygg bara i utkast/staging/förhandsvisning. Publicera aldrig** och rör aldrig live utan Annas uttryckliga ord.
+4. Säger Anna att "det fanns lite fel" utan att peka ut vad: granska själv (copy mot det låsta dokumentet, mät layout i flera skärmstorlekar, kör testerna), rätta, berätta vad du hittade.
+5. **Film och Flow**: skillen `reklamfilm-regissor` (i Annas konto; reservkopia i repot: `skills/reklamfilm-regissor/`).
+
+## Annas smak (gäller oftast alla hennes sajter)
+
+Hennes egna ord i citat. Det här har hon sagt om mina förslag, och det är facit:
+
+- **Hett, nyskapande, "arty".** Inte snällt eller mallaktigt ("våran är för snäll … det ska vara riktigt 'hett' nyskapande intressant"). En stor idé som kommer ur varumärkets mening, inte ur en layoutmall.
+- **Återhållen lyx.** Få typsnitt (helst ett per sektion: "flera olika typsnitt" räknas som fel), luft, hårlinjer, stor skalkontrast mot små tysta etiketter. Text som inte är för stor ("lite för stor text").
+- **Ljust och varmt, färg och rörlig bild som lyfter.** En helt mörk version fick "för mörkt". Sensuella material (tyg som böljar, bark, mossa, vatten som rör sig lite), inte glitter.
+- **Vanlig scroll, alltid.** "Det går inte att scrolla" om en fastnålad berättelse. Inget som fångar eller blockerar.
+- **Formen ska passa varumärket.** Fem smala valv i rad: "det här ser konstigt ut, det passar inte". Färdiga former i klunga, stockiga färgprov och flera rörliga rutor bredvid varandra: undvik.
+- **Rörelse med mening**, aldrig dekor.
+- **Ord i bilder** ska vara konstnärliga, inte övertydliga.
+- **Hon bedömer med ögat.** Visa bilder från den riktiga förhandsvisningen. Säg svagaste punkten och vad som inte är testat. När hon säger "spara detta": backa upp i utkastet och i repot.
 
 ## Arbetssätt (i den här ordningen)
 
 1. **Ta en riktig baslinje.** Skärmdump av nuläget (desktop + mobil) från den riktiga förhandsvisningen, inte från minnet. Läs koden bakom: oftast förklarar den kritiken ("flera typsnitt" = ett `font-family: system-ui` som någon lagt till).
 2. **Säg problemet med vanliga ord, utan försvar.** Annas ögon har rätt. Bedöm mot förebilden på riktigt: vad gör den bättre?
-3. **Koncept före pixlar.** En stor idé som kommer ur varumärkets mening, inte ur en layoutmall. Här: Hebb ("det som tänds tillsammans kopplas ihop") + "the window". Frågan är alltid: *vad är sektionens enda mening, och hur kan formen bära den?*
+3. **Koncept före pixlar.** En stor idé som kommer ur varumärkets mening, inte ur en layoutmall. (BME: Hebb, "det som tänds tillsammans kopplas ihop", + "the window".) Frågan är alltid: *vad är sektionens enda mening, och hur kan formen bära den?*
 4. **Bilden behöver inte vara ett foto.** Generativ/kod-konst (canvas, SVG), typografi som bild, eller en tydligt art-directad AI-bild (ge Anna färdiga prompter till ChatGPT/Gemini, med äkta svart bakgrund, 3:4, utan ansikten/text). Stockiga porträtt av någon som blundar är "snällt".
-5. **Bygg i en lokal testbänk** med riktig Liquid-motor (liquidjs), temats typsnitt och en fejkad sticky header. Ta skärmdumpar på flera lägen i berättelsen. Kontaktblad (PIL) gör att du ser sekvensen i ett svep. `projects/bme-experience-window/lab/` fungerar som den är.
+5. **Bygg i en lokal testbänk** (Shopify: riktig Liquid-motor, liquidjs; annars sajtens egen build), sajtens typsnitt och en fejkad sticky header. Ta skärmdumpar på flera lägen i berättelsen. Kontaktblad (PIL) gör att du ser sekvensen i ett svep. Mallen finns i repot: `projects/bme-experience-window/lab/` (kopiera och anpassa för en annan sajt).
 6. **Kolla alltid**: desktop 1440, mobil 390, reducerad rörelse, utan JavaScript, snabb scroll (hopp), resize.
-7. **Ladda bara upp till utkastet** (utvecklingstemat), aldrig live. Säkerhetskopiera först (`themeFilesCopy` till `assets/backup-….txt`). Verifiera med MD5 (`checksumMd5`). Granska sedan i den *riktiga* förhandsvisningen (temats CSS och header kan bryta det som funkade lokalt).
+7. **Ladda bara upp till utkastet** (Shopify: det opublicerade utvecklingstemat; annan plattform: staging/kopia), aldrig live. Säkerhetskopiera först (`themeFilesCopy` till `assets/backup-….txt`). Verifiera med MD5 (Shopify: `checksumMd5`). Granska sedan i den *riktiga* förhandsvisningen (temats CSS och header kan bryta det som funkade lokalt).
 8. **Rapportera ärligt** med svagaste punkten och vad som inte är testat (riktiga telefoner, Safari, Firefox). Låt Anna bedöma.
 
-## Designregler som gäller för BME
 
-- **Ett enda typsnitt per sektion** (temats Cormorant, en vikt). Hierarki med skala, kursiv, versaler med bred spärr, guld. Inget `system-ui`. Det som ser ut som "flera typsnitt" är det oftast.
-- **Palett = temats egen**: grön-svart `#0a0e0c`/`#1c2320`, elfenben `#f3eee3`, guld `#c4a268`/`#ecd29a`. Inga nya färger. Ett varmt koppar-/bärnstensskimmer är ok som ögonblickets accent.
-- **Rytm**: växla mörkt och ljust, men Anna sa om v44 (helt mörk): "för mörkt". Håll sidan ljus (elfenben) och låt filmerna/bilderna bära det mörka. Ett mörkt band i sig är inte längre standardsvaret.
-- **Skalkontrast**: ett mycket stort element per vy (80–110 px rubrik, 60–80 px ord) mot små, tysta etiketter. Hårlinjer, siffror (01–05), en guldtråd som visar framsteg.
-- **Rörelse bär betydelse**, inte dekor. Varje rörelse ska betyda något (andning 10 s, fingeravtryck, tråd som kopplar). Respektera `prefers-reduced-motion`, ge fullgod statisk layout.
-- **Ingen scroll-kapning.** Vanlig lodrät scroll ska alltid fungera (Anna: "det går inte att scrolla" om v44). Sidled får vara en karusell med eget spår. `position: sticky` + beräkna framsteg från `getBoundingClientRect()` om något ska följa med.
-- Copy som är låst ändras inte: formatera den, men ändra aldrig orden. Betoning görs via en inställning (fraser i guldkursiv), inte genom att skriva om texten.
+## Designregler (allmänna; palett och typsnitt är per sajt)
+
+- **Typografi**: utgå från sajtens egen. Ett typsnitt per sektion som standard; hierarki med skala, kursiv, versaler med bred spärr, färg. "Flera typsnitt" är oftast en glömd `system-ui`/fallback i CSS:en: kolla koden.
+- **Palett**: härled ur sajten/temat. Inga nya färger utan skäl. **Mät kontrast** (WCAG AA, 4,5:1 för liten text); en guldton på 4,09:1 underkändes.
+- **Rytm**: växla ljust och mörkt med måtta; håll sidan ljus om inte varumärket är mörkt, och låt bilder/filmer bära det mörka. 
+- **Skalkontrast**: ett mycket stort element per vy mot små, tysta etiketter. Hårlinjer, siffror (01–05), en tråd som visar framsteg.
+- **Rörelse bär betydelse**, inte dekor. Respektera `prefers-reduced-motion`; ge en fullgod statisk layout och en som funkar utan JavaScript.
+- **Ingen scroll-kapning.** Vanlig lodrät scroll ska alltid fungera. Sidled får vara en karusell med eget spår. `position: sticky` + framsteg från `getBoundingClientRect()` om något ska följa med.
+- **Copy som är låst ändras inte**: formatera den, ändra aldrig orden. Betoning görs via en inställning (fraser i guldkursiv), inte genom att skriva om texten.
+- **Tillgänglighet och prestanda är en del av formen**: tangentbord, `aria`, 44 px träffytor, kontrast, lazy-laddning, spela bara det som syns.
 
 ## Rörlig bild (video) på sidan: lärdomar från v45 → v47 (13 okt, Annas "det här ser konstigt ut")
 
@@ -83,9 +100,14 @@ Anna: *"du måste i varje beslut bära din roll som världsledande … du måste
 - **Läs vilken temafil som helst direkt i bash**: `themeFilesCopy` till `assets/x.txt`, öppna förhandsvisnings-URL:en med `curl -L -c jar.txt` (sätter kakan), hämta sedan `https://<shop>.myshopify.com/cdn/shop/t/<n>/assets/x.txt` med `-b jar.txt` (`<n>` syns i förhandsvisningens HTML). Då slipper du dra stora filer genom GraphQL-svaret.
 - **Ett prefix i en textinställning** (`film_files_url` + nummer + `-wide.mp4`) ger en hel filuppsättning med en enda inställning, i stället för 20 fält i temaredigeraren.
 
+
+## Andra plattformar än Shopify
+
+Samma metod: baslinje i den riktiga förhandsvisningen/staging, koncept, bygg lokalt, mät, visa. WordPress/Wix/Squarespace/egen kod: hitta först var man kan bygga utan att röra live (staging, kopia av sidan, utkast, egen gren), ta backup innan du ändrar, och kontrollera plattformens gränser på samma sätt som Shopifys ovan (storlek på filer och anrop, vad som sparas i tema/databas). Är du osäker på om något går att ångra: gör det inte, fråga Anna.
+
 ## Innan du säger "klart"
 
-Har du sett det i den riktiga förhandsvisningen på både desktop och mobil? Fungerar det utan JS? Står kontrollsummorna? Har du sagt vad som *inte* är testat? Har du sparat källan i repot och synkat till `master`?
+Har du sett det i den riktiga förhandsvisningen på både desktop och mobil? Fungerar det utan JS? Står kontrollsummorna? Har du sagt vad som *inte* är testat? Har du sparat källan i repot och synkat till `master` (BME-repot: se `CLAUDE.md`), och uppdaterat sajtens överlämningsfil?
 
 ## Testbänken i korthet
 
