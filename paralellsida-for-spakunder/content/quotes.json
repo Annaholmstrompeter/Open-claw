@@ -1,0 +1,23 @@
+{
+  "_note": "One line from each meditation, shown on the player while it plays. Each must appear word for word in content/meditations-mall.txt (tools/build-content.py checks it). Change freely.",
+  "balance": {
+    "short": "Let yourself be rinsed of what no longer serves you, and begin again, clean and fresh.",
+    "extended": "Feel the quiet steadiness within you."
+  },
+  "luminance": {
+    "short": "Let this moment remind you of the warmth and light that already live within you.",
+    "extended": "And as you stay with that feeling, bring your awareness to something deeper — your inner glow."
+  },
+  "kindness": {
+    "short": "The aroma deepens, the touch softens, and each movement becomes a quiet expression of kindness towards your body.",
+    "extended": "You are enough, just as you are."
+  },
+  "serenity": {
+    "short": "For this little moment, you may become that vibrant stillness.",
+    "extended": "Quiet, but filled with possibility."
+  },
+  "presence": {
+    "short": "With each touch, offer a little love to the body that carries you.",
+    "extended": "And keep giving your body the tenderness it so willingly receives."
+  }
+}

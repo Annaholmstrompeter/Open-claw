@@ -29,3 +29,7 @@ Thumbs.db
 # Backup files
 *.bak
 *.backup
+# Sanctuary: a spa's own page holds that spa's name and pictures. Only the fictional demo is kept in the public repository;
+# real spas are built in a private place (see paralellsida-for-spakunder/README.md, "Spa-sidor").
+paralellsida-for-spakunder/public/spas/*
+!paralellsida-for-spakunder/public/spas/horizon-hill/

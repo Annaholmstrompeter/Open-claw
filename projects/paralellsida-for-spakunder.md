@@ -1,14 +1,16 @@
-# Fristaden (Body Mind Earth Sanctuary) — överlämning
+# Paralellsida för spakunder (fristaden, Body Mind Earth Sanctuary) — överlämning
 
-*Skriven 2026-10-11 av sessionen "Parallell sida för spakunder". Läs den här filen först, sedan `sanctuary/README.md`. Detaljerad historik: `projects/fristaden-logg.md` (på grenen, se nedan).*
+*Annas namn på projektet: **paralellsida för spakunder**. Mappen hette tidigare `sanctuary/` och projektet kallades "fristaden" (båda namnen finns kvar i texter och gamla loggar). Omdöpt och inmergat i `master` 2026-10-14, så att alla sessioner hittar det.*
+
+*Skriven 2026-10-11 av sessionen "Parallell sida för spakunder". Läs den här filen först, sedan `paralellsida-for-spakunder/README.md`. Detaljerad historik: `projects/paralellsida-for-spakunder-logg.md` (på grenen, se nedan).*
 
 ## 0. Så fortsätter du direkt
 
 1. `git pull` på `master` (AGENTS.md → Session Startup), läs den här filen.
-2. **All kod ligger på grenen `claude/parallel-page-spakunder-9t2qcg`** (inte mergad till `master`). **Utkast-PR #16**, med bas `ccr-b32990fc-q1bykk` (= fristaden, utkast-PR #15), alltså inte `master`. Arbeta där: `git fetch origin claude/parallel-page-spakunder-9t2qcg && git checkout claude/parallel-page-spakunder-9t2qcg`.
-3. Läs `sanctuary/README.md` (hur allt hänger ihop) och kör testerna (avsnitt 5).
+2. **All kod ligger på `master`, i mappen `paralellsida-for-spakunder/`** (utkast-PR #15 och #16 inmergade 2026-10-14). Arbeta på en egen gren eller direkt mot `master` enligt `CLAUDE.md` → Sync convention. Äldre grenar (`ccr-b32990fc-q1bykk`, `claude/parallel-page-spakunder-9t2qcg`) behövs inte längre, men `ccr-b32990fc-q1bykk` är jämförelsebasen för regressionstestet (`e2e/regression.mjs`) och får inte tas bort.
+3. Läs `paralellsida-for-spakunder/README.md` (hur allt hänger ihop) och kör testerna (avsnitt 5).
 4. Plocka nästa punkt i avsnitt 8. När något är klart: **publicera testsidan och ge Anna en ny, verifierad länk** (avsnitt 5).
-5. Vill Anna starta en ny session: be henne skriva *"Läs projects/fristaden-overlamning.md och fortsätt med nästa punkt."* Sessionen kan köra i molnet (datorstyrning behövs inte för fristaden).
+5. Vill Anna starta en ny session: be henne skriva *"Läs projects/paralellsida-for-spakunder.md och fortsätt med nästa punkt."* Sessionen kan köra i molnet (datorstyrning behövs inte för fristaden).
 
 ## 1. Anna och hur hon vill att jag jobbar
 
@@ -43,11 +45,11 @@ Stängd, statisk QR-sida för spa-kunder (askens QR-kod → `#/`). **Fem rituale
 **Teknik/hosting**
 - Test: **GitHub Pages** från grenen `gh-pages` (byggprodukt, force-pushas av `publish-test-site.sh`, redigeras aldrig för hand). Adress: `https://annaholmstrompeter.github.io/Open-claw/`. Publik, `noindex`.
 - Produktion: **Cloudflare Pages** (gratis, tillåter försäljning; GitHub Pages villkor tillåter inte e-handel). **Egen domän innan någon QR trycks** (annars slutar de fungera när sidan flyttar). Steg i README.
-- Together: Supabase-projekt `body-mind-earth-together` (ref `betawmekhlpwplefbzvj`, Stockholm, gratis; kan pausas). Adress + **publik anon-nyckel** i `sanctuary/public/assets/together/config.js`. **Aldrig `service_role` eller hemlig nyckel i repot.** Testsidans Heart to Heart spelar Balance kort som stand-in (läggs bara i testbygget).
+- Together: Supabase-projekt `body-mind-earth-together` (ref `betawmekhlpwplefbzvj`, Stockholm, gratis; kan pausas). Adress + **publik anon-nyckel** i `paralellsida-for-spakunder/public/assets/together/config.js`. **Aldrig `service_role` eller hemlig nyckel i repot.** Testsidans Heart to Heart spelar Balance kort som stand-in (läggs bara i testbygget).
 - Arkivet `Annaholmstrompeter/Open-claw` är **publikt** och innehåller annat privat (anteckningar). Anna har inte bestämt om det ska bli privat (då slutar GitHub Pages fungera på gratisplanen → Cloudflare).
 
 **Spa-sidor**
-- `?s=<slug>` → spats bild + namn över första sidan, spats tack + knapp efter ritualen, bokning i ny flik med `utm_source=bodymindearth&utm_medium=ritual&utm_campaign=<slug>`. Verktyg: `sanctuary/tools/make-spa.py`. Demo: **Horizon Hill Spa** (påhittat; fri CC0-bild som stand-in).
+- `?s=<slug>` → spats bild + namn över första sidan, spats tack + knapp efter ritualen, bokning i ny flik med `utm_source=bodymindearth&utm_medium=ritual&utm_campaign=<slug>`. Verktyg: `paralellsida-for-spakunder/tools/make-spa.py`. Demo: **Horizon Hill Spa** (påhittat; fri CC0-bild som stand-in).
 - **Riktiga spa hålls utanför det publika arkivet** (`.gitignore`); bygg dem privat. Deras bilder/logotyper är deras: visa bara spat själv via privat länk, be om lov när de säger ja.
 
 ## 4. Gjort (kort)
@@ -56,24 +58,24 @@ Stängd, statisk QR-sida för spa-kunder (askens QR-kod → `#/`). **Fem rituale
 - **Together** (parlyssning): session-/klockmodul, spelare, QR/länk, Ready/Begin/paus, återanslutning, ett-tryck-reserv, en-enhets-läge, vattenljus. 22 enhetstester + e2e mot lokal attrapp av Supabase. **Inte provat mot riktiga Supabase eller riktiga telefoner.**
 - Ny första sida, karusell, ritualsida, spelsida, slutsida, Back, bort med gamla färger, alla inspelningar (verifierade: filstorlek, mp3, längd; alla tio spelar i webbläsare och slutar på slutsidan).
 - Testsida på GitHub Pages med cache-bust (`?v=`), spa-demo och publiceringsskript som skriver ut länken.
-- Tester: `sanctuary/tests` — 22 enhet, 16 e2e, regressionsjämförelse mot sanctuaryt före Together (`e2e/regression.mjs`): ändringar som är avsiktliga är listade i filens huvud.
+- Tester: `paralellsida-for-spakunder/tests` — 22 enhet, 16 e2e, regressionsjämförelse mot sanctuaryt före Together (`e2e/regression.mjs`): ändringar som är avsiktliga är listade i filens huvud.
 
 ## 5. Så arbetar du (kommandon)
 
 ```
-cd sanctuary/tests && npm ci                      # första gången (node_modules ligger inte i git)
+cd paralellsida-for-spakunder/tests && npm ci                      # första gången (node_modules ligger inte i git)
 node --test --test-force-exit session.test.js     # enhetstester (22)
 node e2e/run.mjs                                  # e2e (16, ca 2 min; Chromium finns i /opt/pw-browsers)
 node e2e/regression.mjs                           # jämför alla gamla adresser med äldre version
-python3 sanctuary/tools/build-content.py          # bygger content.js + sw.js (checka in sw.js efter!)
-sanctuary/tools/publish-test-site.sh sanctuary/public/assets/audio/04_Balance_Bergamot-Hand-Wash_KORT.mp3
+python3 paralellsida-for-spakunder/tools/build-content.py          # bygger content.js + sw.js (checka in sw.js efter!)
+paralellsida-for-spakunder/tools/publish-test-site.sh paralellsida-for-spakunder/public/assets/audio/04_Balance_Bergamot-Hand-Wash_KORT.mp3
 ```
 
 - Skriptet skriver ut en länk `https://…/Open-claw/?v=<tid>#/…`. **Vänta tills sidan är uppe** innan du ger den till Anna: upprepa `curl -s "https://annaholmstrompeter.github.io/Open-claw/?p=$RANDOM" | grep -o 'assets/app.js?v=[0-9]*'` tills numret är det nya (30–90 s). Kolla gärna också att en ny fil finns i `assets/style.css?v=<tid>`.
 - Länkar till spa-demon: `…/Open-claw/?s=horizon-hill&v=<tid>#/`. Direktlänkar: `#/r/<id>/s`, `#/r/<id>/e`, `#/r/<id>`, `#/together`.
 - Commit-meddelanden på svenska, med de två raderna (Co-Authored-By och Claude-Session) som sessionen anger. Pusha grenen; skapa **utkast**-PR om ingen finns.
 - `git push` skriver "push negotiation failed; proceeding anyway": ofarligt.
-- `gh` är ogiltig: använd GitHub-verktygen (MCP). Stop-hooken klagar om `sanctuary/public/sw.js` är ändrad men ej incheckad.
+- `gh` är ogiltig: använd GitHub-verktygen (MCP). Stop-hooken klagar om `paralellsida-for-spakunder/public/sw.js` är ändrad men ej incheckad.
 
 ## 6. Miljön (fällor)
 
@@ -84,9 +86,9 @@ sanctuary/tools/publish-test-site.sh sanctuary/public/assets/audio/04_Balance_Be
 
 ## 7. Öppet / ej verifierat
 
-- **Parkoppling på två riktiga telefoner mot riktiga Supabase** (checklista `sanctuary/TOGETHER-TEST.md`). Kräver att Anna provar på testsidan; eller tillåt `*.supabase.co` så testar jag härifrån.
+- **Parkoppling på två riktiga telefoner mot riktiga Supabase** (checklista `paralellsida-for-spakunder/TOGETHER-TEST.md`). Kräver att Anna provar på testsidan; eller tillåt `*.supabase.co` så testar jag härifrån.
 - **Riktig iPhone-Safari/Android-Chrome**: ljudstart, skärmlås, Bluetooth, `:has()` (Back dold under parsession; Safari ≥ 15.4).
-- **Heart to Heart-inspelning** finns inte (manus: `sanctuary/content/together-heart-to-heart-manus.md`).
+- **Heart to Heart-inspelning** finns inte (manus: `paralellsida-for-spakunder/content/together-heart-to-heart-manus.md`).
 - Produktfotona är stand-ins ("Ritual Oil 30 ml"); texten om produkten (250 ml m.m.) är de riktiga uppgifterna. Riktiga foton saknas.
 - Demo-spaets foto är en lågupplöst stand-in; byt mot riktigt (Anna skickar en fil; sandlådan hämtar inga stockfoton själv).
 - Repot publikt eller privat? Domän? Cloudflare-konto? (Anna beslutar.)
@@ -102,7 +104,7 @@ sanctuary/tools/publish-test-site.sh sanctuary/public/assets/audio/04_Balance_Be
 6. **Röst-tack per spa** efter ritualen (samma röst som meditationerna: filerna är märkta *Tellsonic*; fråga Anna vilket verktyg). Idag finns bara en textrad. Autoplay efter ritualens slut på iPhone måste provas, annars en tryckbar knapp.
 7. **Slutsidan** i samma avskalade stil som spelsidan (fråga Anna).
 8. Heart to Heart-inspelning (Annas röst/produktion) → `assets/audio/together/heart-to-heart.mp3`.
-9. När Anna säger till: sanctuaryt ligger i två lager, **#15** (fristaden före Together, gren `ccr-b32990fc-q1bykk`) och **#16** (den här grenen ovanpå). Slå ihop #15 först, sedan #16 (eller ändra #16:s bas till `master` när #15 är inne). `master` är redan inmergad i grenen. Flytta gärna till Cloudflare Pages före eller samtidigt.
+9. ~~Slå ihop #15 och #16~~ **Klart 2026-10-14** (Anna bad om att arbetet ska gå att hitta från vilken chatt som helst). Mappen döptes om från `sanctuary/` till `paralellsida-for-spakunder/`. Flytta gärna till Cloudflare Pages före tryck.
 
 **Förfrågan från en bekant till Anna** (ej beslutad, ej påbörjad): en liknande, lika snygg gratis sida för att sälja en kurs då och då (engångsköp, ingen prenumeration). Rekommenderat upplägg: egen mall utan Annas varumärke i **ett separat projekt**; hosting Cloudflare Pages; betalning via **Stripe Payment Link** (hosted, ingen månadsavgift, avgift bara per genomfört köp) eller inbyggd betalning med en liten serverfunktion; kursinnehåll får inte ligga öppet i publikt arkiv; bekanten skapar och verifierar själv sina Cloudflare- och Stripe-konton. Kostnader att presentera: bygge 0 kr, hosting 0 kr, Stripe-avgift per köp, valfri egen domän ≈ 100–200 kr/år, egen mejladress gratis (vidarebefordran) eller ≈ 60–80 kr/mån för riktig brevlåda.
 

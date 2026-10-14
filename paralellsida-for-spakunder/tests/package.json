@@ -1,0 +1,15 @@
+{
+  "name": "sanctuary-tests",
+  "private": true,
+  "description": "Tests for the sanctuary's TOGETHER section. Unit: node --test session.test.js. Browser: node e2e/run.mjs (needs Chromium).",
+  "scripts": {
+    "unit": "node --test --test-force-exit session.test.js",
+    "e2e": "node e2e/run.mjs"
+  },
+  "devDependencies": {
+    "jsqr": "^1.4.0",
+    "playwright-core": "1.56.0",
+    "pngjs": "^7.0.0",
+    "ws": "8.18.3"
+  }
+}
