@@ -65,6 +65,7 @@
     installIosStep3: 'Tap “Add”.',
     installInApp: 'This page is open inside another app. Open it in Safari (iPhone) or Chrome (Android) to add it to your home screen.',
     installOther: 'Open this page on your phone to add it to the home screen.',
+    installChromeTip: 'For the cleanest icon on your home screen, open this page in Chrome.',
     aboutEyebrow: 'Sensory Enrichment',
     closeLink: 'Close your visit',
     shortRitual: 'Short ritual',
@@ -339,6 +340,11 @@
   }
   function isAndroid() { return /android/i.test(navigator.userAgent); }
   // a page opened inside another app's own browser (LinkedIn, Instagram, Facebook ...) cannot be added to the home screen
+  // Android browsers other than Chrome (and Samsung Internet on Samsung phones) cannot make a real app, only a shortcut,
+  // and a shortcut carries the browser's own badge on its icon (Brave's lion, for one)
+  function badgesTheIcon() {
+    return isAndroid() && (!!(navigator.brave && typeof navigator.brave.isBrave === 'function') || /Firefox|OPR\/|EdgA/.test(navigator.userAgent));
+  }
   function inAppBrowser() { return /FBAN|FBAV|Instagram|LinkedInApp|Snapchat|TikTok|MicroMessenger|Line\/|; wv\)/i.test(navigator.userAgent); }
 
   /* ——— the menu: three places, nothing else ——— */
@@ -670,7 +676,8 @@
         '<li><span>' + UI.installIosStep3 + '</span></li></ol>';
     } else if (isAndroid()) {
       body = '<div data-install>' + installButton() + '</div>' +
-        '<p class="text fine" data-install-note' + (installEvent ? ' hidden' : '') + '>' + UI.installAndroidMenu + '</p>';
+        '<p class="text fine" data-install-note' + (installEvent ? ' hidden' : '') + '>' + UI.installAndroidMenu + '</p>' +
+        (badgesTheIcon() ? '<p class="text fine" data-chrome-tip>' + UI.installChromeTip + '</p>' : '');
     } else {
       body = '<p class="text">' + UI.installOther + '</p>';
     }

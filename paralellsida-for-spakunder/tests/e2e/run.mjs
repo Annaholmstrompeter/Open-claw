@@ -593,14 +593,14 @@ test('a spa\'s page can be kept as an app: its own manifest, name and icon; the 
   // the links the browser looks at are the spa's
   assert.equal(await p.page.getAttribute('link[rel="manifest"]', 'href'), 'spas/horizon-hill/manifest.webmanifest');
   assert.equal(await p.page.getAttribute('link[rel="apple-touch-icon"]', 'href'), 'spas/horizon-hill/icon-180.png');
-  assert.equal(await p.page.getAttribute('meta[name="apple-mobile-web-app-title"]', 'content'), 'Horizon Hill');
+  assert.equal(await p.page.getAttribute('meta[name="apple-mobile-web-app-title"]', 'content'), 'Horizon');
   // the manifest as the browser reads it
   const { url, data, errors } = await cdp.send('Page.getAppManifest');
   assert.match(url, /spas\/horizon-hill\/manifest\.webmanifest$/);
   assert.deepEqual(errors, []);
   const m = JSON.parse(data);
   assert.equal(m.name, 'Horizon Hill Spa');
-  assert.equal(m.short_name, 'Horizon Hill');
+  assert.equal(m.short_name, 'Horizon');
   assert.equal(m.display, 'standalone');
   const base = p.base.base;
   // the app opens the spa's page, not the ordinary one, and stays within the site
@@ -662,7 +662,17 @@ test('"Add to your phone": Android offers the browser\'s own install, iPhone get
   await t.page.click('[data-install-btn]');
   assert.equal(await t.page.evaluate(() => window.__prompted), 1, 'the browser\'s install prompt was asked for by the tap');
   assert.deepEqual(t.errors, []);
+  assert.equal(await t.page.locator('[data-chrome-tip]').count(), 0, 'Chrome makes a real app: no tip');
   await t.ctx.close();
+  // Brave on Android only makes a shortcut, which carries Brave's badge: the page says to use Chrome for the cleanest icon
+  const bctx = await browser.newContext({ viewport: { width: DW, height: DH }, serviceWorkers: 'block', userAgent: ANDROID });
+  const bpage = await bctx.newPage();
+  await bpage.addInitScript(() => { navigator.brave = { isBrave: () => Promise.resolve(true) }; });
+  await bpage.goto(srv.base + 'index.html?s=horizon-hill#/install');
+  await bpage.reload();
+  await bpage.waitForSelector('.install');
+  assert.match(await bpage.textContent('[data-chrome-tip]'), /open this page in Chrome/);
+  await bctx.close();
   // iPhone: no prompt exists there; the three steps, with the share icon
   t = await open(IPHONE);
   await t.page.click('.front-menu a[href="#/install"]');

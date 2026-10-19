@@ -104,7 +104,7 @@ def main():
     ap.add_argument("--logo", help="the spa's logotype (an image with a transparent or light background); otherwise the name is set in type")
     ap.add_argument("--book-url", default="", help="the spa's own booking page (or tel:/mailto:)")
     ap.add_argument("--shop-url", default="", help="the spa's own shop (or tel:/mailto:); without it the house shop is used, if there is one")
-    ap.add_argument("--short-name", default="", help="the name under the icon on the phone (about 12 letters); default: the spa's name")
+    ap.add_argument("--short-name", default="", help="the name under the icon on the phone; phones cut it at about 9 letters (\"Horizon\", not \"Horizon Hill\"); default: the spa's name")
     ap.add_argument("--thanks", default="Thank you for taking this moment with us.", help="the line after the ritual")
     ap.add_argument("--no-grade", action="store_true", help="use the photograph as it is")
     ap.add_argument("--demo", action="store_true", help="a fictional example spa: says so on the page")
@@ -132,6 +132,8 @@ def main():
         logo = "spas/%s/logo.webp" % a.slug
 
     short = a.short_name or a.name
+    if len(short) > 9:
+        print("note: the name under the icon, \"%s\", is %d letters; phones cut it at about 9. Give a shorter one with --short-name." % (short, len(short)))
     make_icons(out, img, a.logo)
     make_manifest(out, a.slug, a.name, short)
 

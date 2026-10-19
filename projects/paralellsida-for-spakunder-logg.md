@@ -87,3 +87,10 @@
 - **Tester:** 22 enhet, 19 e2e (tre nya: manifest/ikoner/installerbarhet i Chromium, installationssidan per telefon, shop-reserv), regressionsjämförelsen oförändrad ("Nothing else changed"). Ett Together-test (två telefoner) föll en gång i en full körning och gick 3 av 3 ensamt (Togethers kod är orörd).
 - **Ej provat:** riktig Android-Chrome, iPhone Safari/Brave, två spa-appar på en telefon, iPhone-ljud med låst skärm i hemskärmsapp.
 - Fällor: `build-content.py` utan `mutagen` nollställer inspelningslängderna i `content.js`; Shopify-planen är "Pause and Build" (avsedd för att bygga utan att sälja); Supabase-projektet för Together är pausat; Driveprojektkartan (00) och status (06) säger fortfarande att köpknappen inte ska aktiveras utan egen checkout (ersatt av Annas besked 2026-10-19).
+
+## Annas prov på riktig Android (Brave), 2026-10-19
+- Anna provade provlänken på en Android i **Brave**: installationen gick, men ikonen fick **Bravess lejon som märke** (bild 2) och etiketten blev "Horizon ..." (avkortad). Märket är webbläsarens: bara Chrome (och Samsung Internet på Samsung) kan skapa en riktig app via Googles WebAPK-tjänst; Brave, Firefox, Opera och Edge på Android gör en genväg, och en genväg får webbläsarens märke. Det går inte att ta bort från webbplatsen. Åtgärd: `#/install` tipsar om Chrome i de webbläsarna (`navigator.brave`, Firefox, OPR, EdgA); Anna visar spa från Chrome; på iPhone finns inget märke.
+- Etiketten: telefonens startskärm kapar vid ca 9 tecken. Demospaet har nu `--short-name "Horizon"`; `make-spa.py` varnar för längre namn.
+- Bild 1 (frågan "Öppna den här webbplatsen?") är **Claude-appens egen fråga** när man trycker på en länk i chatten, inte webbplatsens och inte QR-skanningen. Gäster ser den inte. Det som gästen ser när kameran skannar QR är adressen: därför ska QR peka på egen domän (`ritual.bodymindearth.se`) och inte på `annaholmstrompeter.github.io`.
+- Frågor till Anna (obesvarade): kom adressfältet upp när hon öppnade ikonen (genväg i Brave) eller gick den i helskärm? Hur skannas QR-koden (kamera eller Google Lens)?
+

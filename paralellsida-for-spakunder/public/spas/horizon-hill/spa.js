@@ -2,7 +2,7 @@
 window.BME_SPA = {
  "slug": "horizon-hill",
  "name": "Horizon Hill Spa",
- "shortName": "Horizon Hill",
+ "shortName": "Horizon",
  "hero": "spas/horizon-hill/hero.webp",
  "logo": null,
  "bookUrl": "spas/horizon-hill/book.html",
