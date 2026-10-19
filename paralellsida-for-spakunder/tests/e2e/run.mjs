@@ -662,17 +662,49 @@ test('"Add to your phone": Android offers the browser\'s own install, iPhone get
   await t.page.click('[data-install-btn]');
   assert.equal(await t.page.evaluate(() => window.__prompted), 1, 'the browser\'s install prompt was asked for by the tap');
   assert.deepEqual(t.errors, []);
-  assert.equal(await t.page.locator('[data-chrome-tip]').count(), 0, 'Chrome makes a real app: no tip');
+  assert.equal(await t.page.evaluate(() => window.__prompted), 1, 'Chrome: the install prompt at once, no hand-over');
   await t.ctx.close();
-  // Brave on Android only makes a shortcut, which carries Brave's badge: the page says to use Chrome for the cleanest icon
+  // Brave on Android only makes a shortcut, which carries Brave's badge. The same tap hands over to Chrome (which makes a real app):
+  // an intent address to Chrome, the same page on its install screen, and a fallback if Chrome is not there. No words about it on the page.
   const bctx = await browser.newContext({ viewport: { width: DW, height: DH }, serviceWorkers: 'block', userAgent: ANDROID });
   const bpage = await bctx.newPage();
+  const bcdp = await bctx.newCDPSession(bpage);
+  await bcdp.send('Page.enable');
+  const asked = [];
+  bcdp.on('Page.frameRequestedNavigation', (e) => asked.push(e.url));
   await bpage.addInitScript(() => { navigator.brave = { isBrave: () => Promise.resolve(true) }; });
-  await bpage.goto(srv.base + 'index.html?s=horizon-hill#/install');
+  await bpage.goto(srv.base + 'index.html?s=horizon-hill&v=1#/install');
   await bpage.reload();
   await bpage.waitForSelector('.install');
-  assert.match(await bpage.textContent('[data-chrome-tip]'), /open this page in Chrome/);
+  await bpage.evaluate(() => {
+    const e = new Event('beforeinstallprompt', { cancelable: true });
+    e.prompt = () => { window.__prompted = (window.__prompted || 0) + 1; return Promise.resolve(); };
+    window.dispatchEvent(e);
+  });
+  await bpage.waitForSelector('[data-install-btn]');
+  assert.doesNotMatch(await bpage.textContent('.install'), /chrome/i, 'nothing on the page tells the guest to use another browser');
+  await bpage.click('[data-install-btn]');
+  const handOver = asked.find((u) => u.startsWith('intent://'));
+  assert.ok(handOver, 'the tap tried to hand over to Chrome: ' + JSON.stringify(asked));
+  assert.match(handOver, /^intent:\/\/127\.0\.0\.1:\d+\/index\.html\?s=horizon-hill&go=install#Intent;scheme=https;package=com\.android\.chrome;S\.browser_fallback_url=/);
+  assert.match(decodeURIComponent(handOver), /index\.html\?s=horizon-hill&go=install&nochrome=1;end$/);
+  // nothing took over (this is desktop Chromium): after a moment the browser's own install is used instead
+  await bpage.waitForFunction(() => window.__prompted === 1, null, { timeout: 5000 });
   await bctx.close();
+  // the address Chrome is sent to opens on the install screen, and (as the fallback) does not hand over again
+  const cctx = await browser.newContext({ viewport: { width: DW, height: DH }, serviceWorkers: 'block', userAgent: ANDROID });
+  const cpage = await cctx.newPage();
+  await cpage.addInitScript(() => { navigator.brave = { isBrave: () => Promise.resolve(true) }; });
+  await cpage.goto(srv.base + 'index.html?s=horizon-hill&go=install&nochrome=1');
+  await cpage.waitForSelector('.install');
+  await cpage.evaluate(() => {
+    const e = new Event('beforeinstallprompt', { cancelable: true });
+    e.prompt = () => { window.__prompted = (window.__prompted || 0) + 1; return Promise.resolve(); };
+    window.dispatchEvent(e);
+  });
+  await cpage.click('[data-install-btn]');
+  assert.equal(await cpage.evaluate(() => window.__prompted), 1, 'nochrome: the browser\'s own install at once');
+  await cctx.close();
   // iPhone: no prompt exists there; the three steps, with the share icon
   t = await open(IPHONE);
   await t.page.click('.front-menu a[href="#/install"]');

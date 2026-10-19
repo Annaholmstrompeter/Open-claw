@@ -65,7 +65,6 @@
     installIosStep3: 'Tap “Add”.',
     installInApp: 'This page is open inside another app. Open it in Safari (iPhone) or Chrome (Android) to add it to your home screen.',
     installOther: 'Open this page on your phone to add it to the home screen.',
-    installChromeTip: 'For the cleanest icon on your home screen, open this page in Chrome.',
     aboutEyebrow: 'Sensory Enrichment',
     closeLink: 'Close your visit',
     shortRitual: 'Short ritual',
@@ -324,9 +323,21 @@
     var b = stage.querySelector('[data-install-btn]');
     if (!b || !installEvent) return;
     b.addEventListener('click', function () {
-      installEvent.prompt();
-      installEvent = null;
-      b.hidden = true;
+      var ev = installEvent;
+      var own = function () { if (!installEvent) return; installEvent.prompt(); installEvent = null; b.hidden = true; };
+      if (badgesTheIcon()) {
+        // hand over to Chrome; if this page is still in front a moment later, nothing took over: use this browser's own install
+        var left = false;
+        var gone = function () { if (document.hidden) left = true; };
+        document.addEventListener('visibilitychange', gone);
+        window.location.href = chromeAddress();
+        setTimeout(function () {
+          document.removeEventListener('visibilitychange', gone);
+          if (!left && !document.hidden && ev) own();
+        }, 1600);
+        return;
+      }
+      own();
     });
   }
   function isStandalone() {
@@ -343,7 +354,17 @@
   // Android browsers other than Chrome (and Samsung Internet on Samsung phones) cannot make a real app, only a shortcut,
   // and a shortcut carries the browser's own badge on its icon (Brave's lion, for one)
   function badgesTheIcon() {
-    return isAndroid() && (!!(navigator.brave && typeof navigator.brave.isBrave === 'function') || /Firefox|OPR\/|EdgA/.test(navigator.userAgent));
+    return isAndroid() && !/[?&]nochrome=1(&|$)/.test(location.search) &&
+      (!!(navigator.brave && typeof navigator.brave.isBrave === 'function') || /Firefox|OPR\/|EdgA/.test(navigator.userAgent));
+  }
+  // The same page, opened in Chrome on the install screen. Android lets a page hand over to another app only from a tap, so this
+  // runs from the "Add to home screen" tap itself. If Chrome is not there the browser opens the fallback address in itself
+  // (marked nochrome, so it then goes straight to its own install).
+  function chromeAddress() {
+    var q = location.search.replace(/^\?/, '').split('&').filter(function (x) { return x && !/^(go|via|nochrome|v)=/.test(x); });
+    var base = location.host + location.pathname + '?' + q.concat(['go=install']).join('&');
+    var fallback = location.protocol + '//' + base + '&nochrome=1';
+    return 'intent://' + base + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(fallback) + ';end';
   }
   function inAppBrowser() { return /FBAN|FBAV|Instagram|LinkedInApp|Snapchat|TikTok|MicroMessenger|Line\/|; wv\)/i.test(navigator.userAgent); }
 
@@ -676,8 +697,7 @@
         '<li><span>' + UI.installIosStep3 + '</span></li></ol>';
     } else if (isAndroid()) {
       body = '<div data-install>' + installButton() + '</div>' +
-        '<p class="text fine" data-install-note' + (installEvent ? ' hidden' : '') + '>' + UI.installAndroidMenu + '</p>' +
-        (badgesTheIcon() ? '<p class="text fine" data-chrome-tip>' + UI.installChromeTip + '</p>' : '');
+        '<p class="text fine" data-install-note' + (installEvent ? ' hidden' : '') + '>' + UI.installAndroidMenu + '</p>';
     } else {
       body = '<p class="text">' + UI.installOther + '</p>';
     }
@@ -800,7 +820,7 @@
 
   // The route lives in memory and is mirrored to the address bar, so navigation also works
   // where the address bar cannot be written (for example inside an embedded preview).
-  var route = location.hash || '#/';
+  var route = location.hash || (/[?&]go=install(&|$)/.test(location.search) ? '#/install' : '#/');
   var shown = null;
   var swapTimer = null;
 
