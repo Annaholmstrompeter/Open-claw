@@ -3,7 +3,7 @@
   'use strict';
   var q = new URLSearchParams(location.search);
   var back = document.querySelector('[data-back]');
-  if (back) back.addEventListener('click', function () { if (history.length > 1) history.back(); else location.href = '../../index.html?s=horizon-hill#/'; });
+  if (back) back.addEventListener('click', function () { if (history.length > 1) history.back(); else location.href = './'; });
   var box = document.querySelector('[data-source]');
   if (!box || !q.get('utm_source')) return;
   box.textContent = 'A guest came from the Body Mind Earth ritual (' + q.get('utm_source') + ' · ' + (q.get('utm_medium') || '') + ' · ' + (q.get('utm_campaign') || '') + '). In the spa’s own statistics this booking is counted as coming from the ritual.';

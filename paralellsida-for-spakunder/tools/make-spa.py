@@ -7,7 +7,7 @@
 
 Writes public/spas/<slug>/hero.webp (+ logo.webp), spa.js, and what lets a guest keep the page as an app on the phone:
 manifest.webmanifest and icon-180/192/512.png (the spa's logo on sand, or a square of the photograph when there is no logo).
-The page is then   <site>/?s=<slug>#/
+The page is then   <site>/spas/<slug>/   (python3 tools/build-content.py makes spas/<slug>/index.html; <site>/?s=<slug> also works)
 Without --shop-url the "Refill" button goes to the house shop (BME_HOUSE_SHOP in assets/spa-loader.js), or is left out while that is empty.
 Everything else on the page is the sanctuary itself; only the picture, the name and the way to book are the spa's.
 
@@ -72,16 +72,17 @@ def make_icons(out, hero, logo_path):
 
 
 def make_manifest(out, slug, name, short):
-    """One installable app per spa: its own identity (id), name and icon, opening that spa's page.
-    Paths are relative to this file, so they hold on any address the site is put on (github.io/<repo>/ or a domain)."""
+    """One installable app per spa: its own identity (id), name and icon, opening that spa's page, spas/<slug>/ (start_url "./").
+    Its scope is that folder only ("./"), so an installed spa app never takes over another spa's links (a scope of the whole site
+    would). Paths are relative to this file, so they hold on any address the site is put on (github.io/<repo>/ or a domain)."""
     manifest = {
-        "id": "./?s=%s" % slug,
+        "id": "./",
         "name": name,
         "short_name": short,
         "description": "A sensory ritual from %s, with Body Mind Earth." % name,
         "lang": "en",
-        "start_url": "../../?s=%s" % slug,
-        "scope": "../../",
+        "start_url": "./",
+        "scope": "./",
         "display": "standalone",
         "orientation": "portrait",
         "background_color": "#efe6d6",
@@ -140,7 +141,7 @@ def main():
     conf = {"slug": a.slug, "name": a.name, "shortName": short, "hero": "spas/%s/hero.webp" % a.slug, "logo": logo,
             "bookUrl": a.book_url, "shopUrl": a.shop_url, "thanks": a.thanks, "demo": bool(a.demo)}
     (out / "spa.js").write_text("/* %s: made by tools/make-spa.py */\nwindow.BME_SPA = %s;\n" % (a.name, json.dumps(conf, ensure_ascii=False, indent=1)))
-    print("wrote", out.relative_to(ROOT.parent), " -> open  <site>/?s=%s#/" % a.slug)
+    print("wrote", out.relative_to(ROOT.parent), " -> run tools/build-content.py, then open  <site>/spas/%s/" % a.slug)
 
 
 if __name__ == "__main__":

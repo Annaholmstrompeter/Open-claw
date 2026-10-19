@@ -588,7 +588,7 @@ test('a spa\'s own page: its picture and name, its thanks and the way to book; t
 test('a spa\'s page can be kept as an app: its own manifest, name and icon; the ordinary page keeps the ordinary ones', async () => {
   const p = await phone();
   const cdp = await p.ctx.newCDPSession(p.page);
-  await p.page.goto(p.base.base + 'index.html?s=horizon-hill#/');
+  await p.page.goto(p.base.base + 'spas/horizon-hill/');
   await p.page.waitForSelector('.front-spa');
   // the links the browser looks at are the spa's
   assert.equal(await p.page.getAttribute('link[rel="manifest"]', 'href'), 'spas/horizon-hill/manifest.webmanifest');
@@ -605,8 +605,9 @@ test('a spa\'s page can be kept as an app: its own manifest, name and icon; the 
   const base = p.base.base;
   // the app opens the spa's page, not the ordinary one, and stays within the site
   const resolved = new URL(m.start_url, base + 'spas/horizon-hill/manifest.webmanifest');
-  assert.equal(resolved.href, base + '?s=horizon-hill');
-  assert.equal(new URL(m.scope, base + 'spas/horizon-hill/manifest.webmanifest').href, base);
+  assert.equal(resolved.href, base + 'spas/horizon-hill/');
+  // ... and covers only its own folder: an installed spa app must never take over another spa's links, nor the ordinary page's
+  assert.equal(new URL(m.scope, base + 'spas/horizon-hill/manifest.webmanifest').href, base + 'spas/horizon-hill/');
   // every icon it names exists and is the size it says
   for (const ic of m.icons) {
     const res = await p.page.request.get(new URL(ic.src, base + 'spas/horizon-hill/manifest.webmanifest').href);
@@ -897,24 +898,64 @@ test('install first: the front page of a spa opens with a sheet that adds it to 
   await ctx.close();
 });
 
-test('the fictional demo spas are separate apps (own id, name, icon), each with its example booking and shop pages', async () => {
+test('the fictional demo spas are separate apps (own page, id, scope, name, icon), each with its example booking and shop pages', async () => {
   const p = await phone();
   const ids = new Set();
+  const scopes = [];
   for (const [slug, name] of [['horizon-hill', 'Horizon Hill Spa'], ['calm-cove', 'Calm Cove Spa'], ['fern-hill', 'Fern Hill Spa']]) {
-    await p.page.goto(p.base.base + 'index.html?s=' + slug + '#/');
+    await p.page.goto(p.base.base + 'spas/' + slug + '/');
     await p.page.waitForSelector('.front-spa');
     assert.match(await p.page.textContent('.spa-welcome'), new RegExp(name));
-    const m = await (await p.page.request.get(p.base.base + 'spas/' + slug + '/manifest.webmanifest')).json();
+    const murl = p.base.base + 'spas/' + slug + '/manifest.webmanifest';
+    const m = await (await p.page.request.get(murl)).json();
     assert.equal(m.name, name);
-    assert.equal(m.start_url, '../../?s=' + slug);
-    ids.add(m.id);
-    for (const f of ['icon-192.png', 'icon-512.png', 'icon-180.png', 'hero.webp', 'book.html', 'shop.html']) {
+    assert.equal(new URL(m.start_url, murl).href, p.base.base + 'spas/' + slug + '/');
+    scopes.push(new URL(m.scope, murl).href);
+    ids.add(new URL(m.id, new URL(m.start_url, murl)).href);
+    for (const f of ['icon-192.png', 'icon-512.png', 'icon-180.png', 'hero.webp', 'book.html', 'shop.html', 'index.html']) {
       assert.equal((await p.page.request.get(p.base.base + 'spas/' + slug + '/' + f)).status(), 200, slug + '/' + f);
     }
     assert.match(await (await p.page.request.get(p.base.base + 'spas/' + slug + '/book.html')).text(), new RegExp(name));
     assert.match(await (await p.page.request.get(p.base.base + 'spas/' + slug + '/shop.html')).text(), new RegExp(name));
   }
   assert.equal(ids.size, 3, 'three different app identities, so that a phone can have one installed and still test another');
+  // no scope covers another spa's page, nor the ordinary page: one spa's installed app never takes over the others' links
+  for (const sc of scopes) {
+    for (const other of ['horizon-hill', 'calm-cove', 'fern-hill'].map((x) => p.base.base + 'spas/' + x + '/').concat([p.base.base, p.base.base + 'index.html'])) {
+      if (scopes.filter((y) => other.startsWith(y)).length > 1 || (other === sc ? false : other.startsWith(sc))) assert.fail('scope ' + sc + ' covers ' + other);
+    }
+  }
+  await closeAll(p);
+});
+
+test('a spa\'s own page is its folder: the app, the pictures and the recordings work from there, the address stays there, and ?s= still works', async () => {
+  const p = await phone();
+  const asked = [];
+  p.page.on('request', (r) => asked.push(r.url().replace(p.base.base, '/')));
+  await p.page.goto(p.base.base + 'spas/calm-cove/');
+  await p.page.waitForSelector('.front-spa');
+  assert.equal(await p.page.evaluate(() => document.baseURI), p.base.base, 'every address in the page is the site\'s own');
+  await p.page.click('.front a.btn.primary');
+  await p.page.waitForSelector('[data-page="list"]');
+  assert.match(p.page.url(), /\/spas\/calm-cove\/#\/rituals$/, 'navigating in the app does not leave the spa\'s folder');
+  await p.page.goto(p.base.base + 'spas/calm-cove/#/r/balance/s');
+  await p.page.reload();
+  await p.page.waitForSelector('[data-page="player"]');
+  await p.page.waitForTimeout(600);
+  assert.ok(asked.some((u) => u.startsWith('/assets/audio/04_Balance')), 'the recording is asked for from the site, not from the spa\'s folder: ' + JSON.stringify(asked.filter((u) => u.includes('audio'))));
+  assert.ok(await p.page.evaluate(() => [...document.images].every((i) => i.complete && i.naturalWidth > 0)), 'every picture loaded');
+  assert.match(p.page.url(), /\/spas\/calm-cove\//);
+  // the end of a ritual: the spa's own buttons, relative to its folder
+  await p.page.goto(p.base.base + 'spas/calm-cove/#/r/presence/done');
+  await p.page.reload();
+  await p.page.waitForSelector('.spa-thanks');
+  const hrefs = await p.page.locator('.spa-thanks a.btn').evaluateAll((a) => a.map((x) => x.getAttribute('href')));
+  assert.deepEqual(hrefs.map((h) => h.split('?')[0]), ['spas/calm-cove/book.html', 'spas/calm-cove/shop.html']);
+  // the older form still works
+  await p.page.goto(p.base.base + 'index.html?s=calm-cove#/');
+  await p.page.waitForSelector('.front-spa');
+  assert.match(await p.page.textContent('.spa-welcome'), /Calm Cove Spa/);
+  noErrors(p);
   await closeAll(p);
 });
 

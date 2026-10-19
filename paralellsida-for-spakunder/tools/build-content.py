@@ -106,6 +106,24 @@ def refresh_service_worker():
     print("offline cache %s: %d files" % (version, len(files)))
 
 
+def refresh_spa_pages():
+    """Every spa has its own page, public/spas/<slug>/index.html: the site's front page with a <base> that points back to the site's
+    root (so every address in it, the scripts, pictures and recordings, stays as it is). The spa's app then covers only its own
+    folder. The pages are made here, from public/index.html, so that they can never drift from it."""
+    public = ROOT / "public"
+    index = (public / "index.html").read_text(encoding="utf-8")
+    marker = '<meta charset="utf-8">'
+    if marker not in index:
+        sys.exit("public/index.html has no <meta charset=\"utf-8\">: cannot make the spa pages")
+    page = index.replace(marker, marker + '\n  <base href="../../">', 1)
+    made = 0
+    for d in sorted((public / "spas").glob("*/")):
+        if (d / "spa.js").exists():
+            (d / "index.html").write_text(page, encoding="utf-8")
+            made += 1
+    print("spa pages: %d (public/spas/<name>/index.html)" % made)
+
+
 def main():
     scripts = parse_manuscript(SRC.read_text(encoding="utf-8"))
     products = json.loads(PRODUCTS.read_text(encoding="utf-8"))
@@ -186,6 +204,7 @@ def main():
         "window.SANCTUARY = " + body + ";\n",
         encoding="utf-8",
     )
+    refresh_spa_pages()
     refresh_service_worker()
     for r in rituals:
         print("%-10s %s" % (r["id"], "  ".join("%s: %s" % (m, ("%.1f min" % r["audio"][m]["min"]) if r["audio"][m]["min"] else "no recording yet") for m in ("short", "extended"))))

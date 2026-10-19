@@ -34,6 +34,12 @@ touch "$SITE/.nojekyll"                # serve the files as they are
 V="$(date +%y%m%d%H%M%S)"
 sed -i -E "s#(src|href)=\"(assets/[^\"]+\.(js|css))\"#\1=\"\2?v=$V\"#g" "$SITE/index.html"
 grep -q "assets/app.js?v=$V" "$SITE/index.html" || { echo "could not version the files in index.html: has it changed?" >&2; exit 1; }
+# each spa's own page (spas/<name>/index.html) is made from index.html: version its files the same way
+for f in "$SITE"/spas/*/index.html; do
+  [ -f "$f" ] || continue
+  sed -i -E "s#(src|href)=\"(assets/[^\"]+\.(js|css))\"#\1=\"\2?v=$V\"#g" "$f"
+  grep -q "assets/app.js?v=$V" "$f" || { echo "could not version the files in $f" >&2; exit 1; }
+done
 # A test site must always show the latest: no offline cache. The page no longer registers the service worker, and
 # the sw.js that is served only removes one that an earlier visit left behind.
 sed -i "s/if ('serviceWorker' in navigator \&\&/if (false \&\&/" "$SITE/assets/app.js"
