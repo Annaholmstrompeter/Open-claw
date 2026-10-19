@@ -69,7 +69,6 @@
     sheetText: 'One tap, and it is always with you.',
     sheetIos1: 'Tap the share icon',
     sheetIos2: 'in your browser’s bar, then “Add to Home Screen”.',
-    sheetNotNow: 'Not now',
     sheetGotIt: 'Got it',
     installInApp: 'This page is open inside another app. Open it in Safari (iPhone) or Chrome (Android) to add it to your home screen.',
     installOther: 'Open this page on your phone to add it to the home screen.',
@@ -318,7 +317,7 @@
   /* ——— install to home screen (Android prompt, iOS hint) ——— */
   var installEvent = null;
   var addedToHome = false;   // set when the phone says the app is on the home screen
-  var sheetDismissed = false; // "Not now": not asked again until the page is opened anew (nothing is stored on the phone)
+  var sheetDismissed = false; // the guest has answered (said no in the phone's own dialog, or "Got it" on iPhone): not asked again until the page is opened anew (nothing is stored on the phone)
   window.addEventListener('beforeinstallprompt', function (e) {
     e.preventDefault();
     installEvent = e;
@@ -353,7 +352,10 @@
       for (var i = 0; i < bs.length; i++) bs[i].hidden = true;
       try { var r = e2.prompt(); if (r && r.catch) r.catch(function () { /* declined */ }); } catch (err) { /* nothing to show */ }
       if (e2.userChoice && e2.userChoice.then) {
-        e2.userChoice.then(function (c) { if (c && c.outcome === 'accepted') installedNow(); }, function () { /* no answer: the guest stays */ });
+        e2.userChoice.then(function (c) {
+          if (c && c.outcome === 'accepted') installedNow();
+          else { sheetDismissed = true; syncInstallSheet(); }
+        }, function () { /* no answer: the guest stays */ });
       }
     };
     own();
@@ -374,7 +376,7 @@
   // a short, clear word that something happened: it stays a few seconds, then goes by itself
   // The install sheet: the first thing a guest meets on a spa's front page, so the page is on the phone before it can be lost with the
   // QR code. Android offers the browser's own install at one tap; iPhone cannot be asked, so it says where to tap. Not inside another
-  // app's browser (it cannot install), not once installed, not after "Not now", and only on the front page.
+  // app's browser (it cannot install), not once installed, not after the guest has answered, and only on the front page.
   function sheetMode() {
     if (!SPA || addedToHome || sheetDismissed || isStandalone() || inAppBrowser()) return '';
     if (!activePage || activePage.kind !== 'welcome') return '';
@@ -384,7 +386,11 @@
   function syncInstallSheet() {
     var mode = sheetMode();
     var el = document.getElementById('install-sheet');
-    if (!mode) { if (el && el.parentNode) el.parentNode.removeChild(el); return; }
+    if (!mode) {
+      if (el && el.parentNode) el.parentNode.removeChild(el);
+      document.documentElement.removeAttribute('data-sheet');
+      return;
+    }
     if (el && el.getAttribute('data-mode') === mode) return;
     if (el && el.parentNode) el.parentNode.removeChild(el);
     el = document.createElement('div');
@@ -398,11 +404,11 @@
       '<h2 class="sheet-title">' + br(UI.sheetTitle) + '</h2>' +
       (mode === 'go'
         ? '<p class="sheet-text">' + UI.sheetText + '</p>' +
-          '<button class="btn primary" type="button" data-install-go><span>' + UI.install + '</span></button>' +
-          '<button class="sheet-close" type="button" data-sheet-close>' + UI.sheetNotNow + '</button>'
+          '<button class="btn primary" type="button" data-install-go><span>' + UI.install + '</span></button>'
         : '<p class="sheet-text">' + UI.sheetIos1 + ' ' + share + ' ' + UI.sheetIos2 + '</p>' +
           '<button class="sheet-close" type="button" data-sheet-close>' + UI.sheetGotIt + '</button>');
     document.body.appendChild(el);
+    document.documentElement.setAttribute('data-sheet', mode);
     // the welcome picture first, then the sheet rises
     setTimeout(function () { el.className = 'install-sheet on'; }, reduced ? 20 : 1100);
   }

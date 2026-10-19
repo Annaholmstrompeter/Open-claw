@@ -648,7 +648,7 @@ test('"Add to your phone": Android offers the browser\'s own install, iPhone get
   assert.equal(await t.page.locator('.front-menu a[href="#/install"]').count(), 1);
   assert.equal(await t.page.locator('#menu a[href="#/install"]').count(), 1);
   // Android: before the browser offers it, the menu route is explained; once it offers it, there is a button, and it uses the browser's own prompt
-  await t.page.click('.front-menu a[href="#/install"]');
+  await t.page.evaluate(() => document.querySelector('.front-menu a[href="#/install"]').click());
   await t.page.waitForSelector('.install');
   assert.match(await t.page.textContent('.install'), /Install app|Add to Home screen/);
   assert.equal(await t.page.locator('[data-install-btn]').count(), 0);
@@ -671,7 +671,7 @@ test('"Add to your phone": Android offers the browser\'s own install, iPhone get
   await t.ctx.close();
   // iPhone: no prompt exists there; the three steps, with the share icon
   t = await open(IPHONE);
-  await t.page.click('.front-menu a[href="#/install"]');
+  await t.page.evaluate(() => document.querySelector('.front-menu a[href="#/install"]').click());
   await t.page.waitForSelector('.install-steps');
   assert.equal(await t.page.locator('.install-steps li').count(), 3);
   assert.equal(await t.page.locator('.install-steps svg.install-share').count(), 1);
@@ -681,7 +681,7 @@ test('"Add to your phone": Android offers the browser\'s own install, iPhone get
   await t.ctx.close();
   // inside LinkedIn's own browser the home screen cannot be reached: say so
   t = await open(LINKEDIN);
-  await t.page.click('.front-menu a[href="#/install"]');
+  await t.page.evaluate(() => document.querySelector('.front-menu a[href="#/install"]').click());
   await t.page.waitForSelector('.install');
   assert.match(await t.page.textContent('.install'), /open inside another app/i);
   assert.equal(await t.page.locator('.install-steps').count(), 0);
@@ -699,9 +699,6 @@ test('"Add to your phone": Android offers the browser\'s own install, iPhone get
   assert.match(await page.textContent('.install'), /already using it/);
   await ctx.close();
 });
-
-// the install sheet rises over the bottom of the front page after a moment; the tests of the quiet links set it aside first
-const closeSheet = (page) => page.evaluate(() => { const b = document.querySelector('[data-sheet-close]'); if (b) b.click(); });
 
 test('one tap installs, and the guest can tell it worked: back on the front page, where the link now says "Added to your home screen"', async () => {
   const ANDROID = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36';
@@ -722,8 +719,7 @@ test('one tap installs, and the guest can tell it worked: back on the front page
   let { ctx, page } = await fresh('#/');
   await page.waitForSelector('.front-spa');
   await offer(page);
-  await closeSheet(page);
-  await page.click('.front-menu a[data-install-go]');
+  await page.evaluate(() => document.querySelector('.front-menu a[data-install-go]').click());
   assert.equal(await page.evaluate(() => window.__prompted), 1, 'one tap, the browser\'s install dialog');
   await page.waitForSelector('.front-menu .install-done');
   assert.match(await page.textContent('.front-menu .install-done'), /Added to your home screen/);
@@ -738,8 +734,7 @@ test('one tap installs, and the guest can tell it worked: back on the front page
   ({ ctx, page } = await fresh('#/'));
   await page.waitForSelector('.front-spa');
   await offer(page, 'dismissed');
-  await closeSheet(page);
-  await page.click('.front-menu a[data-install-go]');
+  await page.evaluate(() => document.querySelector('.front-menu a[data-install-go]').click());
   assert.equal(await page.evaluate(() => window.__prompted), 1);
   await page.waitForTimeout(400);
   assert.equal(await page.locator('.front-menu .install-done').count(), 0);
@@ -771,8 +766,7 @@ test('one tap installs, and the guest can tell it worked: back on the front page
   await page.goto(srv.base + 'index.html?s=horizon-hill#/');
   await page.waitForSelector('.front-spa');
   await offer(page);
-  await closeSheet(page);
-  await page.click('.front-menu a[data-install-go]');
+  await page.evaluate(() => document.querySelector('.front-menu a[data-install-go]').click());
   assert.equal(await page.evaluate(() => window.__prompted), 1, 'Brave installs at the tap, like any browser');
   assert.deepEqual(asked.filter((u) => !u.startsWith(srv.base)), [], 'no hand-over to another app: ' + JSON.stringify(asked));
   await page.waitForSelector('.front-menu .install-done');
@@ -780,7 +774,7 @@ test('one tap installs, and the guest can tell it worked: back on the front page
   // not offered by the browser (iPhone, or Android before the browser has offered it): the link leads to the steps, which end by saying where the app will be
   ({ ctx, page } = await fresh('#/', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1'));
   await page.waitForSelector('.front-spa');
-  await page.click('.front-menu a[data-install-go]');
+  await page.evaluate(() => document.querySelector('.front-menu a[data-install-go]').click());
   await page.waitForSelector('.install-steps');
   assert.match(await page.textContent('.install-after'), /home screen/);
   await ctx.close();
@@ -817,13 +811,23 @@ test('install first: the front page of a spa opens with a sheet that adds it to 
   await page.waitForFunction(() => !document.getElementById('install-sheet'));
   assert.match(await page.textContent('.front-menu .install-done'), /Added to your home screen/);
   await ctx.close();
-  // "Not now": it goes, and does not come back while the guest looks around; the quiet link is still there
+  // no "Not now" button: the sheet stays until the guest answers. Saying no in the phone's own dialog is that answer: the sheet goes and does
+  // not come back while the guest looks around; the quiet link is still there
   ({ ctx, page } = await fresh('?s=horizon-hill#/', ANDROID));
   await page.waitForSelector('.front-spa');
-  await offer(page);
+  await page.evaluate(() => {
+    const e = new Event('beforeinstallprompt', { cancelable: true });
+    e.prompt = () => { window.__prompted = (window.__prompted || 0) + 1; return Promise.resolve(); };
+    e.userChoice = Promise.resolve({ outcome: 'dismissed' });
+    window.dispatchEvent(e);
+  });
   await page.waitForSelector('#install-sheet.on');
-  await page.click('#install-sheet [data-sheet-close]');
-  assert.equal(await page.locator('#install-sheet').count(), 0);
+  assert.equal(await page.locator('#install-sheet [data-sheet-close]').count(), 0, 'no "Not now"');
+  assert.doesNotMatch(await page.textContent('#install-sheet'), /not now/i);
+  assert.equal(await page.evaluate(() => document.documentElement.getAttribute('data-sheet')), 'go');
+  await page.click('#install-sheet [data-install-go]');
+  await page.waitForFunction(() => !document.getElementById('install-sheet'));
+  assert.equal(await page.evaluate(() => document.documentElement.hasAttribute('data-sheet')), false);
   await page.click('.front-menu a[href="#/about"]');
   await page.waitForSelector('.about');
   await page.click('a[href="#/"]');
