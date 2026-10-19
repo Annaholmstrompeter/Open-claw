@@ -341,9 +341,9 @@
   }
   // ONE tap installs: the browser's own install dialog at once (the install sheet on the front page, and the "Add to your phone" links
   // after the ritual and in the menu, all come here directly when the browser offers it; the install page is only the way for the
-  // phones that need steps). Whichever browser the guest is in installs it: Chrome makes a real app; a browser that can only make a
-  // shortcut (Brave) puts its own badge on the icon. Handing over to another browser is not done: Android then always asks the guest
-  // to "choose activity", and a web page cannot hide that.
+  // phones that need steps). Chrome makes a real app. A browser that can only make a shortcut (Brave, Firefox, Opera, Edge) would put its
+  // own badge on the icon, so the same tap hands over to Chrome instead (Annas decision 2026-10-19). Android may then ask "Choose
+  // activity" (Brave or Chrome): that box is the phone's, a page cannot choose in it or hide it.
   function runInstall() {
     var ev = installEvent;
     if (!ev) return;
@@ -361,6 +361,23 @@
         }, function () { /* no answer: the guest stays */ });
       }
     };
+    if (badgesTheIcon()) {
+      // Hand over to Chrome. If something took over (the phone's own choice box, or Chrome itself) this page loses focus or goes away:
+      // then nothing more is done here. If nothing happened a while later, this browser's own install is used.
+      var tookOver = false;
+      var gone = function () { tookOver = true; };
+      document.addEventListener('visibilitychange', gone);
+      window.addEventListener('blur', gone);
+      window.addEventListener('pagehide', gone);
+      window.location.href = chromeAddress();
+      setTimeout(function () {
+        document.removeEventListener('visibilitychange', gone);
+        window.removeEventListener('blur', gone);
+        window.removeEventListener('pagehide', gone);
+        if (!tookOver && !document.hidden) own();
+      }, 2500);
+      return;
+    }
     own();
   }
   // It worked: nothing more asks for it, and the guest lands on the front page, where the "Add to your phone" link has turned into a
@@ -449,6 +466,20 @@
     return /iphone|ipad|ipod/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
   }
   function isAndroid() { return /android/i.test(navigator.userAgent); }
+  // Android browsers other than Chrome (and Samsung Internet on Samsung phones) cannot make a real app, only a shortcut,
+  // and a shortcut carries the browser's own badge on its icon (Brave's lion, for one)
+  function badgesTheIcon() {
+    return isAndroid() && !/[?&]nochrome=1(&|$)/.test(location.search) &&
+      (!!(navigator.brave && typeof navigator.brave.isBrave === 'function') || /Firefox|OPR\/|EdgA/.test(navigator.userAgent));
+  }
+  // This same page, opened in Chrome. If Chrome is not there the browser opens the fallback address in itself (marked nochrome, so it
+  // then goes straight to its own install).
+  function chromeAddress() {
+    var q = location.search.replace(/^\?/, '').split('&').filter(function (x) { return x && !/^(nochrome|v)=/.test(x); });
+    var path = location.host + location.pathname + (q.length ? '?' + q.join('&') : '');
+    var fallback = location.protocol + '//' + location.host + location.pathname + '?' + q.concat(['nochrome=1']).join('&');
+    return 'intent://' + path + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(fallback) + ';end';
+  }
   // a page opened inside another app's own browser (LinkedIn, Instagram, Facebook ...) cannot be added to the home screen
   function inAppBrowser() { return /FBAN|FBAV|Instagram|LinkedInApp|Snapchat|TikTok|MicroMessenger|Line\/|; wv\)/i.test(navigator.userAgent); }
 
@@ -997,7 +1028,7 @@
         'display-mode: ' + displayModes(),
         'android: ' + isAndroid() + '   iPhone: ' + isIOSDevice(),
         'inside another app\'s browser: ' + inAppBrowser(),
-        'browser offers the install: ' + !!installEvent,
+        'browser offers the install: ' + !!installEvent + '   hands over to Chrome: ' + badgesTheIcon(),
         'install sheet: ' + (sheetMode() || 'none') + '   spa page: ' + !!SPA + '   page: ' + (activePage && activePage.kind),
         navigator.userAgent.slice(0, 110)
       ].join('\n');

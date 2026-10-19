@@ -756,22 +756,6 @@ test('one tap installs, and the guest can tell it worked: back on the front page
   await page.waitForSelector('.front-spa');
   assert.equal(await page.locator('.front-menu .install-done').count(), 1);
   await ctx.close();
-  // Brave: no hand-over to another browser (Android would ask "Choose activity"): the same one tap, the browser's own install
-  ctx = await browser.newContext({ viewport: { width: DW, height: DH }, serviceWorkers: 'block', userAgent: ANDROID });
-  page = await ctx.newPage();
-  const cdp = await ctx.newCDPSession(page);
-  await cdp.send('Page.enable');
-  const asked = [];
-  cdp.on('Page.frameRequestedNavigation', (e) => asked.push(e.url));
-  await page.addInitScript(() => { navigator.brave = { isBrave: () => Promise.resolve(true) }; });
-  await page.goto(srv.base + 'index.html?s=horizon-hill#/');
-  await page.waitForSelector('.front-spa');
-  await offer(page);
-  await page.evaluate(() => document.querySelector('.front-menu a[data-install-go]').click());
-  assert.equal(await page.evaluate(() => window.__prompted), 1, 'Brave installs at the tap, like any browser');
-  assert.deepEqual(asked.filter((u) => !u.startsWith(srv.base)), [], 'no hand-over to another app: ' + JSON.stringify(asked));
-  await page.waitForSelector('.front-menu .install-done');
-  await ctx.close();
   // not offered by the browser (iPhone, or Android before the browser has offered it): the link leads to the steps, which end by saying where the app will be
   ({ ctx, page } = await fresh('#/', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1'));
   await page.waitForSelector('.front-spa');
@@ -987,6 +971,76 @@ test('?diag=1 says how the page was opened (browser page or installed app) and w
   await page.goto(srv.base + 'index.html?s=horizon-hill#/');
   await page.waitForSelector('.front-spa');
   assert.equal(await page.locator('.diag').count(), 0);
+  await ctx.close();
+});
+
+test('Brave (and other shortcut-only browsers) hand over to Chrome at the install tap, which makes a real app without the browser\'s badge', async () => {
+  const ANDROID = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36';
+  const FIREFOX = 'Mozilla/5.0 (Android 14; Mobile; rv:126.0) Gecko/126.0 Firefox/126.0';
+  const offer = (page) => page.evaluate(() => {
+    const e = new Event('beforeinstallprompt', { cancelable: true });
+    e.prompt = () => { window.__prompted = (window.__prompted || 0) + 1; return Promise.resolve(); };
+    e.userChoice = Promise.resolve({ outcome: 'accepted' });
+    window.dispatchEvent(e);
+  });
+  const open = async (url, { ua = ANDROID, brave = true } = {}) => {
+    const ctx = await browser.newContext({ viewport: { width: DW, height: DH }, serviceWorkers: 'block', userAgent: ua });
+    const page = await ctx.newPage();
+    const cdp = await ctx.newCDPSession(page);
+    await cdp.send('Page.enable');
+    const asked = [];
+    cdp.on('Page.frameRequestedNavigation', (e) => asked.push(e.url));
+    if (brave) await page.addInitScript(() => { navigator.brave = { isBrave: () => Promise.resolve(true) }; });
+    await page.goto(srv.base + url);
+    await page.waitForSelector('.front-spa');
+    return { ctx, page, asked };
+  };
+  // 1. the tap asks Android to open this same page in Chrome (an intent addressed to Chrome's package, with a fallback)
+  let { ctx, page, asked } = await open('spas/calm-cove/?diag=1&v=123');
+  await offer(page);
+  assert.match(await page.textContent('.diag'), /hands over to Chrome: true/);
+  await page.waitForSelector('#install-sheet.on');
+  await page.click('#install-sheet [data-install-go]');
+  const intent = asked.find((u) => u.startsWith('intent://'));
+  assert.ok(intent, 'one tap hands over to Chrome: ' + JSON.stringify(asked));
+  assert.match(intent, /^intent:\/\/127\.0\.0\.1:\d+\/spas\/calm-cove\/\?diag=1#Intent;scheme=https;package=com\.android\.chrome;S\.browser_fallback_url=/, 'the same page, without the cache-busting v');
+  assert.match(decodeURIComponent(intent), /spas\/calm-cove\/\?diag=1&nochrome=1;end$/);
+  assert.doesNotMatch(await page.textContent('#install-sheet'), /chrome|brave/i, 'no words about it on the page');
+  // 2. the phone's own choice box took over (the page loses focus): this browser's own install is NOT started on top of it
+  await page.evaluate(() => window.dispatchEvent(new Event('blur')));
+  await page.waitForTimeout(3200);
+  assert.equal(await page.evaluate(() => window.__prompted || 0), 0, 'nothing is started on top of the phone\'s choice box');
+  await ctx.close();
+  // 3. nothing happened (the hand-over was blocked): after a moment this browser's own install is used
+  ({ ctx, page, asked } = await open('spas/calm-cove/'));
+  await offer(page);
+  await page.waitForSelector('#install-sheet.on');
+  await page.click('#install-sheet [data-install-go]');
+  assert.ok(asked.some((u) => u.startsWith('intent://')));
+  assert.equal(await page.evaluate(() => window.__prompted || 0), 0, 'not at once');
+  await page.waitForFunction(() => window.__prompted === 1, null, { timeout: 6000 });
+  await ctx.close();
+  // 4. Chrome is not on the phone: the fallback address is this page marked nochrome, which goes straight to the browser's own install
+  ({ ctx, page, asked } = await open('spas/calm-cove/?nochrome=1'));
+  await offer(page);
+  await page.waitForSelector('#install-sheet.on');
+  await page.click('#install-sheet [data-install-go]');
+  assert.equal(await page.evaluate(() => window.__prompted), 1, 'at once');
+  assert.deepEqual(asked.filter((u) => u.startsWith('intent://')), []);
+  await ctx.close();
+  // 5. Firefox on Android makes a shortcut too: it hands over as well; Chrome itself does not
+  ({ ctx, page, asked } = await open('spas/calm-cove/', { ua: FIREFOX, brave: false }));
+  await offer(page);
+  await page.waitForSelector('#install-sheet.on');
+  await page.click('#install-sheet [data-install-go]');
+  assert.ok(asked.some((u) => u.startsWith('intent://')), 'Firefox hands over: ' + JSON.stringify(asked));
+  await ctx.close();
+  ({ ctx, page, asked } = await open('spas/calm-cove/', { brave: false }));
+  await offer(page);
+  await page.waitForSelector('#install-sheet.on');
+  await page.click('#install-sheet [data-install-go]');
+  assert.equal(await page.evaluate(() => window.__prompted), 1, 'Chrome: its own install at once');
+  assert.deepEqual(asked.filter((u) => u.startsWith('intent://')), []);
   await ctx.close();
 });
 
