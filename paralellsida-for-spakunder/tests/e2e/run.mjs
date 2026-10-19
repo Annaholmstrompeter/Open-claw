@@ -669,47 +669,6 @@ test('"Add to your phone": Android offers the browser\'s own install, iPhone get
   assert.deepEqual(t.errors, []);
   assert.equal(await t.page.evaluate(() => window.__prompted), 1, 'Chrome: the install prompt at once, no hand-over');
   await t.ctx.close();
-  // Brave on Android only makes a shortcut, which carries Brave's badge. The same tap hands over to Chrome (which makes a real app):
-  // an intent address to Chrome, the same page on its install screen, and a fallback if Chrome is not there. No words about it on the page.
-  const bctx = await browser.newContext({ viewport: { width: DW, height: DH }, serviceWorkers: 'block', userAgent: ANDROID });
-  const bpage = await bctx.newPage();
-  const bcdp = await bctx.newCDPSession(bpage);
-  await bcdp.send('Page.enable');
-  const asked = [];
-  bcdp.on('Page.frameRequestedNavigation', (e) => asked.push(e.url));
-  await bpage.addInitScript(() => { navigator.brave = { isBrave: () => Promise.resolve(true) }; });
-  await bpage.goto(srv.base + 'index.html?s=horizon-hill&v=1#/install');
-  await bpage.reload();
-  await bpage.waitForSelector('.install');
-  await bpage.evaluate(() => {
-    const e = new Event('beforeinstallprompt', { cancelable: true });
-    e.prompt = () => { window.__prompted = (window.__prompted || 0) + 1; return Promise.resolve(); };
-    window.dispatchEvent(e);
-  });
-  await bpage.waitForSelector('[data-install-btn]');
-  assert.doesNotMatch(await bpage.textContent('.install'), /chrome/i, 'nothing on the page tells the guest to use another browser');
-  await bpage.click('[data-install-btn]');
-  const handOver = asked.find((u) => u.startsWith('intent://'));
-  assert.ok(handOver, 'the tap tried to hand over to Chrome: ' + JSON.stringify(asked));
-  assert.match(handOver, /^intent:\/\/127\.0\.0\.1:\d+\/index\.html\?s=horizon-hill&go=install#Intent;scheme=https;package=com\.android\.chrome;S\.browser_fallback_url=/);
-  assert.match(decodeURIComponent(handOver), /index\.html\?s=horizon-hill&go=install&nochrome=1;end$/);
-  // nothing took over (this is desktop Chromium): after a moment the browser's own install is used instead
-  await bpage.waitForFunction(() => window.__prompted === 1, null, { timeout: 5000 });
-  await bctx.close();
-  // the address Chrome is sent to opens on the install screen, and (as the fallback) does not hand over again
-  const cctx = await browser.newContext({ viewport: { width: DW, height: DH }, serviceWorkers: 'block', userAgent: ANDROID });
-  const cpage = await cctx.newPage();
-  await cpage.addInitScript(() => { navigator.brave = { isBrave: () => Promise.resolve(true) }; });
-  await cpage.goto(srv.base + 'index.html?s=horizon-hill&go=install&nochrome=1');
-  await cpage.waitForSelector('.install');
-  await cpage.evaluate(() => {
-    const e = new Event('beforeinstallprompt', { cancelable: true });
-    e.prompt = () => { window.__prompted = (window.__prompted || 0) + 1; return Promise.resolve(); };
-    window.dispatchEvent(e);
-  });
-  await cpage.click('[data-install-btn]');
-  assert.equal(await cpage.evaluate(() => window.__prompted), 1, 'nochrome: the browser\'s own install at once');
-  await cctx.close();
   // iPhone: no prompt exists there; the three steps, with the share icon
   t = await open(IPHONE);
   await t.page.click('.front-menu a[href="#/install"]');
@@ -741,6 +700,9 @@ test('"Add to your phone": Android offers the browser\'s own install, iPhone get
   await ctx.close();
 });
 
+// the install sheet rises over the bottom of the front page after a moment; the tests of the quiet links set it aside first
+const closeSheet = (page) => page.evaluate(() => { const b = document.querySelector('[data-sheet-close]'); if (b) b.click(); });
+
 test('one tap installs, and the guest can tell it worked: back on the front page, where the link now says "Added to your home screen"', async () => {
   const ANDROID = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36';
   const offer = (page, outcome = 'accepted') => page.evaluate((o) => {
@@ -760,6 +722,7 @@ test('one tap installs, and the guest can tell it worked: back on the front page
   let { ctx, page } = await fresh('#/');
   await page.waitForSelector('.front-spa');
   await offer(page);
+  await closeSheet(page);
   await page.click('.front-menu a[data-install-go]');
   assert.equal(await page.evaluate(() => window.__prompted), 1, 'one tap, the browser\'s install dialog');
   await page.waitForSelector('.front-menu .install-done');
@@ -775,6 +738,7 @@ test('one tap installs, and the guest can tell it worked: back on the front page
   ({ ctx, page } = await fresh('#/'));
   await page.waitForSelector('.front-spa');
   await offer(page, 'dismissed');
+  await closeSheet(page);
   await page.click('.front-menu a[data-install-go]');
   assert.equal(await page.evaluate(() => window.__prompted), 1);
   await page.waitForTimeout(400);
@@ -796,7 +760,7 @@ test('one tap installs, and the guest can tell it worked: back on the front page
   await page.waitForSelector('.front-spa');
   assert.equal(await page.locator('.front-menu .install-done').count(), 1);
   await ctx.close();
-  // Brave: the same one tap hands over to Chrome (no words, no choice on the page); if nothing takes over, its own install follows
+  // Brave: no hand-over to another browser (Android would ask "Choose activity"): the same one tap, the browser's own install
   ctx = await browser.newContext({ viewport: { width: DW, height: DH }, serviceWorkers: 'block', userAgent: ANDROID });
   page = await ctx.newPage();
   const cdp = await ctx.newCDPSession(page);
@@ -807,11 +771,10 @@ test('one tap installs, and the guest can tell it worked: back on the front page
   await page.goto(srv.base + 'index.html?s=horizon-hill#/');
   await page.waitForSelector('.front-spa');
   await offer(page);
+  await closeSheet(page);
   await page.click('.front-menu a[data-install-go]');
-  assert.ok(asked.some((u) => u.startsWith('intent://') && /package=com\.android\.chrome/.test(u)), 'one tap hands over to Chrome: ' + JSON.stringify(asked));
-  assert.equal(await page.locator('.install').count(), 0, 'no page in between');
-  assert.doesNotMatch(await page.textContent('body'), /chrome/i);
-  await page.waitForFunction(() => window.__prompted === 1, null, { timeout: 5000 });
+  assert.equal(await page.evaluate(() => window.__prompted), 1, 'Brave installs at the tap, like any browser');
+  assert.deepEqual(asked.filter((u) => !u.startsWith(srv.base)), [], 'no hand-over to another app: ' + JSON.stringify(asked));
   await page.waitForSelector('.front-menu .install-done');
   await ctx.close();
   // not offered by the browser (iPhone, or Android before the browser has offered it): the link leads to the steps, which end by saying where the app will be
@@ -820,6 +783,95 @@ test('one tap installs, and the guest can tell it worked: back on the front page
   await page.click('.front-menu a[data-install-go]');
   await page.waitForSelector('.install-steps');
   assert.match(await page.textContent('.install-after'), /home screen/);
+  await ctx.close();
+});
+
+test('install first: the front page of a spa opens with a sheet that adds it to the phone with one tap; nothing about another browser', async () => {
+  const ANDROID = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36';
+  const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1';
+  const offer = (page) => page.evaluate(() => {
+    const e = new Event('beforeinstallprompt', { cancelable: true });
+    e.prompt = () => { window.__prompted = (window.__prompted || 0) + 1; return Promise.resolve(); };
+    e.userChoice = Promise.resolve({ outcome: 'accepted' });
+    window.dispatchEvent(e);
+  });
+  const fresh = async (hash, ua, init) => {
+    const ctx = await browser.newContext({ viewport: { width: DW, height: DH }, serviceWorkers: 'block', userAgent: ua });
+    const page = await ctx.newPage();
+    if (init) await page.addInitScript(init);
+    await page.goto(srv.base + 'index.html' + hash);
+    return { ctx, page };
+  };
+  // Android: the sheet rises over the welcome picture; one tap on its button asks for the install; accepted: front page, confirmation, no sheet
+  let { ctx, page } = await fresh('?s=horizon-hill#/', ANDROID);
+  await page.waitForSelector('.front-spa');
+  assert.equal(await page.locator('#install-sheet').count(), 0, 'nothing to offer until the browser offers the install');
+  await offer(page);
+  await page.waitForSelector('#install-sheet.on');
+  assert.match(await page.textContent('#install-sheet'), /Keep this sanctuary\s*on your phone/);
+  assert.match(await page.textContent('#install-sheet [data-install-go]'), /Add to home screen/);
+  assert.doesNotMatch(await page.textContent('#install-sheet'), /brave|chrome/i);
+  await page.click('#install-sheet [data-install-go]');
+  assert.equal(await page.evaluate(() => window.__prompted), 1, 'one tap, the install dialog');
+  await page.waitForSelector('.toast.on');
+  await page.waitForFunction(() => !document.getElementById('install-sheet'));
+  assert.match(await page.textContent('.front-menu .install-done'), /Added to your home screen/);
+  await ctx.close();
+  // "Not now": it goes, and does not come back while the guest looks around; the quiet link is still there
+  ({ ctx, page } = await fresh('?s=horizon-hill#/', ANDROID));
+  await page.waitForSelector('.front-spa');
+  await offer(page);
+  await page.waitForSelector('#install-sheet.on');
+  await page.click('#install-sheet [data-sheet-close]');
+  assert.equal(await page.locator('#install-sheet').count(), 0);
+  await page.click('.front-menu a[href="#/about"]');
+  await page.waitForSelector('.about');
+  await page.click('a[href="#/"]');
+  await page.waitForSelector('.front-spa');
+  await page.waitForTimeout(1500);
+  assert.equal(await page.locator('#install-sheet').count(), 0, 'not asked again');
+  assert.equal(await page.locator('.front-menu a[data-install-go]').count(), 1);
+  await ctx.close();
+  // only on the front page: not on the rituals, nor on a ritual's page
+  ({ ctx, page } = await fresh('?s=horizon-hill#/rituals', ANDROID));
+  await page.waitForSelector('[data-page]');
+  await offer(page);
+  await page.waitForTimeout(1500);
+  assert.equal(await page.locator('#install-sheet').count(), 0);
+  await ctx.close();
+  // the ordinary sanctuary (no spa) has no sheet
+  ({ ctx, page } = await fresh('#/', ANDROID));
+  await page.waitForSelector('.front');
+  await offer(page);
+  await page.waitForTimeout(1500);
+  assert.equal(await page.locator('#install-sheet').count(), 0);
+  await ctx.close();
+  // already on the home screen: no sheet
+  ({ ctx, page } = await fresh('?s=horizon-hill#/', IPHONE, () => { Object.defineProperty(navigator, 'standalone', { value: true }); }));
+  await page.waitForSelector('.front-spa');
+  await page.waitForTimeout(1500);
+  assert.equal(await page.locator('#install-sheet').count(), 0);
+  await ctx.close();
+  // iPhone: it cannot be asked, so the sheet says where to tap (the share icon), with no install button
+  ({ ctx, page } = await fresh('?s=horizon-hill#/', IPHONE));
+  await page.waitForSelector('#install-sheet.on');
+  assert.match(await page.textContent('#install-sheet'), /Add to Home Screen/);
+  assert.equal(await page.locator('#install-sheet svg.install-share').count(), 1);
+  assert.equal(await page.locator('#install-sheet [data-install-go]').count(), 0);
+  await page.click('#install-sheet [data-sheet-close]');
+  assert.equal(await page.locator('#install-sheet').count(), 0);
+  await ctx.close();
+  // inside another app's browser (LinkedIn) it cannot be added: no sheet
+  ({ ctx, page } = await fresh('?s=horizon-hill#/', IPHONE + ' [LinkedInApp]'));
+  await page.waitForSelector('.front-spa');
+  await page.waitForTimeout(1500);
+  assert.equal(await page.locator('#install-sheet').count(), 0);
+  await ctx.close();
+  // on a computer: nothing to offer
+  ({ ctx, page } = await fresh('?s=horizon-hill#/', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36'));
+  await page.waitForSelector('.front-spa');
+  await page.waitForTimeout(1500);
+  assert.equal(await page.locator('#install-sheet').count(), 0);
   await ctx.close();
 });
 

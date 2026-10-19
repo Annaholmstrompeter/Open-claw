@@ -65,6 +65,12 @@
     installIosStep3: 'Tap “Add”.',
     installIosDone: 'Then find it waiting on your home screen.',
     installDone: 'Added to your home screen',
+    sheetTitle: 'Keep this sanctuary|on your phone',
+    sheetText: 'One tap, and it is always with you.',
+    sheetIos1: 'Tap the share icon',
+    sheetIos2: 'in your browser’s bar, then “Add to Home Screen”.',
+    sheetNotNow: 'Not now',
+    sheetGotIt: 'Got it',
     installInApp: 'This page is open inside another app. Open it in Safari (iPhone) or Chrome (Android) to add it to your home screen.',
     installOther: 'Open this page on your phone to add it to the home screen.',
     aboutEyebrow: 'Sensory Enrichment',
@@ -312,6 +318,7 @@
   /* ——— install to home screen (Android prompt, iOS hint) ——— */
   var installEvent = null;
   var addedToHome = false;   // set when the phone says the app is on the home screen
+  var sheetDismissed = false; // "Not now": not asked again until the page is opened anew (nothing is stored on the phone)
   window.addEventListener('beforeinstallprompt', function (e) {
     e.preventDefault();
     installEvent = e;
@@ -320,6 +327,7 @@
     var note = stage.querySelector('[data-install-note]');
     if (note) note.hidden = true;
     bindInstall();
+    syncInstallSheet();
   });
   function installButton() {
     return installEvent ? '<button class="btn ghost" type="button" data-install-btn>' + UI.install + '</button>' : '';
@@ -329,10 +337,11 @@
     if (!b || !installEvent) return;
     b.addEventListener('click', runInstall);
   }
-  // ONE tap installs: the browser's own install dialog at once (the "Add to your phone" links on the front page, after the ritual and in
-  // the menu all come here directly when the browser offers it; the install page is only the way for the phones that need steps).
-  // Where the browser can only make a shortcut with its own badge on the icon (Brave, Firefox, Opera, Edge), the same tap hands
-  // over to Chrome instead (which makes a real app); if nothing took over a moment later, this browser's own install is used.
+  // ONE tap installs: the browser's own install dialog at once (the install sheet on the front page, and the "Add to your phone" links
+  // after the ritual and in the menu, all come here directly when the browser offers it; the install page is only the way for the
+  // phones that need steps). Whichever browser the guest is in installs it: Chrome makes a real app; a browser that can only make a
+  // shortcut (Brave) puts its own badge on the icon. Handing over to another browser is not done: Android then always asks the guest
+  // to "choose activity", and a web page cannot hide that.
   function runInstall() {
     var ev = installEvent;
     if (!ev) return;
@@ -347,17 +356,6 @@
         e2.userChoice.then(function (c) { if (c && c.outcome === 'accepted') installedNow(); }, function () { /* no answer: the guest stays */ });
       }
     };
-    if (badgesTheIcon()) {
-      var left = false;
-      var gone = function () { if (document.hidden) left = true; };
-      document.addEventListener('visibilitychange', gone);
-      window.location.href = chromeAddress();
-      setTimeout(function () {
-        document.removeEventListener('visibilitychange', gone);
-        if (!left && !document.hidden) own();
-      }, 1600);
-      return;
-    }
     own();
   }
   // It worked: nothing more asks for it, and the guest lands on the front page, where the "Add to your phone" link has turned into a
@@ -369,10 +367,45 @@
     var gone = document.querySelectorAll('[data-install-btn], #menu [data-install-go]');
     for (var i = 0; i < gone.length; i++) gone[i].hidden = true;
     if (route === '#/') { shown = null; show(); } else navigate('#/');
+    syncInstallSheet();
     notify(UI.installDone);
   }
   window.addEventListener('appinstalled', installedNow);
   // a short, clear word that something happened: it stays a few seconds, then goes by itself
+  // The install sheet: the first thing a guest meets on a spa's front page, so the page is on the phone before it can be lost with the
+  // QR code. Android offers the browser's own install at one tap; iPhone cannot be asked, so it says where to tap. Not inside another
+  // app's browser (it cannot install), not once installed, not after "Not now", and only on the front page.
+  function sheetMode() {
+    if (!SPA || addedToHome || sheetDismissed || isStandalone() || inAppBrowser()) return '';
+    if (!activePage || activePage.kind !== 'welcome') return '';
+    if (installEvent) return 'go';
+    return isIOSDevice() ? 'ios' : '';
+  }
+  function syncInstallSheet() {
+    var mode = sheetMode();
+    var el = document.getElementById('install-sheet');
+    if (!mode) { if (el && el.parentNode) el.parentNode.removeChild(el); return; }
+    if (el && el.getAttribute('data-mode') === mode) return;
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+    el = document.createElement('div');
+    el.id = 'install-sheet';
+    el.className = 'install-sheet';
+    el.setAttribute('role', 'region');
+    el.setAttribute('aria-label', plain(UI.sheetTitle));
+    el.setAttribute('data-mode', mode);
+    var share = '<svg class="install-share" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M8 7l4-4 4 4M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
+    el.innerHTML =
+      '<h2 class="sheet-title">' + br(UI.sheetTitle) + '</h2>' +
+      (mode === 'go'
+        ? '<p class="sheet-text">' + UI.sheetText + '</p>' +
+          '<button class="btn primary" type="button" data-install-go><span>' + UI.install + '</span></button>' +
+          '<button class="sheet-close" type="button" data-sheet-close>' + UI.sheetNotNow + '</button>'
+        : '<p class="sheet-text">' + UI.sheetIos1 + ' ' + share + ' ' + UI.sheetIos2 + '</p>' +
+          '<button class="sheet-close" type="button" data-sheet-close>' + UI.sheetGotIt + '</button>');
+    document.body.appendChild(el);
+    // the welcome picture first, then the sheet rises
+    setTimeout(function () { el.className = 'install-sheet on'; }, reduced ? 20 : 1100);
+  }
   function notify(text) {
     var t = document.createElement('div');
     t.className = 'toast';
@@ -396,21 +429,6 @@
   }
   function isAndroid() { return /android/i.test(navigator.userAgent); }
   // a page opened inside another app's own browser (LinkedIn, Instagram, Facebook ...) cannot be added to the home screen
-  // Android browsers other than Chrome (and Samsung Internet on Samsung phones) cannot make a real app, only a shortcut,
-  // and a shortcut carries the browser's own badge on its icon (Brave's lion, for one)
-  function badgesTheIcon() {
-    return isAndroid() && !/[?&]nochrome=1(&|$)/.test(location.search) &&
-      (!!(navigator.brave && typeof navigator.brave.isBrave === 'function') || /Firefox|OPR\/|EdgA/.test(navigator.userAgent));
-  }
-  // The same page, opened in Chrome on the install screen. Android lets a page hand over to another app only from a tap, so this
-  // runs from the "Add to home screen" tap itself. If Chrome is not there the browser opens the fallback address in itself
-  // (marked nochrome, so it then goes straight to its own install).
-  function chromeAddress() {
-    var q = location.search.replace(/^\?/, '').split('&').filter(function (x) { return x && !/^(go|via|nochrome|v)=/.test(x); });
-    var base = location.host + location.pathname + '?' + q.concat(['go=install']).join('&');
-    var fallback = location.protocol + '//' + base + '&nochrome=1';
-    return 'intent://' + base + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(fallback) + ';end';
-  }
   function inAppBrowser() { return /FBAN|FBAV|Instagram|LinkedInApp|Snapchat|TikTok|MicroMessenger|Line\/|; wv\)/i.test(navigator.userAgent); }
 
   /* ——— the menu: three places, nothing else ——— */
@@ -858,6 +876,7 @@
     bindInstall();
     activePage = page;
     if (page.mount) { try { page.mount(stage); } catch (e) { /* the screen stays; the fade-out must not be left on */ } }
+    syncInstallSheet();
   }
 
   function setMenuClosed() {
@@ -867,7 +886,7 @@
 
   // The route lives in memory and is mirrored to the address bar, so navigation also works
   // where the address bar cannot be written (for example inside an embedded preview).
-  var route = location.hash || (/[?&]go=install(&|$)/.test(location.search) ? '#/install' : '#/');
+  var route = location.hash || '#/';
   var shown = null;
   var swapTimer = null;
 
@@ -897,6 +916,8 @@
   }
 
   document.addEventListener('click', function (e) {
+    var close = e.target.closest ? e.target.closest('[data-sheet-close]') : null;
+    if (close) { sheetDismissed = true; syncInstallSheet(); return; }
     var go = e.target.closest ? e.target.closest('[data-install-go]') : null;
     if (go && installEvent && !e.defaultPrevented && !e.button && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
       e.preventDefault();

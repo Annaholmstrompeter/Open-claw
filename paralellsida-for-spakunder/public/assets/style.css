@@ -750,3 +750,15 @@ html[data-page="intro"] body::before, html[data-page="intro"] body::after { disp
 .toast.on { opacity: 1; transform: translate(-50%, 0); }
 .toast svg { flex: none; width: 1.2rem; height: 1.2rem; fill: none; stroke: #cdb06a; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+
+/* the install sheet: the first thing on a spa's front page */
+.install-sheet { position: fixed; left: 12px; right: 12px; bottom: calc(env(safe-area-inset-bottom) + 12px); z-index: 30; max-width: 28rem; margin: 0 auto; padding: 26px 22px 14px; border-radius: 10px; background: #1b140e; border: 1px solid rgba(205, 176, 106, .6); color: #f3e6c4; text-align: center; opacity: 0; transform: translateY(18px); transition: opacity .8s, transform .8s var(--ease); pointer-events: none; }
+.install-sheet.on { opacity: 1; transform: none; pointer-events: auto; }
+.install-sheet .sheet-title { margin: 0 0 .5rem; font-family: var(--serif); font-weight: 400; font-size: 1.7rem; line-height: 1.15; color: #f6ecd2; }
+.install-sheet .sheet-text { margin: 0 0 1.2rem; font-family: var(--serif); font-size: 1.2rem; line-height: 1.4; color: #d9cba9; }
+.install-sheet .btn { width: 100%; max-width: none; }
+.install-sheet .install-share { width: 1.15em; height: 1.15em; vertical-align: -.2em; fill: none; stroke: #cdb06a; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.install-sheet .sheet-close { display: block; width: 100%; padding: 1rem .4rem .5rem; background: none; border: 0; font-family: var(--sans); font-size: .72rem; letter-spacing: .26em; text-transform: uppercase; color: #cdb06a; cursor: pointer; }
+body:has(.menu:not([hidden])) .install-sheet { display: none; }
+@media (prefers-reduced-motion: reduce) { .install-sheet { transition: none; } }
+
