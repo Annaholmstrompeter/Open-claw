@@ -2,9 +2,35 @@
 
 *Annas namn på projektet: **paralellsida för spakunder**. Mappen hette tidigare `sanctuary/` och projektet kallades "fristaden" (båda namnen finns kvar i texter och gamla loggar). Omdöpt och inmergat i `master` 2026-10-14, så att alla sessioner hittar det.*
 
-*Skriven 2026-10-11 av sessionen "Parallell sida för spakunder". Läs den här filen först, sedan `paralellsida-for-spakunder/README.md`. Detaljerad historik: `projects/paralellsida-for-spakunder-logg.md` (på grenen, se nedan).*
+*Uppdaterad 2026-10-19 (se **Läget senast**). Skriven 2026-10-11 av sessionen "Parallell sida för spakunder". Läs den här filen först, sedan `paralellsida-for-spakunder/README.md`. Detaljerad historik: `projects/paralellsida-for-spakunder-logg.md` (på grenen, se nedan).*
 
 *Drive (Annas översikt, 2026-10-19): dokumentet **02 – BME Digital spa-box (QR till egen app) – plan, kostnad & status** i mappen 04 Hotell, spa & B2B-kunder: https://docs.google.com/document/d/1tEq0a79KvnkkPJgQraPuzTMOx9sVtAADYaGDP8vkSCA/edit . Uppdatera den filen, skapa ingen dubblett. Drive-dokumenten 06 (status) och 00 (projektkarta) säger fortfarande att köpknappen inte ska aktiveras utan spats egen checkout; det är ersatt av Annas besked 2026-10-19 men kunde inte ändras från molnsessionen (Google Docs-redigeraren är inte kopplad, bara Drive).*
+
+## Läget senast (2026-10-19, kväll): spa-boxen är klar som provspa, Anna är nöjd
+
+*Anna kallar det "digital box för spa", "parallell sida för spa", "spa-boxen" eller "fristaden". Skriver hon något sådant i en ny chatt: det här är projektet. Starta här.*
+
+**Vad en spa-box är:** varje spa får en egen mapp `public/spas/<slug>/` (egen adress, egen app) och en unik, statisk QR-kod till den. Gästen möts av spats bild + namn, väljer en av de fem ritualerna (Balance, Luminance, Kindness, Serenity, Presence), och efter ritualen kommer *Experience the ritual at <spa>* (spats bokning) och *Refill your products* (spats egen shop; saknas den → Annas shop, som är avstängd tills hennes Shopify kan sälja). Ingen provision. Gästen kan lägga boxen som app på telefonen (Android och iPhone). Together (parlyssning) är pausad/ofärdig.
+
+**Klart och godkänt av Anna (2026-10-19):**
+- Verktyg `tools/make-spa.py` (bild, namn, bokning, shop, kort namn, ikon: logga, initialer eller foto) och `build-content.py` (gör `spas/<slug>/index.html`); tre påhittade demospa: `horizon-hill`, `calm-cove`, `fern-hill`.
+- **Installation, ett tryck:** på spats första sida stiger en mörk ruta, *Keep this sanctuary on your phone*, med guldknappen *Add to home screen* (ingen *Not now*). Android: ett tryck öppnar telefonens egen installationsruta (kommer webbläsarens erbjudande för sent väntar knappen upp till 3,5 s och öppnar den själv). Lyckas det: gästen hamnar på startsidan, en bekräftelse (*Added to your home screen*) visas. iPhone kan inte frågas: rutan visar stegen (delaikonen, *Add to Home Screen*). I en annan apps webbläsare (LinkedIn, Instagram) ber sidan gästen öppna den i Safari/Chrome.
+- **Brave, Firefox, Opera, Edge på Android** gör bara en genväg med webbläsarens märke. Därför lämnar knappen över till Chrome (`intent://`, adress med `h=1` så Chrome visar *Almost there. One last tap.*). Androids ruta *Välj aktivitet* (Brave/Chrome) kan då komma: den är telefonens, **ingen sida kan förvälja eller dölja den** (`googlechrome://` provat, blockeras av Chromium). Anna valde att leva med det. **Hennes egen genväg:** Chrome som standardwebbläsare (Inställningar → Appar → Standardappar → Webbläsarapp → Chrome); `?nochrome=1` på adressen stänger av överlämningen. Gäster har oftast redan Chrome (2 tryck: knapp + Androids *Installera*).
+- **En app per spa utan att kapa varandra:** varje spa har eget scope (mappen), eget manifest, ikon och namn (kort namn ≤ 9 tecken pga startskärmen). `?diag=1` på adressen visar hur sidan öppnats (webbläsare eller installerad app) och vad webbläsaren erbjuder.
+- **Tester:** 22 enhet + 25 e2e gröna (2026-10-19). Ett Together-test med två telefoner mäter millisekunder och kan fälla en gång; kör om.
+
+**Testlänkar (påhittade spa, publikt, `noindex`; QR-koder finns inte i arkivet: `tools/make-qr.py <adress>`):**
+- https://annaholmstrompeter.github.io/Open-claw/spas/calm-cove/ (huvudprovet), `…/spas/fern-hill/`, `…/spas/horizon-hill/`
+- Vid prov på Android: **avinstallera appen** (inte bara ikonen) före varje första besök; en gammal Horizon-app på Annas telefon har ett för brett scope och kapar länkar: klistra in adressen i Chromes adressfält.
+
+**Drive:** Annas översikt är dokumentet *02 – BME Digital spa-box (QR till egen app) – plan, kostnad & status* (länk i rutan ovan). Dokument 06 och 00 säger fortfarande att köpknappen inte ska aktiveras; det är ersatt av Annas beslut 2026-10-19 men kräver Google Docs-koppling eller att Anna ändrar själv.
+
+**Nästa steg i ordning (inget är påbörjat):**
+1. **Riktigt provspa**, byggt privat (`.gitignore`; spats bild och logga är deras, visa bara spat själv). Anna väljer spa och skickar bokningslänk, shoplänk, logga och bild. Prova på riktig Android-Chrome och iPhone (installera, spela, **lås skärmen**: ljud i hemskärmsapp på iPhone är inte provat och kan stanna).
+2. **Statistikräknare** (summor per spa, aldrig per person; Cloudflare Worker + D1, ca 0 kr): händelser open/play/finish/book/shop/app/install; sida för Anna; månadsrapport per spa. **Uppdatera integritetstexten ("keeps nothing about you") före** räknaren byggs. Underlag: `projects/paralellsida-lansering-forberedelser.md`.
+3. **Spa-fabrik:** kalkylark (spa, bild, logga, bokning, shop) → många spasidor + QR-koder + tryckfil. Många spa säger nej: radera deras mapp, bygg nya; håll under 20 000 filer (ca 7 per spa ⇒ ca 2 800 spa).
+4. **Cloudflare + domän:** Anna skapar kontot och köper/pekar domänen (`bodymindearth.se` finns inte i DNS, hennes Shopify har ingen egen domän; tänkt `ritual.<domän>`). Tokens går i miljöinställningarna, **aldrig i chatten**. **Tryck inga QR-koder före den slutliga adressen.**
+5. Annat: uppdatera Drive 06/00, kontrollera Shopify-planen ("Pause and Build") innan `BME_HOUSE_SHOP` slås på, riktig iPhone-test, jurist läser integritetstexten före stor lansering.
 
 ## 0. Så fortsätter du direkt
 
@@ -63,14 +89,14 @@ Stängd, statisk QR-sida för spa-kunder (askens QR-kod → `#/`). **Fem rituale
 - **Together** (parlyssning): session-/klockmodul, spelare, QR/länk, Ready/Begin/paus, återanslutning, ett-tryck-reserv, en-enhets-läge, vattenljus. 22 enhetstester + e2e mot lokal attrapp av Supabase. **Inte provat mot riktiga Supabase eller riktiga telefoner.**
 - Ny första sida, karusell, ritualsida, spelsida, slutsida, Back, bort med gamla färger, alla inspelningar (verifierade: filstorlek, mp3, längd; alla tio spelar i webbläsare och slutar på slutsidan).
 - Testsida på GitHub Pages med cache-bust (`?v=`), spa-demo och publiceringsskript som skriver ut länken.
-- Tester: `paralellsida-for-spakunder/tests` — 22 enhet, 16 e2e, regressionsjämförelse mot sanctuaryt före Together (`e2e/regression.mjs`): ändringar som är avsiktliga är listade i filens huvud.
+- Tester: `paralellsida-for-spakunder/tests` — 22 enhet, 25 e2e (2026-10-19), regressionsjämförelse mot sanctuaryt före Together (`e2e/regression.mjs`): ändringar som är avsiktliga är listade i filens huvud.
 
 ## 5. Så arbetar du (kommandon)
 
 ```
 cd paralellsida-for-spakunder/tests && npm ci                      # första gången (node_modules ligger inte i git)
 node --test --test-force-exit session.test.js     # enhetstester (22)
-node e2e/run.mjs                                  # e2e (16, ca 2 min; Chromium finns i /opt/pw-browsers)
+node e2e/run.mjs                                  # e2e (25, ca 3 min; Chromium finns i /opt/pw-browsers)
 node e2e/regression.mjs                           # jämför alla gamla adresser med äldre version
 python3 paralellsida-for-spakunder/tools/build-content.py          # bygger content.js + sw.js (checka in sw.js efter!)
 paralellsida-for-spakunder/tools/publish-test-site.sh paralellsida-for-spakunder/public/assets/audio/04_Balance_Bergamot-Hand-Wash_KORT.mp3
@@ -107,6 +133,8 @@ paralellsida-for-spakunder/tools/publish-test-site.sh paralellsida-for-spakunder
 - Integritetstexten ("no cookies, no accounts, no tracking") måste ändras **innan** någon räkning/statistik byggs.
 
 ## 8. Planerat (i ordning)
+
+*Spa-boxens nästa steg står överst i avsnittet **Läget senast**; listan här är de äldre punkterna.*
 
 1. Anna provar **Together** på två telefoner (testsidan). Rätta det som visar sig.
 2. **Byt demo-spaets foto** mot ett riktigt (`make-spa.py --photo … --focus x,y`). **Ett provspa** med riktiga bokning- och shoplänkar byggs privat (Anna väljer vilket) och provas på riktig Android och iPhone (installera, spela, lås skärmen).

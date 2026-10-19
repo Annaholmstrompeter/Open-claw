@@ -4,11 +4,12 @@ This repo is Anna's personal OpenClaw workspace (assistant identity: "Aether"). 
 
 ## Paralellsida för spakunder (Annas QR-sida för spa-kunder)
 
-Annas pågående projekt, även kallat "fristaden" / "Body Mind Earth Sanctuary" / "sanctuary" / "parallellsidan". Allt ligger här på `master`:
+Annas pågående projekt, även kallat "fristaden" / "Body Mind Earth Sanctuary" / "sanctuary" / "parallellsidan" / **"digital box för spa"** / **"spa-box"** / **"parallell sida för spa"** / "QR-box till spa". Allt ligger här på `master`:
 
 - **Mapp:** `paralellsida-for-spakunder/` (webbplatsen, tester, verktyg, README).
 - **Överlämning (läs först):** `projects/paralellsida-for-spakunder.md`: hur Anna vill jobba, vad som är bestämt, gjort och planerat, kommandon och fällor. Logg: `projects/paralellsida-for-spakunder-logg.md`.
-- Säger Anna "paralellsidan", "spa-sidan", "fristaden" eller "sidan med ritualerna" menar hon detta. Startar hon en ny session: fortsätt med nästa punkt i överlämningen. Ge henne alltid en ny, verifierad testlänk när något är klart.
+- Säger Anna "paralellsidan", "spa-sidan", "fristaden", "sidan med ritualerna", "digital box (för spa)", "spa-boxen", "parallell sida för spa" eller liknande menar hon detta. Startar hon en ny session: läs överlämningens avsnitt **"Läget senast"** och fortsätt med nästa punkt. Ge henne alltid en ny, verifierad testlänk när något är klart.
+- Spa-boxen (en egen app per spa, QR → spats sida med bokning och shop, installera på telefonen) är **klar och godkänd av Anna 2026-10-19** som provspa med påhittade spa; nästa steg är riktigt provspa, statistikräknare, spa-fabrik och Cloudflare/domän (se överlämningen).
 
 ## Datorstyrning (computer use)
 

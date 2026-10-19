@@ -158,9 +158,10 @@
 - Endast använda känslig information i säkra miljöer
 
 ## Projekt: Paralellsida för spakunder (fristaden / Body Mind Earth Sanctuary) — spa-kundernas QR-sida
-- Annas stängda, statiska QR-sida för spa-kunder: fem lyssnarritualer (kort + lång), Together (parlyssning), spa-sidor (`?s=<spa>`). **Koden ligger på `master` i mappen `paralellsida-for-spakunder/`** (hette förut `sanctuary/`).
+- Annas stängda, statiska QR-sida för spa-kunder: fem lyssnarritualer (kort + lång), Together (parlyssning), och **spa-boxen**: varje spa får en egen digital box (`spas/<slug>/`, egen app med spats namn/ikon/bild, bokning + shop, installera på telefonen). Anna kallar det även "digital box för spa", "parallell sida för spa", "spa-boxen" eller "fristaden". **Koden ligger på `master` i mappen `paralellsida-for-spakunder/`** (hette förut `sanctuary/`).
 - **Överlämning med allt överenskommet, gjort och planerat: `projects/paralellsida-for-spakunder.md`. Läs den först.** Detaljlogg: `projects/paralellsida-for-spakunder-logg.md`. Mapp-README: `paralellsida-for-spakunder/README.md`.
-- Anna vill **alltid ha en ny, uppdaterad testlänk** när något är klart, och att jag gör sakerna åt henne (hon är mycket oteknisk). Hon kollar på iPhone (Brave, ca 390×737).
+- Anna vill **alltid ha en ny, uppdaterad testlänk** när något är klart, och att jag gör sakerna åt henne (hon är mycket oteknisk). Hon kollar på iPhone (Brave, ca 390×737) och Android (Brave; hon bör sätta Chrome som standardwebbläsare).
+- **Läge 2026-10-19:** spa-boxen med installation (ett tryck, Chrome-överlämning från Brave m.fl.) är klar och godkänd av Anna ("nöjd så"). Nästa: riktigt provspa (privat), statistikräknare (Worker + D1, integritetstext först), spa-fabrik, Cloudflare + domän. Överlämning: avsnitt "Läget senast" i `projects/paralellsida-for-spakunder.md`.
 
 ## Projekt: Hemsidan (Body Mind Earth, Shopify)
 - Annas hemsida byggs i ett utkast-tema (aldrig live, aldrig publicera utan Anna). Nuläge 2026-10-14: The Experience som filmkarusell (v47), stockfilm som platshållare, väntar på Annas omdöme.
