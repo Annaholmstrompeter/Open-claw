@@ -6,7 +6,7 @@
         [--logo logo.png] [--short-name "Horizon Hill"] [--demo]
 
 Writes public/spas/<slug>/hero.webp (+ logo.webp), spa.js, and what lets a guest keep the page as an app on the phone:
-manifest.webmanifest and icon-180/192/512.png (the spa's logo on sand, or a square of the photograph when there is no logo).
+manifest.webmanifest and icon-180/192/512.png (the spa's logo on sand; without a logo its initials in the house style; --icon photo for a square of the photograph).
 The page is then   <site>/spas/<slug>/   (python3 tools/build-content.py makes spas/<slug>/index.html; <site>/?s=<slug> also works)
 Without --shop-url the "Refill" button goes to the house shop (BME_HOUSE_SHOP in assets/spa-loader.js), or is left out while that is empty.
 Everything else on the page is the sanctuary itself; only the picture, the name and the way to book are the spa's.
@@ -14,20 +14,23 @@ Everything else on the page is the sanctuary itself; only the picture, the name 
 IMPORTANT: a real spa's pictures and name are theirs. Real spas are built in a PRIVATE copy of the project (public/spas/ is
 kept out of the public repository by .gitignore, except the fictional demo). The photograph is graded to the house look
 (a little less colour, warm highlights, soft umber shadows) so that every spa looks equally at home next to the products.
-Needs: pillow, numpy.
+Needs: pillow, numpy (and fonttools + brotli for the initials icon).
 """
 import argparse
+import io
 import json
 import pathlib
 import re
 import sys
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 RATIO = 1.1            # width / height of the front page's picture
 SAND = (239, 230, 214)  # #efe6d6: the app's background colour, behind a logo in the icon
+GOLD = (184, 153, 63)
+INK = (51, 41, 29)
 
 
 def grade(img):
@@ -56,14 +59,65 @@ def crop(img, focus):
     return img.crop((0, y0, w, y0 + ch))
 
 
-def make_icons(out, hero, logo_path):
-    """The icon on the guest's home screen: the spa's logo on sand, else a square of the spa's photograph."""
-    if logo_path:
+def serif_font(size):
+    """The house serif (Cormorant Garamond) for the monogram. The site's copy is a woff2 file, which Pillow cannot read, so it is
+    unpacked in memory (needs: pip install fonttools brotli); without those, a plain serif is used."""
+    try:
+        from fontTools.ttLib import TTFont
+        f = TTFont(str(ROOT / "public" / "assets" / "fonts" / "cormorant-garamond-latin-500-normal.woff2"))
+        f.flavor = None
+        buf = io.BytesIO()
+        f.save(buf)
+        buf.seek(0)
+        return ImageFont.truetype(buf, size)
+    except Exception:
+        for path in ("/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf", "/Library/Fonts/Georgia.ttf", "C:/Windows/Fonts/georgia.ttf"):
+            try:
+                return ImageFont.truetype(path, size)
+            except OSError:
+                pass
+        return ImageFont.load_default()
+
+
+def monogram_initials(name):
+    words = [w for w in re.split(r"[^A-Za-zÅÄÖåäöÉéÜü]+", name) if w and w.lower() not in ("spa", "hotel", "hotell", "the", "resort", "wellness", "retreat")]
+    return "".join(w[0] for w in words[:2]).upper() or name[:1].upper()
+
+
+def monogram_tile(text):
+    """A calm icon that reads in a small circle: sand ground, one fine gold ring, the spa's initials in the house serif.
+    Everything lies well inside the middle of the square, so a round or rounded mask never cuts it."""
+    tile = Image.new("RGB", (512, 512), SAND)
+    d = ImageDraw.Draw(tile)
+    d.ellipse((74, 74, 438, 438), outline=GOLD, width=6)
+    size = 230 if len(text) == 1 else 176
+    font = serif_font(size)
+    track = 0 if len(text) == 1 else 16
+    advances = [font.getlength(ch) for ch in text]
+    total = sum(advances) + track * (len(text) - 1)
+    cap = font.getbbox("H")
+    cap_h = cap[3] - cap[1]
+    x = 256 - total / 2
+    baseline = 256 + cap_h / 2
+    for ch, adv in zip(text, advances):
+        d.text((x, baseline), ch, font=font, fill=INK, anchor="ls")
+        x += adv + track
+    return tile
+
+
+def make_icons(out, hero, logo_path, mode="auto", text=""):
+    """The icon on the guest's home screen (and in the phone's own "add to home screen" box): the spa's logo on sand if there is one, else
+    the spa's initials in the house style (mode "monogram"); mode "photo" gives a square of the spa's photograph instead."""
+    if mode == "auto":
+        mode = "logo" if logo_path else "monogram"
+    if mode == "monogram":
+        tile = monogram_tile(text)
+    elif mode == "logo" and logo_path:
         lg = Image.open(logo_path).convert("RGBA")
         lg.thumbnail((340, 340), Image.LANCZOS)
         tile = Image.new("RGB", (512, 512), SAND)
         tile.paste(lg, ((512 - lg.width) // 2, (512 - lg.height) // 2), lg)
-    else:
+    else:   # photo
         side = min(hero.size)
         x0 = (hero.width - side) // 2
         tile = hero.crop((x0, 0, x0 + side, side)).resize((512, 512), Image.LANCZOS)
@@ -106,6 +160,8 @@ def main():
     ap.add_argument("--book-url", default="", help="the spa's own booking page (or tel:/mailto:)")
     ap.add_argument("--shop-url", default="", help="the spa's own shop (or tel:/mailto:); without it the house shop is used, if there is one")
     ap.add_argument("--short-name", default="", help="the name under the icon on the phone; phones cut it at about 9 letters (\"Horizon\", not \"Horizon Hill\"); default: the spa's name")
+    ap.add_argument("--icon", choices=["auto", "logo", "monogram", "photo"], default="auto", help="the icon on the phone: auto = the logo if there is one, else the initials")
+    ap.add_argument("--monogram", default="", help="the letters in the initials icon (default: the first letters of the name's first two words)")
     ap.add_argument("--thanks", default="Thank you for taking this moment with us.", help="the line after the ritual")
     ap.add_argument("--no-grade", action="store_true", help="use the photograph as it is")
     ap.add_argument("--demo", action="store_true", help="a fictional example spa: says so on the page")
@@ -135,7 +191,7 @@ def main():
     short = a.short_name or a.name
     if len(short) > 9:
         print("note: the name under the icon, \"%s\", is %d letters; phones cut it at about 9. Give a shorter one with --short-name." % (short, len(short)))
-    make_icons(out, img, a.logo)
+    make_icons(out, img, a.logo, a.icon, (a.monogram or monogram_initials(a.name)).upper())
     make_manifest(out, a.slug, a.name, short)
 
     conf = {"slug": a.slug, "name": a.name, "shortName": short, "hero": "spas/%s/hero.webp" % a.slug, "logo": logo,
