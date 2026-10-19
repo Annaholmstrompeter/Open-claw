@@ -796,10 +796,28 @@ test('install first: the front page of a spa opens with a sheet that adds it to 
     await page.goto(srv.base + 'index.html' + hash);
     return { ctx, page };
   };
-  // Android: the sheet rises over the welcome picture; one tap on its button asks for the install; accepted: front page, confirmation, no sheet
+  // Android, first visit: Chrome offers the install only after a tap and 30 seconds on the page, so it has not offered it yet. The sheet is there
+  // all the same, its button says where to tap, and once the browser offers the install the sheet turns into the one-tap button
   let { ctx, page } = await fresh('?s=horizon-hill#/', ANDROID);
+  await page.waitForSelector('#install-sheet.on');
+  assert.equal(await page.getAttribute('#install-sheet', 'data-mode'), 'wait');
+  assert.match(await page.textContent('#install-sheet [data-install-go]'), /Add to home screen/);
+  await page.click('#install-sheet [data-install-go]');
+  await page.waitForSelector('#install-sheet[data-mode="steps"]');
+  assert.match(await page.textContent('#install-sheet'), /Install app|Add to Home screen/);
+  assert.equal(await page.locator('#install-sheet svg.install-dots').count(), 1);
+  assert.equal(await page.locator('#install-sheet [data-install-go]').count(), 0);
+  assert.equal(await page.locator('#install-sheet [data-sheet-close]').count(), 1, 'the steps can be put away');
+  await offer(page);
+  await page.waitForSelector('#install-sheet[data-mode="go"].on');
+  assert.equal(await page.evaluate(() => window.__prompted || 0), 0, 'nothing is asked of the phone until the guest taps');
+  await page.click('#install-sheet [data-install-go]');
+  assert.equal(await page.evaluate(() => window.__prompted), 1);
+  await page.waitForSelector('.toast.on');
+  await ctx.close();
+  // the browser has offered the install before the sheet rises: the button at once; accepted: front page, confirmation, no sheet
+  ({ ctx, page } = await fresh('?s=horizon-hill#/', ANDROID));
   await page.waitForSelector('.front-spa');
-  assert.equal(await page.locator('#install-sheet').count(), 0, 'nothing to offer until the browser offers the install');
   await offer(page);
   await page.waitForSelector('#install-sheet.on');
   assert.match(await page.textContent('#install-sheet'), /Keep this sanctuary\s*on your phone/);

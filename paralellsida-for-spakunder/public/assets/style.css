@@ -761,7 +761,7 @@ html[data-page="intro"] body::before, html[data-page="intro"] body::after { disp
 .install-sheet .sheet-close { display: block; width: 100%; padding: 1rem .4rem .5rem; background: none; border: 0; font-family: var(--sans); font-size: .72rem; letter-spacing: .26em; text-transform: uppercase; color: #cdb06a; cursor: pointer; }
 body:has(.menu:not([hidden])) .install-sheet { display: none; }
 @media (prefers-reduced-motion: reduce) { .install-sheet { transition: none; } }
-.install-sheet[data-mode="go"] { padding-bottom: 22px; }
-html[data-sheet="go"] #stage { margin-bottom: 15.5rem; }   /* the page can be scrolled clear of the sheet */
-html[data-sheet="ios"] #stage { margin-bottom: 12rem; }
-
+.install-sheet[data-mode="go"], .install-sheet[data-mode="wait"] { padding-bottom: 22px; }
+html[data-sheet="go"] #stage, html[data-sheet="wait"] #stage { margin-bottom: 15.5rem; }   /* the page can be scrolled clear of the sheet */
+html[data-sheet="ios"] #stage, html[data-sheet="steps"] #stage { margin-bottom: 12rem; }
+.install-sheet .install-dots { fill: #cdb06a; stroke: none; }

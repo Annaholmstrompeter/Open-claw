@@ -69,6 +69,8 @@
     sheetText: 'One tap, and it is always with you.',
     sheetIos1: 'Tap the share icon',
     sheetIos2: 'in your browser’s bar, then “Add to Home Screen”.',
+    sheetAndroid1: 'Tap',
+    sheetAndroid2: 'in your browser, then “Install app” or “Add to Home screen”.',
     sheetGotIt: 'Got it',
     installInApp: 'This page is open inside another app. Open it in Safari (iPhone) or Chrome (Android) to add it to your home screen.',
     installOther: 'Open this page on your phone to add it to the home screen.',
@@ -317,6 +319,7 @@
   /* ——— install to home screen (Android prompt, iOS hint) ——— */
   var installEvent = null;
   var addedToHome = false;   // set when the phone says the app is on the home screen
+  var sheetSteps = false;     // Android, before the browser offers the install: the guest tapped the button and is told where to tap
   var sheetDismissed = false; // the guest has answered (said no in the phone's own dialog, or "Got it" on iPhone): not asked again until the page is opened anew (nothing is stored on the phone)
   window.addEventListener('beforeinstallprompt', function (e) {
     e.preventDefault();
@@ -381,7 +384,11 @@
     if (!SPA || addedToHome || sheetDismissed || isStandalone() || inAppBrowser()) return '';
     if (!activePage || activePage.kind !== 'welcome') return '';
     if (installEvent) return 'go';
-    return isIOSDevice() ? 'ios' : '';
+    if (isIOSDevice()) return 'ios';
+    // Chrome offers the install only after the guest has tapped the page and spent 30 seconds on it, so on a first visit it is not offered yet:
+    // the sheet is there all the same, and its button then says where to tap
+    if (isAndroid()) return sheetSteps ? 'steps' : 'wait';
+    return '';
   }
   function syncInstallSheet() {
     var mode = sheetMode();
@@ -392,6 +399,7 @@
       return;
     }
     if (el && el.getAttribute('data-mode') === mode) return;
+    var wasUp = !!el && /\bon\b/.test(el.className);   // changing what a sheet that is already up says: no new rise
     if (el && el.parentNode) el.parentNode.removeChild(el);
     el = document.createElement('div');
     el.id = 'install-sheet';
@@ -400,17 +408,24 @@
     el.setAttribute('aria-label', plain(UI.sheetTitle));
     el.setAttribute('data-mode', mode);
     var share = '<svg class="install-share" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M8 7l4-4 4 4M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
-    el.innerHTML =
-      '<h2 class="sheet-title">' + br(UI.sheetTitle) + '</h2>' +
-      (mode === 'go'
-        ? '<p class="sheet-text">' + UI.sheetText + '</p>' +
-          '<button class="btn primary" type="button" data-install-go><span>' + UI.install + '</span></button>'
-        : '<p class="sheet-text">' + UI.sheetIos1 + ' ' + share + ' ' + UI.sheetIos2 + '</p>' +
-          '<button class="sheet-close" type="button" data-sheet-close>' + UI.sheetGotIt + '</button>');
+    var dots = '<svg class="install-share install-dots" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>';
+    var body;
+    if (mode === 'go' || mode === 'wait') {
+      body = '<p class="sheet-text">' + UI.sheetText + '</p>' +
+        '<button class="btn primary" type="button" data-install-go><span>' + UI.install + '</span></button>';
+    } else if (mode === 'steps') {
+      body = '<p class="sheet-text">' + UI.sheetAndroid1 + ' ' + dots + ' ' + UI.sheetAndroid2 + '</p>' +
+        '<button class="sheet-close" type="button" data-sheet-close>' + UI.sheetGotIt + '</button>';
+    } else {
+      body = '<p class="sheet-text">' + UI.sheetIos1 + ' ' + share + ' ' + UI.sheetIos2 + '</p>' +
+        '<button class="sheet-close" type="button" data-sheet-close>' + UI.sheetGotIt + '</button>';
+    }
+    el.innerHTML = '<h2 class="sheet-title">' + br(UI.sheetTitle) + '</h2>' + body;
     document.body.appendChild(el);
     document.documentElement.setAttribute('data-sheet', mode);
     // the welcome picture first, then the sheet rises
-    setTimeout(function () { el.className = 'install-sheet on'; }, reduced ? 20 : 1100);
+    if (wasUp) el.className = 'install-sheet on';
+    else setTimeout(function () { el.className = 'install-sheet on'; }, reduced ? 20 : 1100);
   }
   function notify(text) {
     var t = document.createElement('div');
@@ -925,11 +940,19 @@
     var close = e.target.closest ? e.target.closest('[data-sheet-close]') : null;
     if (close) { sheetDismissed = true; syncInstallSheet(); return; }
     var go = e.target.closest ? e.target.closest('[data-install-go]') : null;
-    if (go && installEvent && !e.defaultPrevented && !e.button && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
-      e.preventDefault();
-      setMenuClosed();
-      runInstall();
-      return;
+    if (go && !e.defaultPrevented && !e.button && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+      if (installEvent) {
+        e.preventDefault();
+        setMenuClosed();
+        runInstall();
+        return;
+      }
+      if (go.tagName === 'BUTTON') {   // the sheet's button, the browser has not offered the install yet
+        e.preventDefault();
+        sheetSteps = true;
+        syncInstallSheet();
+        return;
+      }
     }
     var el = e.target.closest ? e.target.closest('[data-listen]') : null;
     if (el) {
