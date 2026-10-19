@@ -187,7 +187,7 @@ html[data-ground] .head-brand i { color: #d8b968; }
   color: #33291d;
 }
 .menu[hidden] { display: none; }
-.menu a { padding: .6rem 1rem; font-weight: 500; font-size: 1.55rem; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; }
+.menu a { text-align: center; padding: .6rem 1rem; font-weight: 500; font-size: 1.55rem; letter-spacing: .16em; text-transform: uppercase; text-decoration: none; }
 .menu a:hover, .menu a:focus-visible { color: #8a6c1a; }
 .menu-close { position: absolute; top: calc(env(safe-area-inset-top) + 8px); right: 8px; }
 
@@ -539,6 +539,13 @@ html[data-page="end"] .btn .arr { width: 1.2rem; height: .6rem; stroke-width: 1.
 
 /* ——— Closing ——— */
 .install-hint { margin: 1.2rem 0 0; font-size: 1.05rem; font-style: italic; color: var(--soft); }
+.install .spa-thanks { margin: 0 0 .6rem; }
+.install .title { text-align: center; }
+.install-steps { list-style: none; counter-reset: step; margin: .4rem auto 0; padding: 0; display: grid; gap: 1.1rem; max-width: 21rem; text-align: left; }
+.install-steps li { counter-increment: step; display: grid; grid-template-columns: 1.7rem 1fr; gap: .6rem; align-items: baseline; font-size: 1.25rem; line-height: 1.42; color: var(--ink); }
+.install-steps li::before { content: counter(step); font-family: var(--sans); font-size: .8rem; letter-spacing: .08em; color: var(--accent); }
+.install-share { width: 1.15em; height: 1.15em; vertical-align: -.2em; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.install [data-install] { display: grid; justify-items: center; margin-top: .4rem; }
 .closing .actions { margin-top: .4rem; }
 
 .nojs { padding: 2rem; text-align: center; font-style: italic; }

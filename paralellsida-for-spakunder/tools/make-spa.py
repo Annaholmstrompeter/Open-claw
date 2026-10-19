@@ -2,9 +2,13 @@
 """Make one spa's own page: its photograph, its name, a thank-you and a link to book.
 
     python3 paralellsida-for-spakunder/tools/make-spa.py --slug horizon-hill --name "Horizon Hill Spa" --photo path/to/photo.jpg \\
-        --book-url https://example.com/book --thanks "Thank you for taking this moment with us." [--logo logo.png] [--demo]
+        --book-url https://example.com/book --shop-url https://example.com/shop --thanks "Thank you for taking this moment with us." \\
+        [--logo logo.png] [--short-name "Horizon Hill"] [--demo]
 
-Writes public/spas/<slug>/hero.webp (+ logo.webp) and spa.js. The page is then   <site>/?s=<slug>#/
+Writes public/spas/<slug>/hero.webp (+ logo.webp), spa.js, and what lets a guest keep the page as an app on the phone:
+manifest.webmanifest and icon-180/192/512.png (the spa's logo on sand, or a square of the photograph when there is no logo).
+The page is then   <site>/?s=<slug>#/
+Without --shop-url the "Refill" button goes to the house shop (BME_HOUSE_SHOP in assets/spa-loader.js), or is left out while that is empty.
 Everything else on the page is the sanctuary itself; only the picture, the name and the way to book are the spa's.
 
 IMPORTANT: a real spa's pictures and name are theirs. Real spas are built in a PRIVATE copy of the project (public/spas/ is
@@ -23,6 +27,7 @@ from PIL import Image
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 RATIO = 1.1            # width / height of the front page's picture
+SAND = (239, 230, 214)  # #efe6d6: the app's background colour, behind a logo in the icon
 
 
 def grade(img):
@@ -51,6 +56,45 @@ def crop(img, focus):
     return img.crop((0, y0, w, y0 + ch))
 
 
+def make_icons(out, hero, logo_path):
+    """The icon on the guest's home screen: the spa's logo on sand, else a square of the spa's photograph."""
+    if logo_path:
+        lg = Image.open(logo_path).convert("RGBA")
+        lg.thumbnail((340, 340), Image.LANCZOS)
+        tile = Image.new("RGB", (512, 512), SAND)
+        tile.paste(lg, ((512 - lg.width) // 2, (512 - lg.height) // 2), lg)
+    else:
+        side = min(hero.size)
+        x0 = (hero.width - side) // 2
+        tile = hero.crop((x0, 0, x0 + side, side)).resize((512, 512), Image.LANCZOS)
+    for size in (512, 192, 180):
+        tile.resize((size, size), Image.LANCZOS).save(out / ("icon-%d.png" % size), optimize=True)
+
+
+def make_manifest(out, slug, name, short):
+    """One installable app per spa: its own identity (id), name and icon, opening that spa's page.
+    Paths are relative to this file, so they hold on any address the site is put on (github.io/<repo>/ or a domain)."""
+    manifest = {
+        "id": "./?s=%s" % slug,
+        "name": name,
+        "short_name": short,
+        "description": "A sensory ritual from %s, with Body Mind Earth." % name,
+        "lang": "en",
+        "start_url": "../../?s=%s" % slug,
+        "scope": "../../",
+        "display": "standalone",
+        "orientation": "portrait",
+        "background_color": "#efe6d6",
+        "theme_color": "#efe6d6",
+        "icons": [
+            {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+            {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+            {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
+        ],
+    }
+    (out / "manifest.webmanifest").write_text(json.dumps(manifest, ensure_ascii=False, indent=1) + "\n")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--slug", required=True, help="lower case letters, digits and hyphens: it is the address (?s=<slug>)")
@@ -59,6 +103,8 @@ def main():
     ap.add_argument("--focus", default="0.5,0.5", help="where the picture's centre of interest is, as x,y between 0 and 1")
     ap.add_argument("--logo", help="the spa's logotype (an image with a transparent or light background); otherwise the name is set in type")
     ap.add_argument("--book-url", default="", help="the spa's own booking page (or tel:/mailto:)")
+    ap.add_argument("--shop-url", default="", help="the spa's own shop (or tel:/mailto:); without it the house shop is used, if there is one")
+    ap.add_argument("--short-name", default="", help="the name under the icon on the phone (about 12 letters); default: the spa's name")
     ap.add_argument("--thanks", default="Thank you for taking this moment with us.", help="the line after the ritual")
     ap.add_argument("--no-grade", action="store_true", help="use the photograph as it is")
     ap.add_argument("--demo", action="store_true", help="a fictional example spa: says so on the page")
@@ -85,8 +131,12 @@ def main():
         lg.save(out / "logo.webp", quality=90, lossless=False)
         logo = "spas/%s/logo.webp" % a.slug
 
-    conf = {"slug": a.slug, "name": a.name, "hero": "spas/%s/hero.webp" % a.slug, "logo": logo,
-            "bookUrl": a.book_url, "thanks": a.thanks, "demo": bool(a.demo)}
+    short = a.short_name or a.name
+    make_icons(out, img, a.logo)
+    make_manifest(out, a.slug, a.name, short)
+
+    conf = {"slug": a.slug, "name": a.name, "shortName": short, "hero": "spas/%s/hero.webp" % a.slug, "logo": logo,
+            "bookUrl": a.book_url, "shopUrl": a.shop_url, "thanks": a.thanks, "demo": bool(a.demo)}
     (out / "spa.js").write_text("/* %s: made by tools/make-spa.py */\nwindow.BME_SPA = %s;\n" % (a.name, json.dumps(conf, ensure_ascii=False, indent=1)))
     print("wrote", out.relative_to(ROOT.parent), " -> open  <site>/?s=%s#/" % a.slug)
 

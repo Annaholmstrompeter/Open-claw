@@ -50,6 +50,9 @@ Stängd, statisk QR-sida för spa-kunder (askens QR-kod → `#/`). **Fem rituale
 
 **Spa-sidor**
 - `?s=<slug>` → spats bild + namn över första sidan, spats tack + knapp efter ritualen, bokning i ny flik med `utm_source=bodymindearth&utm_medium=ritual&utm_campaign=<slug>`. Verktyg: `paralellsida-for-spakunder/tools/make-spa.py`. Demo: **Horizon Hill Spa** (påhittat; fri CC0-bild som stand-in).
+- **Knapparna efter ritualen (Annas beslut 2026-10-19):** *Experience the ritual at <spa>* → spats egen bokning; *Refill your products* → **spats egen shop, och har spat ingen → Annas egen shop** (`window.BME_HOUSE_SHOP` i `public/assets/spa-loader.js`, **tom tills Annas shop kan ta emot beställningar**; tom = ingen knapp). Ingen provision till spa: spats vinst är att boxen finns kvar hos kunden och visar spat vid varje användning. Notera: Drive-dokument 06 och projektkartan (2026-10-19) säger fortfarande att köpknappen *inte* ska aktiveras utan egen checkout; Annas senare besked ersätter det.
+- **Installera som app, en app per spa:** `spas/<slug>/manifest.webmanifest` + ikoner, `#/install` (Android: webbläsarens ruta, iPhone: tre steg, LinkedIn-webbläsare: öppna i Safari/Chrome). Se README → Spa-sidor.
+- **Skala:** Anna kontaktar många (t.ex. 3 000), räknar med att många säger nej: deras mappar under `public/spas/` raderas och nya byggs. Håll under 20 000 filer (ca 7 per spa ⇒ ca 2 800 spa) så länge allt ligger gratis på Cloudflare. Mer: `projects/paralellsida-lansering-forberedelser.md`.
 - **Riktiga spa hålls utanför det publika arkivet** (`.gitignore`); bygg dem privat. Deras bilder/logotyper är deras: visa bara spat själv via privat länk, be om lov när de säger ja.
 
 ## 4. Gjort (kort)
@@ -75,6 +78,9 @@ paralellsida-for-spakunder/tools/publish-test-site.sh paralellsida-for-spakunder
 - Länkar till spa-demon: `…/Open-claw/?s=horizon-hill&v=<tid>#/`. Direktlänkar: `#/r/<id>/s`, `#/r/<id>/e`, `#/r/<id>`, `#/together`.
 - Commit-meddelanden på svenska, med de två raderna (Co-Authored-By och Claude-Session) som sessionen anger. Pusha grenen; skapa **utkast**-PR om ingen finns.
 - `git push` skriver "push negotiation failed; proceeding anyway": ofarligt.
+- `build-content.py` behöver Python-paketet `mutagen` (`pip install mutagen`) för att räkna ut inspelningarnas längder; utan det skriver den "no recording yet" för alla ritualer och sätter `min` till `null` i `content.js` (sidan visar då inga minuter). Kolla `git diff content.js` efter bygget: har du inte ändrat innehållet ska den vara oförändrad.
+- Regressionstestet behöver grenen `origin/ccr-b32990fc-q1bykk` hämtad (`git fetch origin ccr-b32990fc-q1bykk`).
+- `e2e/run.mjs`: testet med två telefoner mäter millisekunder och föll en gång i en full körning (tre av tre gröna ensamt); kör om innan du letar fel.
 - `gh` är ogiltig: använd GitHub-verktygen (MCP). Stop-hooken klagar om `paralellsida-for-spakunder/public/sw.js` är ändrad men ej incheckad.
 
 ## 6. Miljön (fällor)
@@ -91,13 +97,15 @@ paralellsida-for-spakunder/tools/publish-test-site.sh paralellsida-for-spakunder
 - **Heart to Heart-inspelning** finns inte (manus: `paralellsida-for-spakunder/content/together-heart-to-heart-manus.md`).
 - Produktfotona är stand-ins ("Ritual Oil 30 ml"); texten om produkten (250 ml m.m.) är de riktiga uppgifterna. Riktiga foton saknas.
 - Demo-spaets foto är en lågupplöst stand-in; byt mot riktigt (Anna skickar en fil; sandlådan hämtar inga stockfoton själv).
-- Repot publikt eller privat? Domän? Cloudflare-konto? (Anna beslutar.)
+- Repot publikt eller privat? Domän? Cloudflare-konto? (Anna beslutar.) Annas Shopify (`9w0qpc-07.myshopify.com`) står på planen **"Pause and Build"** (2026-10-19): ingen försäljning förrän en riktig plan väljs; husets shop-knapp kan därför inte slås på än.
+- **Installera som app är bara provat i Chromium** (manifest, ikoner, installerbarhet, knappar). Ej provat: Android-Chrome, iPhone Safari och Brave, två spa-appar på samma telefon, **ljud med låst skärm i en hemskärmsapp på iPhone** (rapporter om att uppspelning kan stanna).
+- **Supabase `body-mind-earth-together` är pausat** (mejl 2026-10-18). Det påverkar bara Together (parlyssning); spa-sidorna och app-installationen använder inte Supabase.
 - Integritetstexten ("no cookies, no accounts, no tracking") måste ändras **innan** någon räkning/statistik byggs.
 
 ## 8. Planerat (i ordning)
 
 1. Anna provar **Together** på två telefoner (testsidan). Rätta det som visar sig.
-2. **Byt demo-spaets foto** mot ett riktigt (`make-spa.py --photo … --focus x,y`).
+2. **Byt demo-spaets foto** mot ett riktigt (`make-spa.py --photo … --focus x,y`). **Ett provspa** med riktiga bokning- och shoplänkar byggs privat (Anna väljer vilket) och provas på riktig Android och iPhone (installera, spela, lås skärmen).
 3. **Produktion:** köp egen domän, lägg upp på Cloudflare Pages (steg i README), peka framtida QR-koder dit. Besluta repo privat/publikt.
 4. **Spa-utskick** (Annas plan): kontakt via LinkedIn, **personligt och för hand** (LinkedIn förbjuder automatisering); skapa företagssida (jag skriver texter + banner). **Pilot på 10–20 spa** innan 100–300. Bygg riktiga spa-sidor **privat**; en "kontaktyta" med förhandsbilder (rutnät) för godkännande; privata, ej indexerade länkar; EU:s regler för kall e-post skiljer per land (Tyskland/Österrike strängt) — använd LinkedIn/kontaktformulär.
 5. **Mätning per spa** (framtida; research och billigaste upplägg 2026-10-19 i `projects/paralellsida-lansering-forberedelser.md`): räknare för sidöppningar, lyssningar (start/hela vägen) och klick på bokningsknappen, utan cookies/personuppgifter (t.ex. Supabase eller Cloudflare); faktiska bokningar via `utm_*` i spats egen statistik + egen kampanjkod per spa + månadssiffra från spat. Månadsrapport per spa. Sälj aldrig med siffror som inte är verkliga (pilot först). **Uppdatera integritetstexten.**

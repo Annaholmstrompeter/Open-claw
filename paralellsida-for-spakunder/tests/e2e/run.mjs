@@ -556,11 +556,21 @@ test('a spa\'s own page: its picture and name, its thanks and the way to book; t
   assert.match(await p.page.textContent('.spa-thanks'), /Thank you for taking this moment/);
   assert.match(await p.page.getAttribute('.spa-thanks a.btn', 'href'), /utm_source=bodymindearth/);
   assert.match(await p.page.textContent('.spa-thanks a.btn'), /Experience the ritual at Horizon Hill Spa/);
+  // ... and the way to refill: the spa's own shop, in a new tab, told which spa the guest came from
+  const shop = p.page.locator('.spa-thanks a.btn', { hasText: 'Refill your products' });
+  assert.equal(await shop.count(), 1);
+  assert.match(await shop.getAttribute('href'), /^spas\/horizon-hill\/shop\.html\?utm_source=bodymindearth&utm_medium=ritual&utm_content=refill&utm_campaign=horizon-hill$/);
+  assert.equal(await shop.getAttribute('target'), '_blank');
+  assert.match(await shop.getAttribute('rel'), /noopener/);
   // the example booking page tells what the spa would see
   const b = await p.ctx.newPage();
   await b.goto(p.base.base + 'spas/horizon-hill/book.html?utm_source=bodymindearth&utm_medium=ritual&utm_campaign=horizon-hill');
   assert.match(await b.textContent('[data-source]'), /came from the Body Mind Earth ritual/);
   await b.close();
+  const sh = await p.ctx.newPage();
+  await sh.goto(p.base.base + 'spas/horizon-hill/shop.html?utm_source=bodymindearth&utm_medium=ritual&utm_content=refill&utm_campaign=horizon-hill');
+  assert.match(await sh.textContent('[data-source]'), /came from the Body Mind Earth ritual/);
+  await sh.close();
   noErrors(p);
   // the ordinary address has none of it
   await p.page.goto(p.base.base + 'index.html#/');
@@ -572,6 +582,156 @@ test('a spa\'s own page: its picture and name, its thanks and the way to book; t
   await p.page.reload();
   await p.page.waitForSelector('.front');
   assert.equal(await p.page.locator('.front-spa').count(), 0);
+  await closeAll(p);
+});
+
+test('a spa\'s page can be kept as an app: its own manifest, name and icon; the ordinary page keeps the ordinary ones', async () => {
+  const p = await phone();
+  const cdp = await p.ctx.newCDPSession(p.page);
+  await p.page.goto(p.base.base + 'index.html?s=horizon-hill#/');
+  await p.page.waitForSelector('.front-spa');
+  // the links the browser looks at are the spa's
+  assert.equal(await p.page.getAttribute('link[rel="manifest"]', 'href'), 'spas/horizon-hill/manifest.webmanifest');
+  assert.equal(await p.page.getAttribute('link[rel="apple-touch-icon"]', 'href'), 'spas/horizon-hill/icon-180.png');
+  assert.equal(await p.page.getAttribute('meta[name="apple-mobile-web-app-title"]', 'content'), 'Horizon Hill');
+  // the manifest as the browser reads it
+  const { url, data, errors } = await cdp.send('Page.getAppManifest');
+  assert.match(url, /spas\/horizon-hill\/manifest\.webmanifest$/);
+  assert.deepEqual(errors, []);
+  const m = JSON.parse(data);
+  assert.equal(m.name, 'Horizon Hill Spa');
+  assert.equal(m.short_name, 'Horizon Hill');
+  assert.equal(m.display, 'standalone');
+  const base = p.base.base;
+  // the app opens the spa's page, not the ordinary one, and stays within the site
+  const resolved = new URL(m.start_url, base + 'spas/horizon-hill/manifest.webmanifest');
+  assert.equal(resolved.href, base + '?s=horizon-hill');
+  assert.equal(new URL(m.scope, base + 'spas/horizon-hill/manifest.webmanifest').href, base);
+  // every icon it names exists and is the size it says
+  for (const ic of m.icons) {
+    const res = await p.page.request.get(new URL(ic.src, base + 'spas/horizon-hill/manifest.webmanifest').href);
+    assert.equal(res.status(), 200);
+    assert.equal(PNG.sync.read(await res.body()).width, parseInt(ic.sizes, 10));
+  }
+  assert.equal(PNG.sync.read(await (await p.page.request.get(base + 'spas/horizon-hill/icon-180.png')).body()).width, 180);
+  // would Chromium offer to install it?
+  // (the test browser is a private window, so "in-incognito" is the one answer that is expected; anything else is a real problem)
+  const inst = await cdp.send('Page.getInstallabilityErrors');
+  assert.deepEqual(inst.installabilityErrors.filter((e) => e.errorId !== 'in-incognito'), [], 'installability: ' + JSON.stringify(inst.installabilityErrors));
+  noErrors(p);
+  // the ordinary page: the ordinary manifest and icon
+  await p.page.goto(base + 'index.html#/');
+  await p.page.reload();
+  await p.page.waitForSelector('.front');
+  assert.equal(await p.page.getAttribute('link[rel="manifest"]', 'href'), 'manifest.webmanifest');
+  assert.equal(await p.page.getAttribute('link[rel="apple-touch-icon"]', 'href'), 'assets/icon-180.png');
+  assert.equal(await p.page.getAttribute('meta[name="apple-mobile-web-app-title"]', 'content'), 'Sanctuary');
+  assert.equal(await p.page.locator('#menu a[href="#/install"]').count(), 0, 'the ordinary page keeps its three places');
+  await closeAll(p);
+});
+
+test('"Add to your phone": Android offers the browser\'s own install, iPhone gets the steps, an app inside another app is told to open the browser', async () => {
+  const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1';
+  const ANDROID = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36';
+  const LINKEDIN = IPHONE + ' [LinkedInApp]';
+  const open = async (userAgent) => {
+    const ctx = await browser.newContext({ viewport: { width: DW, height: DH }, serviceWorkers: 'block', userAgent });
+    const page = await ctx.newPage();
+    const errors = [];
+    page.on('pageerror', (e) => errors.push(e.message));
+    await page.goto(srv.base + 'index.html?s=horizon-hill#/');
+    await page.waitForSelector('.front-spa');
+    return { ctx, page, errors };
+  };
+  // the way in: a quiet link on the front page, and the menu
+  let t = await open(ANDROID);
+  assert.equal(await t.page.locator('.front-menu a[href="#/install"]').count(), 1);
+  assert.equal(await t.page.locator('#menu a[href="#/install"]').count(), 1);
+  // Android: before the browser offers it, the menu route is explained; once it offers it, there is a button, and it uses the browser's own prompt
+  await t.page.click('.front-menu a[href="#/install"]');
+  await t.page.waitForSelector('.install');
+  assert.match(await t.page.textContent('.install'), /Install app|Add to Home screen/);
+  assert.equal(await t.page.locator('[data-install-btn]').count(), 0);
+  await t.page.evaluate(() => {
+    const e = new Event('beforeinstallprompt', { cancelable: true });
+    e.prompt = () => { window.__prompted = (window.__prompted || 0) + 1; return Promise.resolve(); };
+    window.dispatchEvent(e);
+  });
+  await t.page.waitForSelector('[data-install-btn]');
+  assert.equal(await t.page.locator('[data-install-note]').isHidden(), true);
+  await t.page.click('[data-install-btn]');
+  assert.equal(await t.page.evaluate(() => window.__prompted), 1, 'the browser\'s install prompt was asked for by the tap');
+  assert.deepEqual(t.errors, []);
+  await t.ctx.close();
+  // iPhone: no prompt exists there; the three steps, with the share icon
+  t = await open(IPHONE);
+  await t.page.click('.front-menu a[href="#/install"]');
+  await t.page.waitForSelector('.install-steps');
+  assert.equal(await t.page.locator('.install-steps li').count(), 3);
+  assert.equal(await t.page.locator('.install-steps svg.install-share').count(), 1);
+  assert.match(await t.page.textContent('.install-steps'), /Add to Home Screen/);
+  assert.equal(await t.page.locator('[data-install-btn]').count(), 0);
+  assert.deepEqual(t.errors, []);
+  await t.ctx.close();
+  // inside LinkedIn's own browser the home screen cannot be reached: say so
+  t = await open(LINKEDIN);
+  await t.page.click('.front-menu a[href="#/install"]');
+  await t.page.waitForSelector('.install');
+  assert.match(await t.page.textContent('.install'), /open inside another app/i);
+  assert.equal(await t.page.locator('.install-steps').count(), 0);
+  await t.ctx.close();
+  // already on the home screen: no install links, and the page says so
+  const ctx = await browser.newContext({ viewport: { width: DW, height: DH }, serviceWorkers: 'block', userAgent: IPHONE });
+  const page = await ctx.newPage();
+  await page.addInitScript(() => { Object.defineProperty(navigator, 'standalone', { value: true }); });
+  await page.goto(srv.base + 'index.html?s=horizon-hill#/');
+  await page.waitForSelector('.front-spa');
+  assert.equal(await page.locator('a[href="#/install"]').count(), 0);
+  await page.goto(srv.base + 'index.html?s=horizon-hill#/install');
+  await page.reload();
+  await page.waitForSelector('.install');
+  assert.match(await page.textContent('.install'), /already using it/);
+  await ctx.close();
+});
+
+test('refill: the spa\'s own shop; else the house shop with the spa\'s name in the address; else no button', async () => {
+  const HOUSE = 'https://shop.example.com/collections/refills';
+  const noOwnShop = async (route) => {
+    const res = await route.fetch();
+    await route.fulfill({ response: res, body: (await res.text()).replace('"shopUrl": "spas/horizon-hill/shop.html"', '"shopUrl": ""') });
+  };
+  const withHouse = async (route) => {
+    const res = await route.fetch();
+    await route.fulfill({ response: res, body: (await res.text()).replace("window.BME_HOUSE_SHOP = '';", "window.BME_HOUSE_SHOP = '" + HOUSE + "';") });
+  };
+  // 1. no shop of its own and no house shop: no button anywhere (nothing that leads nowhere)
+  let p = await phone();
+  await p.page.route('**/spas/horizon-hill/spa.js*', noOwnShop);
+  await p.page.goto(p.base.base + 'index.html?s=horizon-hill#/r/presence/done');
+  await p.page.reload();
+  await p.page.waitForSelector('.spa-thanks');
+  assert.equal(await p.page.locator('.spa-thanks a.btn').count(), 1, 'only the booking button');
+  assert.equal(await p.page.locator('#menu a', { hasText: 'Refill' }).count(), 0);
+  await closeAll(p);
+  // 2. no shop of its own, but a house shop: the button goes there, and the shop can see which spa it came from
+  p = await phone();
+  await p.page.route('**/spas/horizon-hill/spa.js*', noOwnShop);
+  await p.page.route('**/assets/spa-loader.js*', withHouse);
+  await p.page.goto(p.base.base + 'index.html?s=horizon-hill#/r/presence/done');
+  await p.page.reload();
+  await p.page.waitForSelector('.spa-thanks');
+  const refill = p.page.locator('.spa-thanks a.btn', { hasText: 'Refill your products' });
+  assert.equal(await refill.getAttribute('href'), HOUSE + '?utm_source=bodymindearth&utm_medium=ritual&utm_content=refill&utm_campaign=horizon-hill');
+  assert.equal(await refill.getAttribute('target'), '_blank');
+  assert.equal(await p.page.locator('#menu a', { hasText: 'Refill products' }).count(), 1);
+  await closeAll(p);
+  // 3. the spa's own shop wins over the house shop
+  p = await phone();
+  await p.page.route('**/assets/spa-loader.js*', withHouse);
+  await p.page.goto(p.base.base + 'index.html?s=horizon-hill#/r/presence/done');
+  await p.page.reload();
+  await p.page.waitForSelector('.spa-thanks');
+  assert.match(await p.page.locator('.spa-thanks a.btn', { hasText: 'Refill your products' }).getAttribute('href'), /^spas\/horizon-hill\/shop\.html\?/);
   await closeAll(p);
 });
 

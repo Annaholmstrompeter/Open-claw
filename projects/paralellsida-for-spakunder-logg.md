@@ -75,3 +75,15 @@
 - Det vi kan räkna själva, utan cookies och utan personuppgifter: öppningar, lyssningar och bokningsklick per spa (en enkel räknare, t.ex. i Supabase eller Cloudflare). Faktiska bokningar kan bara spat veta: lösning = länkens `utm_*` i spats egen statistik + en egen kampanjkod per spa + månadsrapport från spat.
 - **Sidans integritetstext måste ändras när räkningen finns** (idag lovar den "no tracking"): t.ex. "We count how many times the page is opened and a ritual is played, per spa. Nothing else, and nothing about you."
 - Visa inga siffror i säljmaterial innan de är verkliga (pilot med några spa).
+
+---
+
+# 2026-10-19
+
+## Provspa: shop-knapp och installation som app (en app per spa)
+- Anna: skicka en unik digital box till varje spa som kontaktas, helst gratis; QR → spats egen box → möjlighet att installera som app på Android och iPhone; knapp till spats bokning och shop; har spat ingen shop → Annas shop; ingen provision; mycket kontaktade, många säger nej (då raderas mappen).
+- Research (källor och siffror: `projects/paralellsida-lansering-forberedelser.md`): 0 kr i drift på Cloudflare; egen anonym räknare (Worker + D1) för statistik är planerad, ej byggd.
+- **Byggt:** `make-spa.py` får `--shop-url`, `--short-name` och skriver `manifest.webmanifest` + `icon-180/192/512.png` per spa; `spa-loader.js` flyttad till sidans huvud och skriver spats manifest/ikon-länkar; `app.js`: *Refill your products* (spats shop, annars `BME_HOUSE_SHOP`, annars ingen knapp), menyposter, tyst länk *Add to your phone* och sidan `#/install` (Android: webbläsarens ruta, iPhone: tre steg, LinkedIn/Instagram-webbläsare: öppna i Safari/Chrome, redan installerad: inga länkar); `spas/horizon-hill/shop.html` (påhittad). Före detta öppnade en installerad ikon den generiska sidan, inte spats.
+- **Tester:** 22 enhet, 19 e2e (tre nya: manifest/ikoner/installerbarhet i Chromium, installationssidan per telefon, shop-reserv), regressionsjämförelsen oförändrad ("Nothing else changed"). Ett Together-test (två telefoner) föll en gång i en full körning och gick 3 av 3 ensamt (Togethers kod är orörd).
+- **Ej provat:** riktig Android-Chrome, iPhone Safari/Brave, två spa-appar på en telefon, iPhone-ljud med låst skärm i hemskärmsapp.
+- Fällor: `build-content.py` utan `mutagen` nollställer inspelningslängderna i `content.js`; Shopify-planen är "Pause and Build"; Supabase-projektet för Together är pausat; Driveprojektkartan (00) och status (06) säger fortfarande att köpknappen inte ska aktiveras utan egen checkout (ersatt av Annas besked 2026-10-19).

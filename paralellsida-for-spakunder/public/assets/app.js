@@ -51,6 +51,20 @@
     spaBook: 'Experience the ritual at',
     spaBookShort: 'Experience it at the spa',
     spaMenuBook: 'Book a visit',
+    spaShop: 'Refill your products',
+    spaMenuShop: 'Refill products',
+    spaInstall: 'Add to your phone',
+    installTitle: 'Keep this sanctuary|on your phone',
+    installLead: 'Add it to your home screen and return to your rituals with one tap, wherever you are.',
+    installAlready: 'You are already using it from your home screen.',
+    installAndroid: 'Tap the button, then “Install”.',
+    installAndroidMenu: 'Open the browser menu (the three dots) and choose “Install app” or “Add to Home screen”.',
+    installIosStep1: 'Tap the share icon',
+    installIosStep1b: 'in your browser’s bar.',
+    installIosStep2: 'Choose “Add to Home Screen”.',
+    installIosStep3: 'Tap “Add”.',
+    installInApp: 'This page is open inside another app. Open it in Safari (iPhone) or Chrome (Android) to add it to your home screen.',
+    installOther: 'Open this page on your phone to add it to the home screen.',
     aboutEyebrow: 'Sensory Enrichment',
     closeLink: 'Close your visit',
     shortRitual: 'Short ritual',
@@ -86,6 +100,22 @@
     var u = SPA && SPA.bookUrl || '';
     if (!u || /^(tel|mailto):/.test(u)) return u;
     return u + (u.indexOf('?') < 0 ? '?' : '&') + 'utm_source=bodymindearth&utm_medium=ritual&utm_campaign=' + encodeURIComponent(SPA.slug || 'spa');
+  }
+  // the way to refill: the spa's own shop, else the house shop (if it can take orders); told which spa the guest came from
+  function shopHref() {
+    if (!SPA) return '';
+    var own = SPA.shopUrl || '';
+    var u = own || window.BME_HOUSE_SHOP || '';
+    if (!u) return '';
+    if (/^(tel|mailto):/.test(u)) return u;
+    return u + (u.indexOf('?') < 0 ? '?' : '&') + 'utm_source=bodymindearth&utm_medium=ritual&utm_content=refill&utm_campaign=' + encodeURIComponent(SPA.slug || 'spa');
+  }
+  function shopLink(cls) {
+    var h = shopHref();
+    return h ? '<a class="' + cls + '" href="' + esc(h) + '" target="_blank" rel="noopener noreferrer"><span>' + UI.spaShop + '</span></a>' : '';
+  }
+  function installLink() {
+    return SPA && !isStandalone() ? '<a href="#/install"><span>' + UI.spaInstall + '</span></a>' : '';
   }
   function spaMark() {
     return SPA.logo ? '<img class="spa-logo" src="' + esc(SPA.logo) + '" alt="' + esc(SPA.name) + '">' : '<span class="spa-name">' + esc(SPA.name) + '</span>';
@@ -282,6 +312,8 @@
     installEvent = e;
     var slot = stage.querySelector('[data-install]');
     if (slot) slot.innerHTML = installButton();
+    var note = stage.querySelector('[data-install-note]');
+    if (note) note.hidden = true;
     bindInstall();
   });
   function installButton() {
@@ -300,8 +332,14 @@
     return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
   }
   function isIOS() {
-    return /iphone|ipad|ipod/i.test(navigator.userAgent) && !isStandalone();
+    return isIOSDevice() && !isStandalone();
   }
+  function isIOSDevice() {
+    return /iphone|ipad|ipod/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+  }
+  function isAndroid() { return /android/i.test(navigator.userAgent); }
+  // a page opened inside another app's own browser (LinkedIn, Instagram, Facebook ...) cannot be added to the home screen
+  function inAppBrowser() { return /FBAN|FBAV|Instagram|LinkedInApp|Snapchat|TikTok|MicroMessenger|Line\/|; wv\)/i.test(navigator.userAgent); }
 
   /* ——— the menu: three places, nothing else ——— */
   if (SPA && SPA.bookUrl) {
@@ -311,6 +349,25 @@
     menuBook.rel = 'noopener noreferrer';
     menuBook.textContent = UI.spaMenuBook;
     menu.appendChild(menuBook);
+  }
+  if (shopHref()) {
+    var menuShop = document.createElement('a');
+    menuShop.href = shopHref();
+    menuShop.target = '_blank';
+    menuShop.rel = 'noopener noreferrer';
+    menuShop.textContent = UI.spaMenuShop;
+    menu.appendChild(menuShop);
+  }
+  if (SPA && !isStandalone()) {
+    var menuInstall = document.createElement('a');
+    menuInstall.href = '#/install';
+    menuInstall.textContent = UI.spaInstall;
+    menu.appendChild(menuInstall);
+  }
+  // the name under the icon on the phone's home screen is the spa's
+  if (SPA) {
+    var appTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+    if (appTitle) appTitle.setAttribute('content', SPA.shortName || SPA.name);
   }
 
   function setMenu(open) {
@@ -353,7 +410,7 @@
           '<h1 class="front-title">' + UI.frontTitle + '</h1>' +
           '<p class="text">' + UI.frontText + '</p>' +
           '<a class="btn primary" href="#/rituals"><span>' + UI.discover + '</span>' + arrow() + '</a>' +
-          '<nav class="quiet front-menu" aria-label="' + UI.aboutEyebrow + '"><a href="#/about"><span>' + UI.aboutLink + '</span></a>' + bookLink('', true) + '</nav>' +
+          '<nav class="quiet front-menu" aria-label="' + UI.aboutEyebrow + '"><a href="#/about"><span>' + UI.aboutLink + '</span></a>' + bookLink('', true) + installLink() + '</nav>' +
           spaDemoNote() +
           '</div></section>'
       };
@@ -551,12 +608,12 @@
         '<section class="screen end">' +
         '<h1 class="affirmation">' + esc(r.affirmation) + '</h1>' +
         '<div class="rule" aria-hidden="true"></div>' +
-        (SPA ? '<div class="spa-thanks">' + spaMark() + '<p class="spa-thanks-text">' + esc(SPA.thanks || '') + '</p>' + bookLink('btn ghost') + spaDemoNote() + '</div>' : '') +
+        (SPA ? '<div class="spa-thanks">' + spaMark() + '<p class="spa-thanks-text">' + esc(SPA.thanks || '') + '</p>' + bookLink('btn ghost') + shopLink('btn ghost') + spaDemoNote() + '</div>' : '') +
         speciesCard(r) +
         '<div class="actions">' +
         '<a class="btn primary" href="#/rituals"><span>' + UI.returnRituals + '</span>' + arrow() + '</a>' +
         '<nav class="quiet"><a href="#/r/' + next.id + '"><span>' + UI.nextRitual + ': ' + cap(next.id) + '</span></a>' +
-        '<a data-listen="' + r.id + ':short" href="#/r/' + r.id + '/s"><span>' + UI.listenAgain + '</span></a>' + homeLink() + '</nav>' +
+        '<a data-listen="' + r.id + ':short" href="#/r/' + r.id + '/s"><span>' + UI.listenAgain + '</span></a>' + installLink() + homeLink() + '</nav>' +
         '</div>' +
         '</section>'
     };
@@ -594,6 +651,40 @@
         '<p class="text fine">' + UI.privacy + '</p>' +
         /* CONTACT (optional): when a contact address is decided, add it here, e.g.
            '<p class="text fine"><a href="mailto:hello@example.se">hello@example.se</a></p>' + */
+        '</section>'
+    };
+  }
+
+  // "Add to your phone": what to do depends on the phone. Android's own prompt when the browser offers it, the steps on iPhone.
+  function installPage() {
+    var shareIcon = '<svg class="install-share" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M8 7l4-4 4 4M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
+    var body;
+    if (isStandalone()) {
+      body = '<p class="text">' + UI.installAlready + '</p>';
+    } else if (inAppBrowser()) {
+      body = '<p class="text">' + UI.installInApp + '</p>';
+    } else if (isIOSDevice()) {
+      body = '<ol class="install-steps">' +
+        '<li><span>' + UI.installIosStep1 + ' ' + shareIcon + ' ' + UI.installIosStep1b + '</span></li>' +
+        '<li><span>' + UI.installIosStep2 + '</span></li>' +
+        '<li><span>' + UI.installIosStep3 + '</span></li></ol>';
+    } else if (isAndroid()) {
+      body = '<div data-install>' + installButton() + '</div>' +
+        '<p class="text fine" data-install-note' + (installEvent ? ' hidden' : '') + '>' + UI.installAndroidMenu + '</p>';
+    } else {
+      body = '<p class="text">' + UI.installOther + '</p>';
+    }
+    return {
+      title: UI.spaInstall + ' — ' + UI.brand,
+      kind: 'install',
+      back: '#/',
+      html:
+        '<section class="screen about top-aligned install">' +
+        (SPA ? '<div class="spa-thanks">' + spaMark() + '</div>' : '') +
+        '<h1 class="title">' + br(UI.installTitle) + '</h1>' +
+        '<p class="text">' + UI.installLead + '</p>' +
+        '<div class="rule" aria-hidden="true"></div>' + body +
+        '<nav class="quiet">' + homeLink() + '</nav>' +
         '</section>'
     };
   }
@@ -638,6 +729,7 @@
     if (parts[0] === 'rituals') return rituals();
     if (parts[0] === 'about') return about();
     if (parts[0] === 'close') return closing();
+    if (parts[0] === 'install') return installPage();
     if (parts[0] === 'together') {
       var tp = window.BMETogether && window.BMETogether.screen(parts);
       if (!tp) return rituals();
