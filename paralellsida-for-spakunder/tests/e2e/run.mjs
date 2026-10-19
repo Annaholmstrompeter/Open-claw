@@ -897,6 +897,27 @@ test('install first: the front page of a spa opens with a sheet that adds it to 
   await ctx.close();
 });
 
+test('the fictional demo spas are separate apps (own id, name, icon), each with its example booking and shop pages', async () => {
+  const p = await phone();
+  const ids = new Set();
+  for (const [slug, name] of [['horizon-hill', 'Horizon Hill Spa'], ['calm-cove', 'Calm Cove Spa'], ['fern-hill', 'Fern Hill Spa']]) {
+    await p.page.goto(p.base.base + 'index.html?s=' + slug + '#/');
+    await p.page.waitForSelector('.front-spa');
+    assert.match(await p.page.textContent('.spa-welcome'), new RegExp(name));
+    const m = await (await p.page.request.get(p.base.base + 'spas/' + slug + '/manifest.webmanifest')).json();
+    assert.equal(m.name, name);
+    assert.equal(m.start_url, '../../?s=' + slug);
+    ids.add(m.id);
+    for (const f of ['icon-192.png', 'icon-512.png', 'icon-180.png', 'hero.webp', 'book.html', 'shop.html']) {
+      assert.equal((await p.page.request.get(p.base.base + 'spas/' + slug + '/' + f)).status(), 200, slug + '/' + f);
+    }
+    assert.match(await (await p.page.request.get(p.base.base + 'spas/' + slug + '/book.html')).text(), new RegExp(name));
+    assert.match(await (await p.page.request.get(p.base.base + 'spas/' + slug + '/shop.html')).text(), new RegExp(name));
+  }
+  assert.equal(ids.size, 3, 'three different app identities, so that a phone can have one installed and still test another');
+  await closeAll(p);
+});
+
 test('?diag=1 says how the page was opened (browser page or installed app) and what the browser offers; without it nothing is shown', async () => {
   const ANDROID = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36';
   let ctx = await browser.newContext({ viewport: { width: DW, height: DH }, serviceWorkers: 'block', userAgent: ANDROID });

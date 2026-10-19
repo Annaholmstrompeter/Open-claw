@@ -33,3 +33,5 @@ Thumbs.db
 # real spas are built in a private place (see paralellsida-for-spakunder/README.md, "Spa-sidor").
 paralellsida-for-spakunder/public/spas/*
 !paralellsida-for-spakunder/public/spas/horizon-hill/
+!paralellsida-for-spakunder/public/spas/calm-cove/
+!paralellsida-for-spakunder/public/spas/fern-hill/
