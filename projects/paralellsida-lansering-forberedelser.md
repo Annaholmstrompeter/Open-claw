@@ -91,6 +91,25 @@ Spats logga och bilder är deras. För en **privat förhandsvisning** som bara s
 2. Prov på riktig iPhone (Safari + Brave): installera som app, spela, lås skärmen.
 3. Material för 3 pilotspa (logga, bild, bokningslänk, shoplänk, tackrad).
 
+## 7b. Skala: tusentals spa-kit, förtryckta koder, shop-reserv (Annas följdfråga 2026-10-19)
+
+**Samma adress för alla:** ja. En underadress (`ritual.bodymindearth.se`) räcker för 3000 spa; det som skiljer är vägen efter, `…/s/<kod>`. Domänen ställs in en gång.
+
+**Filgränsen (kontrollerad):** gratisnivån tillåter 20 000 filer per sida/Worker (betald 100 000; filstorlek 25 MiB; förfrågningar på statiska filer är gratis). Dagens modell, en mapp per spa med ca 8 filer (foto, logga, `spa.js`, `index.html`, manifest, tre ikoner), blir 3000 × 8 = 24 000 filer ⇒ går **inte** på gratisnivån. Därför för tusentals spa:
+- ett spa = **en rad** (kod, namn, bokningslänk, shoplänk, tack, bildnamn) i D1 + **foto och ikon/logga i R2** (Cloudflare R2: 10 GB lagring, 1 M skrivningar och 10 M läsningar/mån gratis, utleverans gratis);
+- sidan blir **en enda mall** som fylls i från raden; manifest (namn, ikon, `id`, `start_url`, `scope`) skapas av servern per spa.
+- Storlek: demospats foto 67 KB + logga ca 33 KB + ikon ca 80 KB ≈ 180 KB/spa ⇒ ca 0,5 GB för 3000 (långt under 10 GB).
+
+**Förtryckta koder:** en tryckt QR går inte att ändra. Skapa därför alla 3000 koder i förväg (slumpade, 6–8 tecken, `…/s/<kod>`); ett spa utan uppgifter ännu visar en fin standardbox (med Annas shop), och spats bild/logga/länkar läggs på raden senare utan att koden ändras. Spa-listan (kod ↔ spa) är då sanningen och måste säkerhetskopieras. Skriv ut en CSV → tryckfil (SVG/PDF) med en QR per kod.
+
+**En app per spa på samma adress:** källor säger att flera installerbara appar på samma adress går om varje har eget manifest-id, `start_url` och `scope` (icke-överlappande sökvägar), men Chromium rekommenderar egen adress per app och appar på samma adress delar lagring/inställningar (vi sparar inget). **Ska provas på riktiga telefoner (Android och iPhone):** att två olika spas boxar blir två separata ikoner. Service workern får inte förhandscacha alla spa, bara det besökta.
+
+**Statistik vid 3000 spa:** gratisgränsen (ca 10 000 besök/dag totalt) tar slut om spa-kunderna blir många; räkna med Workers Paid ca 5 USD/mån då. Månadsrapporter per spa måste genereras automatiskt.
+
+**Det som inte skalar är handarbetet, inte tekniken:** att samla logga/foto/länkar från varje spa. Förslag: nivå 1 "grundbox" skapas automatiskt ur listan (namn + länkar + standardbild), nivå 2 "full box" när spat skickar eget material (formulär) eller säger ja till att vi använder deras bild/logga.
+
+**Fylla på:** har spat en `shopUrl` ⇒ knappen går dit. Saknas den ⇒ knappen går till **Annas shop** med `utm_source=bodymindearth&utm_medium=box&utm_campaign=<kod>` (och en rabattkod per spa om Anna vill) så att Shopify visar köp per spa utan att kunden spåras. Beslut kvar: ska ett spa få provision på köp via Annas shop?
+
 ## 8. Källor
 
 - Cloudflare Pages limits: <https://developers.cloudflare.com/pages/platform/limits>
@@ -105,6 +124,9 @@ Spats logga och bilder är deras. För en **privat förhandsvisning** som bara s
 - Supabase gratisgränser (tredjepartsuppgifter): <https://automationatlas.io/answers/supabase-free-tier-limits-2026/>
 - iOS Add to Home Screen/webbappar: <https://heise.de/-10749652>
 - iOS PWA-ljud, låst skärm: <https://developer.apple.com/forums/thread/762582>, <https://developer.apple.com/forums/thread/805900>, <https://bugs.webkit.org/show_bug.cgi?id=261858>
+- Workers statiska filer, gränser: <https://developers.cloudflare.com/changelog/post/2025-09-02-increased-static-asset-limits/>
+- R2 priser: <https://developers.cloudflare.com/r2/pricing>
+- Flera appar på en adress (manifest-id, scope): <https://web.dev/learn/pwa/web-app-manifest>, <https://lists.w3.org/Archives/Public/public-webapps-github/2021Nov/0219.html>
 - Wake Lock: <https://bugs.webkit.org/show_bug.cgi?id=254545>, <https://progressier.com/pwa-capabilities/screen-wake-lock>
 - EDPB 2/2023 (ePrivacy art. 5(3)): <https://www.mccannfitzgerald.com/knowledge/data-privacy-and-cyber-risk/keeping-track-of-article-53-edpb-publishes-proposed-guidelines>
 
