@@ -781,14 +781,24 @@ test('install first: the front page of a spa opens with a sheet that adds it to 
     await page.goto(srv.base + 'index.html' + hash);
     return { ctx, page };
   };
-  // Android, first visit: Chrome offers the install only after a tap and 30 seconds on the page, so it has not offered it yet. The sheet is there
-  // all the same, its button says where to tap, and once the browser offers the install the sheet turns into the one-tap button
+  // Android, first visit: the browser may not have offered the install yet. The sheet is there all the same. The tap waits for the offer
+  // and opens the phone's dialog the moment it comes (still one tap); only if it never comes does the sheet say where to tap
   let { ctx, page } = await fresh('?s=horizon-hill#/', ANDROID);
   await page.waitForSelector('#install-sheet.on');
   assert.equal(await page.getAttribute('#install-sheet', 'data-mode'), 'wait');
   assert.match(await page.textContent('#install-sheet [data-install-go]'), /Add to home screen/);
+  assert.doesNotMatch(await page.textContent('#install-sheet'), /almost there/i, 'an ordinary visit is not "almost there"');
   await page.click('#install-sheet [data-install-go]');
-  await page.waitForSelector('#install-sheet[data-mode="steps"]');
+  assert.equal(await page.getAttribute('#install-sheet [data-install-go]', 'aria-busy'), 'true', 'it waits for the offer');
+  assert.equal(await page.getAttribute('#install-sheet', 'data-mode'), 'wait');
+  await offer(page);
+  assert.equal(await page.evaluate(() => window.__prompted), 1, 'the offer came within the tap: the dialog opens by itself');
+  await page.waitForSelector('.toast.on');
+  await ctx.close();
+  ({ ctx, page } = await fresh('?s=horizon-hill#/', ANDROID));
+  await page.waitForSelector('#install-sheet.on');
+  await page.click('#install-sheet [data-install-go]');
+  await page.waitForSelector('#install-sheet[data-mode="steps"]', { timeout: 6000 });
   assert.match(await page.textContent('#install-sheet'), /Install app|Add to Home screen/);
   assert.equal(await page.locator('#install-sheet svg.install-dots').count(), 1);
   assert.equal(await page.locator('#install-sheet [data-install-go]').count(), 0);
@@ -1003,8 +1013,8 @@ test('Brave (and other shortcut-only browsers) hand over to Chrome at the instal
   await page.click('#install-sheet [data-install-go]');
   const intent = asked.find((u) => u.startsWith('intent://'));
   assert.ok(intent, 'one tap hands over to Chrome: ' + JSON.stringify(asked));
-  assert.match(intent, /^intent:\/\/127\.0\.0\.1:\d+\/spas\/calm-cove\/\?diag=1#Intent;scheme=https;package=com\.android\.chrome;S\.browser_fallback_url=/, 'the same page, without the cache-busting v');
-  assert.match(decodeURIComponent(intent), /spas\/calm-cove\/\?diag=1&nochrome=1;end$/);
+  assert.match(intent, /^intent:\/\/127\.0\.0\.1:\d+\/spas\/calm-cove\/\?diag=1&h=1#Intent;scheme=https;package=com\.android\.chrome;S\.browser_fallback_url=/, 'the same page, without the cache-busting v, marked as handed over');
+  assert.match(decodeURIComponent(intent), /spas\/calm-cove\/\?diag=1&nochrome=1;end$/, 'the fallback is not marked as handed over');
   assert.doesNotMatch(await page.textContent('#install-sheet'), /chrome|brave/i, 'no words about it on the page');
   // 2. the phone's own choice box took over (the page loses focus): this browser's own install is NOT started on top of it
   await page.evaluate(() => window.dispatchEvent(new Event('blur')));
@@ -1041,6 +1051,26 @@ test('Brave (and other shortcut-only browsers) hand over to Chrome at the instal
   await page.click('#install-sheet [data-install-go]');
   assert.equal(await page.evaluate(() => window.__prompted), 1, 'Chrome: its own install at once');
   assert.deepEqual(asked.filter((u) => u.startsWith('intent://')), []);
+  await ctx.close();
+  // 6. the hand-over does not wait for this browser's offer: one tap, at once; if nothing takes over and there is no offer, the steps
+  ({ ctx, page, asked } = await open('spas/calm-cove/'));
+  await page.waitForSelector('#install-sheet.on');
+  assert.equal(await page.getAttribute('#install-sheet', 'data-mode'), 'go');
+  await page.click('#install-sheet [data-install-go]');
+  assert.ok(asked.some((u) => u.startsWith('intent://')), 'handed over without any offer: ' + JSON.stringify(asked));
+  await page.waitForSelector('#install-sheet[data-mode="steps"]', { timeout: 6000 });
+  await ctx.close();
+  // 7. arriving in Chrome by the hand-over: the sheet is quick, says one tap is left, and the mark is not kept in the address
+  ({ ctx, page, asked } = await open('spas/calm-cove/?h=1&x=1', { brave: false }));
+  await page.waitForSelector('#install-sheet.on', { timeout: 1200 });
+  assert.match(await page.textContent('#install-sheet'), /Almost there\. One last tap\./);
+  assert.match(await page.textContent('#install-sheet'), /Keep this sanctuary\s*on your phone/);
+  assert.doesNotMatch(await page.textContent('#install-sheet'), /chrome|brave/i);
+  assert.equal(await page.evaluate(() => location.search), '?x=1');
+  await offer(page);
+  await page.click('#install-sheet [data-install-go]');
+  assert.equal(await page.evaluate(() => window.__prompted), 1, 'one tap: the install dialog');
+  assert.deepEqual(asked.filter((u) => u.startsWith('intent://')), [], 'Chrome does not hand over again');
   await ctx.close();
 });
 

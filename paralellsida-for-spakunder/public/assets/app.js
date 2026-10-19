@@ -67,6 +67,7 @@
     installDone: 'Added to your home screen',
     sheetTitle: 'Keep this sanctuary|on your phone',
     sheetText: 'One tap, and it is always with you.',
+    sheetArrived: 'Almost there. One last tap.',
     sheetIos1: 'Tap the share icon',
     sheetIos2: 'in your browser’s bar, then “Add to Home Screen”.',
     sheetAndroid1: 'Tap',
@@ -320,6 +321,12 @@
   var installEvent = null;
   var addedToHome = false;   // set when the phone says the app is on the home screen
   var sheetSteps = false;     // Android, before the browser offers the install: the guest tapped the button and is told where to tap
+  var offerTimer = null;      // Android: the guest tapped before the browser had offered the install; it is run the moment the browser offers it
+  var handedOver = /[?&]h=1(&|$)/.test(location.search);   // this page was opened in Chrome by the hand-over from another browser: one more tap, say so
+  if (handedOver && window.history && history.replaceState) {
+    // (not kept in the address, so a reload or a bookmark is an ordinary visit)
+    history.replaceState(null, '', location.pathname + location.search.replace(/([?&])h=1(&|$)/, function (m, a, b) { return b ? a : ''; }).replace(/^&/, '?') + location.hash);
+  }
   var sheetDismissed = false; // the guest has answered (said no in the phone's own dialog, or "Got it" on iPhone): not asked again until the page is opened anew (nothing is stored on the phone)
   window.addEventListener('beforeinstallprompt', function (e) {
     e.preventDefault();
@@ -330,6 +337,7 @@
     if (note) note.hidden = true;
     bindInstall();
     syncInstallSheet();
+    if (offerTimer) { clearTimeout(offerTimer); offerTimer = null; runInstall(); }   // the guest is already waiting: still within the tap, so the dialog may open
   });
   function installButton() {
     return installEvent ? '<button class="btn ghost" type="button" data-install-btn>' + UI.install + '</button>' : '';
@@ -345,40 +353,54 @@
   // own badge on the icon, so the same tap hands over to Chrome instead (Annas decision 2026-10-19). Android may then ask "Choose
   // activity" (Brave or Chrome): that box is the phone's, a page cannot choose in it or hide it.
   function runInstall() {
-    var ev = installEvent;
-    if (!ev) return;
-    var own = function () {
-      if (!installEvent) return;
-      var e2 = installEvent;
-      installEvent = null;
-      var bs = document.querySelectorAll('[data-install-btn]');
-      for (var i = 0; i < bs.length; i++) bs[i].hidden = true;
-      try { var r = e2.prompt(); if (r && r.catch) r.catch(function () { /* declined */ }); } catch (err) { /* nothing to show */ }
-      if (e2.userChoice && e2.userChoice.then) {
-        e2.userChoice.then(function (c) {
-          if (c && c.outcome === 'accepted') installedNow();
-          else { sheetDismissed = true; syncInstallSheet(); }
-        }, function () { /* no answer: the guest stays */ });
-      }
-    };
-    if (badgesTheIcon()) {
-      // Hand over to Chrome. If something took over (the phone's own choice box, or Chrome itself) this page loses focus or goes away:
-      // then nothing more is done here. If nothing happened a while later, this browser's own install is used.
-      var tookOver = false;
-      var gone = function () { tookOver = true; };
-      document.addEventListener('visibilitychange', gone);
-      window.addEventListener('blur', gone);
-      window.addEventListener('pagehide', gone);
-      window.location.href = chromeAddress();
-      setTimeout(function () {
-        document.removeEventListener('visibilitychange', gone);
-        window.removeEventListener('blur', gone);
-        window.removeEventListener('pagehide', gone);
-        if (!tookOver && !document.hidden) own();
-      }, 2500);
-      return;
-    }
+    if (badgesTheIcon()) { handOver(); return; }
     own();
+  }
+  function own() {
+    var e2 = installEvent;
+    if (!e2) return;
+    installEvent = null;
+    var bs = document.querySelectorAll('[data-install-btn]');
+    for (var i = 0; i < bs.length; i++) bs[i].hidden = true;
+    try { var r = e2.prompt(); if (r && r.catch) r.catch(function () { /* declined */ }); } catch (err) { /* nothing to show */ }
+    if (e2.userChoice && e2.userChoice.then) {
+      e2.userChoice.then(function (c) {
+        if (c && c.outcome === 'accepted') installedNow();
+        else { sheetDismissed = true; syncInstallSheet(); }
+      }, function () { /* no answer: the guest stays */ });
+    }
+  }
+  // Hand over to Chrome. If something took over (the phone's own choice box, or Chrome itself) this page loses focus or goes away:
+  // then nothing more is done here. If nothing happened a while later, this browser's own install is used (or, if it has not offered
+  // one, the steps).
+  function handOver() {
+    var tookOver = false;
+    var gone = function () { tookOver = true; };
+    document.addEventListener('visibilitychange', gone);
+    window.addEventListener('blur', gone);
+    window.addEventListener('pagehide', gone);
+    window.location.href = chromeAddress();
+    setTimeout(function () {
+      document.removeEventListener('visibilitychange', gone);
+      window.removeEventListener('blur', gone);
+      window.removeEventListener('pagehide', gone);
+      if (tookOver || document.hidden) return;
+      if (installEvent) own();
+      else { sheetSteps = true; syncInstallSheet(); }
+    }, 2500);
+  }
+  // The sheet's button tapped before the browser has offered the install (Chrome sometimes offers it a moment late): wait for it a few
+  // seconds and open the dialog the moment it comes, so it is still one tap. Only if it never comes, say where to tap.
+  function waitForOffer() {
+    if (offerTimer) return;
+    var btn = document.querySelector('#install-sheet [data-install-go]');
+    if (btn) btn.setAttribute('aria-busy', 'true');
+    offerTimer = setTimeout(function () {
+      offerTimer = null;
+      if (installEvent) return;
+      sheetSteps = true;
+      syncInstallSheet();
+    }, 3500);
   }
   // It worked: nothing more asks for it, and the guest lands on the front page, where the "Add to your phone" link has turned into a
   // quiet "Added to your home screen". (Otherwise the page looks the same and the guest keeps tapping, not knowing it worked.)
@@ -401,6 +423,7 @@
     if (!SPA || addedToHome || sheetDismissed || isStandalone() || inAppBrowser()) return '';
     if (!activePage || activePage.kind !== 'welcome') return '';
     if (installEvent) return 'go';
+    if (badgesTheIcon()) return sheetSteps ? 'steps' : 'go';   // a browser that hands over to Chrome needs no offer of its own
     if (isIOSDevice()) return 'ios';
     // Chrome offers the install only after the guest has tapped the page and spent 30 seconds on it, so on a first visit it is not offered yet:
     // the sheet is there all the same, and its button then says where to tap
@@ -428,7 +451,7 @@
     var dots = '<svg class="install-share install-dots" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>';
     var body;
     if (mode === 'go' || mode === 'wait') {
-      body = '<p class="sheet-text">' + UI.sheetText + '</p>' +
+      body = '<p class="sheet-text">' + (handedOver ? UI.sheetArrived : UI.sheetText) + '</p>' +
         '<button class="btn primary" type="button" data-install-go><span>' + UI.install + '</span></button>';
     } else if (mode === 'steps') {
       body = '<p class="sheet-text">' + UI.sheetAndroid1 + ' ' + dots + ' ' + UI.sheetAndroid2 + '</p>' +
@@ -442,7 +465,7 @@
     document.documentElement.setAttribute('data-sheet', mode);
     // the welcome picture first, then the sheet rises
     if (wasUp) el.className = 'install-sheet on';
-    else setTimeout(function () { el.className = 'install-sheet on'; }, reduced ? 20 : 1100);
+    else setTimeout(function () { el.className = 'install-sheet on'; }, reduced ? 20 : handedOver ? 350 : 1100);
   }
   function notify(text) {
     var t = document.createElement('div');
@@ -475,8 +498,8 @@
   // This same page, opened in Chrome. If Chrome is not there the browser opens the fallback address in itself (marked nochrome, so it
   // then goes straight to its own install).
   function chromeAddress() {
-    var q = location.search.replace(/^\?/, '').split('&').filter(function (x) { return x && !/^(nochrome|v)=/.test(x); });
-    var path = location.host + location.pathname + (q.length ? '?' + q.join('&') : '');
+    var q = location.search.replace(/^\?/, '').split('&').filter(function (x) { return x && !/^(nochrome|v|h)=/.test(x); });
+    var path = location.host + location.pathname + '?' + q.concat(['h=1']).join('&');   // h=1: Chrome then knows one tap is left
     var fallback = location.protocol + '//' + location.host + location.pathname + '?' + q.concat(['nochrome=1']).join('&');
     return 'intent://' + path + '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=' + encodeURIComponent(fallback) + ';end';
   }
@@ -972,7 +995,7 @@
     if (close) { sheetDismissed = true; syncInstallSheet(); return; }
     var go = e.target.closest ? e.target.closest('[data-install-go]') : null;
     if (go && !e.defaultPrevented && !e.button && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
-      if (installEvent) {
+      if (installEvent || badgesTheIcon()) {
         e.preventDefault();
         setMenuClosed();
         runInstall();
@@ -980,8 +1003,7 @@
       }
       if (go.tagName === 'BUTTON') {   // the sheet's button, the browser has not offered the install yet
         e.preventDefault();
-        sheetSteps = true;
-        syncInstallSheet();
+        waitForOffer();
         return;
       }
     }
@@ -1028,7 +1050,7 @@
         'display-mode: ' + displayModes(),
         'android: ' + isAndroid() + '   iPhone: ' + isIOSDevice(),
         'inside another app\'s browser: ' + inAppBrowser(),
-        'browser offers the install: ' + !!installEvent + '   hands over to Chrome: ' + badgesTheIcon(),
+        'browser offers the install: ' + !!installEvent + '   hands over to Chrome: ' + badgesTheIcon() + '   arrived by the hand-over: ' + handedOver,
         'install sheet: ' + (sheetMode() || 'none') + '   spa page: ' + !!SPA + '   page: ' + (activePage && activePage.kind),
         navigator.userAgent.slice(0, 110)
       ].join('\n');
