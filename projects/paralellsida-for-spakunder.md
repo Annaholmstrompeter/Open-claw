@@ -4,6 +4,8 @@
 
 *Skriven 2026-10-11 av sessionen "Parallell sida för spakunder". Läs den här filen först, sedan `paralellsida-for-spakunder/README.md`. Detaljerad historik: `projects/paralellsida-for-spakunder-logg.md` (på grenen, se nedan).*
 
+*Drive (Annas översikt, 2026-10-19): dokumentet **02 – BME Digital spa-box (QR till egen app) – plan, kostnad & status** i mappen 04 Hotell, spa & B2B-kunder: https://docs.google.com/document/d/1tEq0a79KvnkkPJgQraPuzTMOx9sVtAADYaGDP8vkSCA/edit . Uppdatera den filen, skapa ingen dubblett. Drive-dokumenten 06 (status) och 00 (projektkarta) säger fortfarande att köpknappen inte ska aktiveras utan spats egen checkout; det är ersatt av Annas besked 2026-10-19 men kunde inte ändras från molnsessionen (Google Docs-redigeraren är inte kopplad, bara Drive).*
+
 ## 0. Så fortsätter du direkt
 
 1. `git pull` på `master` (AGENTS.md → Session Startup), läs den här filen.
@@ -97,7 +99,7 @@ paralellsida-for-spakunder/tools/publish-test-site.sh paralellsida-for-spakunder
 - **Heart to Heart-inspelning** finns inte (manus: `paralellsida-for-spakunder/content/together-heart-to-heart-manus.md`).
 - Produktfotona är stand-ins ("Ritual Oil 30 ml"); texten om produkten (250 ml m.m.) är de riktiga uppgifterna. Riktiga foton saknas.
 - Demo-spaets foto är en lågupplöst stand-in; byt mot riktigt (Anna skickar en fil; sandlådan hämtar inga stockfoton själv).
-- Repot publikt eller privat? Domän? Cloudflare-konto? (Anna beslutar.) Annas Shopify (`9w0qpc-07.myshopify.com`) står på planen **"Pause and Build"** (2026-10-19): ingen försäljning förrän en riktig plan väljs; husets shop-knapp kan därför inte slås på än.
+- Repot publikt eller privat? Domän? Cloudflare-konto? (Anna beslutar.) Annas Shopify (`9w0qpc-07.myshopify.com`) står på planen **"Pause and Build"** (2026-10-19), avsedd för att bygga utan att sälja: kontrollera att kunder kan köpa innan husets shop-knapp slås på.
 - **Installera som app är bara provat i Chromium** (manifest, ikoner, installerbarhet, knappar). Ej provat: Android-Chrome, iPhone Safari och Brave, två spa-appar på samma telefon, **ljud med låst skärm i en hemskärmsapp på iPhone** (rapporter om att uppspelning kan stanna).
 - **Supabase `body-mind-earth-together` är pausat** (mejl 2026-10-18). Det påverkar bara Together (parlyssning); spa-sidorna och app-installationen använder inte Supabase.
 - Integritetstexten ("no cookies, no accounts, no tracking") måste ändras **innan** någon räkning/statistik byggs.

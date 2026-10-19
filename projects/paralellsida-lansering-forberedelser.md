@@ -112,7 +112,7 @@ Spats logga och bilder är deras. För en **privat förhandsvisning** som bara s
 
 **Annas besked 2026-10-19:** hon kontaktar många (t.ex. 3 000) men inte alla på en gång; de som säger nej får sin QR-sida raderad och nya byggs för nästa omgång; allt hålls under gratisgränsen. **Ingen provision** (spats vinst: boxen stannar hos kunden och visar spat vid varje användning). **Fylla på** → spats shop, annars Annas shop. Därmed behålls dagens modell, en mapp per spa (ca 7 filer ⇒ ca 2 800 spa under 20 000-gränsen); databas + R2-modellen ovan behövs först om fler spa ska ligga uppe samtidigt.
 
-**Byggt 2026-10-19 (provspa):** shop-knapp med reserv till husets shop, eget manifest/ikon per spa, `#/install` för Android/iPhone/LinkedIn-webbläsare. Anmärkning: Annas Shopify står på planen "Pause and Build", så husets shop-knapp är avstängd tills en plan är vald. Statistik (räknaren) är **inte** byggd än.
+**Byggt 2026-10-19 (provspa):** shop-knapp med reserv till husets shop, eget manifest/ikon per spa, `#/install` för Android/iPhone/LinkedIn-webbläsare. Anmärkning: Annas Shopify står på planen "Pause and Build" (avsedd för att bygga utan att sälja); husets shop-knapp är avstängd tills det är kontrollerat att kunder kan köpa. Statistik (räknaren) är **inte** byggd än.
 
 ## 8. Källor
 
