@@ -736,6 +736,72 @@ test('"Add to your phone": Android offers the browser\'s own install, iPhone get
   await ctx.close();
 });
 
+test('one tap installs: the "Add to your phone" link goes straight to the install dialog (Chrome) or to Chrome (Brave), with no page in between', async () => {
+  const ANDROID = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36';
+  const offer = (page) => page.evaluate(() => {
+    const e = new Event('beforeinstallprompt', { cancelable: true });
+    e.prompt = () => { window.__prompted = (window.__prompted || 0) + 1; return Promise.resolve(); };
+    window.dispatchEvent(e);
+  });
+  // Chrome: the front page's link, the menu's link and the link after a ritual each ask for the install dialog at once
+  let ctx = await browser.newContext({ viewport: { width: DW, height: DH }, serviceWorkers: 'block', userAgent: ANDROID });
+  let page = await ctx.newPage();
+  await page.goto(srv.base + 'index.html?s=horizon-hill#/');
+  await page.waitForSelector('.front-spa');
+  await offer(page);
+  await page.click('.front-menu a[data-install-go]');
+  assert.equal(await page.evaluate(() => window.__prompted), 1, 'one tap, the browser\'s install dialog');
+  assert.equal(await page.locator('.install').count(), 0, 'no page in between');
+  assert.equal(await page.locator('.front-spa').count(), 1, 'still where the guest was');
+  assert.equal(await page.locator('.front-menu a[data-install-go]').isVisible(), true);
+  // the menu's link does the same, and the menu closes
+  await offer(page);
+  await page.click('#menu-btn');
+  await page.click('#menu a[data-install-go]');
+  assert.equal(await page.evaluate(() => window.__prompted), 2);
+  assert.equal(await page.locator('#menu').isHidden(), true);
+  // once it is installed nothing asks again
+  await page.evaluate(() => window.dispatchEvent(new Event('appinstalled')));
+  assert.equal(await page.locator('.front-menu a[data-install-go]').isHidden(), true);
+  await ctx.close();
+  // after a ritual
+  ctx = await browser.newContext({ viewport: { width: DW, height: DH }, serviceWorkers: 'block', userAgent: ANDROID });
+  page = await ctx.newPage();
+  await page.goto(srv.base + 'index.html?s=horizon-hill#/r/presence/done');
+  await page.reload();
+  await page.waitForSelector('.spa-thanks');
+  await offer(page);
+  await page.click('.end a[data-install-go]');
+  assert.equal(await page.evaluate(() => window.__prompted), 1);
+  assert.equal(await page.locator('.spa-thanks').count(), 1, 'still on the page after the ritual');
+  await ctx.close();
+  // Brave: the same one tap hands over to Chrome (no words, no choice on the page); if nothing takes over, its own install follows
+  ctx = await browser.newContext({ viewport: { width: DW, height: DH }, serviceWorkers: 'block', userAgent: ANDROID });
+  page = await ctx.newPage();
+  const cdp = await ctx.newCDPSession(page);
+  await cdp.send('Page.enable');
+  const asked = [];
+  cdp.on('Page.frameRequestedNavigation', (e) => asked.push(e.url));
+  await page.addInitScript(() => { navigator.brave = { isBrave: () => Promise.resolve(true) }; });
+  await page.goto(srv.base + 'index.html?s=horizon-hill#/');
+  await page.waitForSelector('.front-spa');
+  await offer(page);
+  await page.click('.front-menu a[data-install-go]');
+  assert.ok(asked.some((u) => u.startsWith('intent://') && /package=com\.android\.chrome/.test(u)), 'one tap hands over to Chrome: ' + JSON.stringify(asked));
+  assert.equal(await page.locator('.install').count(), 0, 'no page in between');
+  assert.doesNotMatch(await page.textContent('body'), /chrome/i);
+  await page.waitForFunction(() => window.__prompted === 1, null, { timeout: 5000 });
+  await ctx.close();
+  // not offered by the browser (iPhone, or Android before the browser has offered it): the link leads to the steps
+  ctx = await browser.newContext({ viewport: { width: DW, height: DH }, serviceWorkers: 'block', userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1' });
+  page = await ctx.newPage();
+  await page.goto(srv.base + 'index.html?s=horizon-hill#/');
+  await page.waitForSelector('.front-spa');
+  await page.click('.front-menu a[data-install-go]');
+  await page.waitForSelector('.install-steps');
+  await ctx.close();
+});
+
 test('refill: the spa\'s own shop; else the house shop with the spa\'s name in the address; else no button', async () => {
   const HOUSE = 'https://shop.example.com/collections/refills';
   const noOwnShop = async (route) => {

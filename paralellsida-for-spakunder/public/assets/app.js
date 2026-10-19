@@ -115,7 +115,7 @@
     return h ? '<a class="' + cls + '" href="' + esc(h) + '" target="_blank" rel="noopener noreferrer"><span>' + UI.spaShop + '</span></a>' : '';
   }
   function installLink() {
-    return SPA && !isStandalone() ? '<a href="#/install"><span>' + UI.spaInstall + '</span></a>' : '';
+    return SPA && !isStandalone() ? '<a href="#/install" data-install-go><span>' + UI.spaInstall + '</span></a>' : '';
   }
   function spaMark() {
     return SPA.logo ? '<img class="spa-logo" src="' + esc(SPA.logo) + '" alt="' + esc(SPA.name) + '">' : '<span class="spa-name">' + esc(SPA.name) + '</span>';
@@ -322,24 +322,42 @@
   function bindInstall() {
     var b = stage.querySelector('[data-install-btn]');
     if (!b || !installEvent) return;
-    b.addEventListener('click', function () {
-      var ev = installEvent;
-      var own = function () { if (!installEvent) return; installEvent.prompt(); installEvent = null; b.hidden = true; };
-      if (badgesTheIcon()) {
-        // hand over to Chrome; if this page is still in front a moment later, nothing took over: use this browser's own install
-        var left = false;
-        var gone = function () { if (document.hidden) left = true; };
-        document.addEventListener('visibilitychange', gone);
-        window.location.href = chromeAddress();
-        setTimeout(function () {
-          document.removeEventListener('visibilitychange', gone);
-          if (!left && !document.hidden && ev) own();
-        }, 1600);
-        return;
-      }
-      own();
-    });
+    b.addEventListener('click', runInstall);
   }
+  // ONE tap installs: the browser's own install dialog at once (the "Add to your phone" links on the front page, after the ritual and in
+  // the menu all come here directly when the browser offers it; the install page is only the way for the phones that need steps).
+  // Where the browser can only make a shortcut with its own badge on the icon (Brave, Firefox, Opera, Edge), the same tap hands
+  // over to Chrome instead (which makes a real app); if nothing took over a moment later, this browser's own install is used.
+  function runInstall() {
+    var ev = installEvent;
+    if (!ev) return;
+    var own = function () {
+      if (!installEvent) return;
+      var e2 = installEvent;
+      installEvent = null;
+      var bs = document.querySelectorAll('[data-install-btn]');
+      for (var i = 0; i < bs.length; i++) bs[i].hidden = true;
+      try { var r = e2.prompt(); if (r && r.catch) r.catch(function () { /* declined */ }); } catch (err) { /* nothing to show */ }
+    };
+    if (badgesTheIcon()) {
+      var left = false;
+      var gone = function () { if (document.hidden) left = true; };
+      document.addEventListener('visibilitychange', gone);
+      window.location.href = chromeAddress();
+      setTimeout(function () {
+        document.removeEventListener('visibilitychange', gone);
+        if (!left && !document.hidden) own();
+      }, 1600);
+      return;
+    }
+    own();
+  }
+  // once it is on the home screen, nothing more asks for it
+  window.addEventListener('appinstalled', function () {
+    installEvent = null;
+    var els = document.querySelectorAll('[data-install-go], [data-install-btn]');
+    for (var i = 0; i < els.length; i++) els[i].hidden = true;
+  });
   function isStandalone() {
     return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
   }
@@ -388,6 +406,7 @@
   if (SPA && !isStandalone()) {
     var menuInstall = document.createElement('a');
     menuInstall.href = '#/install';
+    menuInstall.setAttribute('data-install-go', '');
     menuInstall.textContent = UI.spaInstall;
     menu.appendChild(menuInstall);
   }
@@ -850,6 +869,13 @@
   }
 
   document.addEventListener('click', function (e) {
+    var go = e.target.closest ? e.target.closest('[data-install-go]') : null;
+    if (go && installEvent && !e.defaultPrevented && !e.button && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+      e.preventDefault();
+      setMenuClosed();
+      runInstall();
+      return;
+    }
     var el = e.target.closest ? e.target.closest('[data-listen]') : null;
     if (el) {
       // the tap that starts the recording: the browser only allows sound that starts here
