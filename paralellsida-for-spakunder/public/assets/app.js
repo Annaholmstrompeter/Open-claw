@@ -979,6 +979,33 @@
   });
   show();
 
+  /* ——— ?diag=1: what this phone tells the page, to find out why something does not show (not part of the guest's page) ——— */
+  if (/[?&]diag=1(&|$)/.test(location.search)) {
+    var diag = document.createElement('pre');
+    diag.className = 'diag';
+    document.body.appendChild(diag);
+    var displayModes = function () {
+      var m = [];
+      ['standalone', 'minimal-ui', 'fullscreen', 'browser'].forEach(function (x) {
+        if (window.matchMedia && window.matchMedia('(display-mode: ' + x + ')').matches) m.push(x);
+      });
+      return m.join(',') || '-';
+    };
+    var paintDiag = function () {
+      diag.textContent = [
+        'opened as: ' + (isStandalone() ? 'THE INSTALLED APP (no install offer is shown there)' : 'a browser page'),
+        'display-mode: ' + displayModes(),
+        'android: ' + isAndroid() + '   iPhone: ' + isIOSDevice(),
+        'inside another app\'s browser: ' + inAppBrowser(),
+        'browser offers the install: ' + !!installEvent,
+        'install sheet: ' + (sheetMode() || 'none') + '   spa page: ' + !!SPA + '   page: ' + (activePage && activePage.kind),
+        navigator.userAgent.slice(0, 110)
+      ].join('\n');
+    };
+    paintDiag();
+    setInterval(paintDiag, 1000);
+  }
+
   /* ——— offline support: the pages and pictures are cached after the first visit ——— */
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
     window.addEventListener('load', function () {

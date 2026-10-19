@@ -897,6 +897,37 @@ test('install first: the front page of a spa opens with a sheet that adds it to 
   await ctx.close();
 });
 
+test('?diag=1 says how the page was opened (browser page or installed app) and what the browser offers; without it nothing is shown', async () => {
+  const ANDROID = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36';
+  let ctx = await browser.newContext({ viewport: { width: DW, height: DH }, serviceWorkers: 'block', userAgent: ANDROID });
+  let page = await ctx.newPage();
+  await page.goto(srv.base + 'index.html?s=horizon-hill&diag=1#/');
+  await page.waitForSelector('.diag');
+  assert.match(await page.textContent('.diag'), /opened as: a browser page/);
+  assert.match(await page.textContent('.diag'), /browser offers the install: false/);
+  assert.match(await page.textContent('.diag'), /install sheet: wait/);
+  await ctx.close();
+  // opened as the installed app: it says so, and shows no install offer
+  ctx = await browser.newContext({ viewport: { width: DW, height: DH }, serviceWorkers: 'block', userAgent: ANDROID });
+  page = await ctx.newPage();
+  await page.addInitScript(() => { const mm = window.matchMedia.bind(window); window.matchMedia = (q) => /display-mode: standalone/.test(q) ? { matches: true, media: q, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} } : mm(q); });
+  await page.goto(srv.base + 'index.html?s=horizon-hill&diag=1#/');
+  await page.waitForSelector('.diag');
+  assert.match(await page.textContent('.diag'), /opened as: THE INSTALLED APP/);
+  assert.match(await page.textContent('.diag'), /install sheet: none/);
+  await page.waitForTimeout(1500);
+  assert.equal(await page.locator('#install-sheet').count(), 0);
+  assert.equal(await page.locator('a[data-install-go]').count(), 0, 'no install link in the installed app, neither on the page nor in the menu');
+  await ctx.close();
+  // without ?diag=1 there is no such box
+  ctx = await browser.newContext({ viewport: { width: DW, height: DH }, serviceWorkers: 'block', userAgent: ANDROID });
+  page = await ctx.newPage();
+  await page.goto(srv.base + 'index.html?s=horizon-hill#/');
+  await page.waitForSelector('.front-spa');
+  assert.equal(await page.locator('.diag').count(), 0);
+  await ctx.close();
+});
+
 test('refill: the spa\'s own shop; else the house shop with the spa\'s name in the address; else no button', async () => {
   const HOUSE = 'https://shop.example.com/collections/refills';
   const noOwnShop = async (route) => {

@@ -765,3 +765,7 @@ body:has(.menu:not([hidden])) .install-sheet { display: none; }
 html[data-sheet="go"] #stage, html[data-sheet="wait"] #stage { margin-bottom: 15.5rem; }   /* the page can be scrolled clear of the sheet */
 html[data-sheet="ios"] #stage, html[data-sheet="steps"] #stage { margin-bottom: 12rem; }
 .install-sheet .install-dots { fill: #cdb06a; stroke: none; }
+
+/* ?diag=1 only */
+.diag { position: fixed; left: 6px; right: 6px; top: 6px; z-index: 200; margin: 0; padding: 8px 10px; border-radius: 6px; background: rgba(0, 0, 0, .85); color: #9be59b; font: 11px/1.4 ui-monospace, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-all; pointer-events: none; }
+
