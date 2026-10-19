@@ -303,6 +303,8 @@ h1, h2, .tagline, .title, .text { text-wrap: balance; }
 }
 .quiet a span, .linkish span { border-bottom: 1px solid var(--line); padding-bottom: 3px; }
 .quiet a:hover, .linkish:hover { color: var(--accent); }
+.quiet .install-done { display: inline-block; padding: .85rem .2rem; font-family: var(--sans); font-size: .72rem; letter-spacing: .26em; text-transform: uppercase; color: var(--accent); }
+.install-after { margin-top: 1.4rem; text-align: center; }
 
 /* ——— Welcome and closing: a soft-focus photograph that melts into the page ——— */
 .welcome, .closing { position: relative; justify-content: flex-start; padding: 0 0 calc(30px + env(safe-area-inset-bottom)); }
@@ -742,3 +744,9 @@ html[data-page="intro"] body::before, html[data-page="intro"] body::after { disp
 @media (min-width: 720px) {
   body { font-size: 1.32rem; }
 }
+
+/* a short word that something happened (the app was added to the home screen) */
+.toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 30px); z-index: 60; display: flex; align-items: center; gap: .8rem; width: max-content; max-width: calc(100vw - 40px); padding: 16px 24px; border-radius: 7px; background: #1b140e; border: 1px solid rgba(205, 176, 106, .75); color: #f3e6c4; font-family: var(--sans); font-size: .74rem; letter-spacing: .2em; text-transform: uppercase; opacity: 0; transform: translate(-50%, 10px); transition: opacity .5s, transform .5s; pointer-events: none; }
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+.toast svg { flex: none; width: 1.2rem; height: 1.2rem; fill: none; stroke: #cdb06a; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+@media (prefers-reduced-motion: reduce) { .toast { transition: none; } }

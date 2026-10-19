@@ -63,6 +63,8 @@
     installIosStep1b: 'in your browser’s bar.',
     installIosStep2: 'Choose “Add to Home Screen”.',
     installIosStep3: 'Tap “Add”.',
+    installIosDone: 'Then find it waiting on your home screen.',
+    installDone: 'Added to your home screen',
     installInApp: 'This page is open inside another app. Open it in Safari (iPhone) or Chrome (Android) to add it to your home screen.',
     installOther: 'Open this page on your phone to add it to the home screen.',
     aboutEyebrow: 'Sensory Enrichment',
@@ -115,7 +117,9 @@
     return h ? '<a class="' + cls + '" href="' + esc(h) + '" target="_blank" rel="noopener noreferrer"><span>' + UI.spaShop + '</span></a>' : '';
   }
   function installLink() {
-    return SPA && !isStandalone() ? '<a href="#/install" data-install-go><span>' + UI.spaInstall + '</span></a>' : '';
+    if (!SPA) return '';
+    if (addedToHome) return '<span class="install-done" role="status">' + UI.installDone + '</span>';
+    return !isStandalone() ? '<a href="#/install" data-install-go><span>' + UI.spaInstall + '</span></a>' : '';
   }
   function spaMark() {
     return SPA.logo ? '<img class="spa-logo" src="' + esc(SPA.logo) + '" alt="' + esc(SPA.name) + '">' : '<span class="spa-name">' + esc(SPA.name) + '</span>';
@@ -307,6 +311,7 @@
 
   /* ——— install to home screen (Android prompt, iOS hint) ——— */
   var installEvent = null;
+  var addedToHome = false;   // set when the phone says the app is on the home screen
   window.addEventListener('beforeinstallprompt', function (e) {
     e.preventDefault();
     installEvent = e;
@@ -338,6 +343,9 @@
       var bs = document.querySelectorAll('[data-install-btn]');
       for (var i = 0; i < bs.length; i++) bs[i].hidden = true;
       try { var r = e2.prompt(); if (r && r.catch) r.catch(function () { /* declined */ }); } catch (err) { /* nothing to show */ }
+      if (e2.userChoice && e2.userChoice.then) {
+        e2.userChoice.then(function (c) { if (c && c.outcome === 'accepted') installedNow(); }, function () { /* no answer: the guest stays */ });
+      }
     };
     if (badgesTheIcon()) {
       var left = false;
@@ -352,12 +360,31 @@
     }
     own();
   }
-  // once it is on the home screen, nothing more asks for it
-  window.addEventListener('appinstalled', function () {
+  // It worked: nothing more asks for it, and the guest lands on the front page, where the "Add to your phone" link has turned into a
+  // quiet "Added to your home screen". (Otherwise the page looks the same and the guest keeps tapping, not knowing it worked.)
+  function installedNow() {
+    if (addedToHome) return;
+    addedToHome = true;
     installEvent = null;
-    var els = document.querySelectorAll('[data-install-go], [data-install-btn]');
-    for (var i = 0; i < els.length; i++) els[i].hidden = true;
-  });
+    var gone = document.querySelectorAll('[data-install-btn], #menu [data-install-go]');
+    for (var i = 0; i < gone.length; i++) gone[i].hidden = true;
+    if (route === '#/') { shown = null; show(); } else navigate('#/');
+    notify(UI.installDone);
+  }
+  window.addEventListener('appinstalled', installedNow);
+  // a short, clear word that something happened: it stays a few seconds, then goes by itself
+  function notify(text) {
+    var t = document.createElement('div');
+    t.className = 'toast';
+    t.setAttribute('role', 'status');
+    t.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>' + esc(text) + '</span>';
+    document.body.appendChild(t);
+    setTimeout(function () { t.className = 'toast on'; }, 40);
+    setTimeout(function () {
+      t.className = 'toast';
+      setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 700);
+    }, 5000);
+  }
   function isStandalone() {
     return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
   }
@@ -713,7 +740,8 @@
       body = '<ol class="install-steps">' +
         '<li><span>' + UI.installIosStep1 + ' ' + shareIcon + ' ' + UI.installIosStep1b + '</span></li>' +
         '<li><span>' + UI.installIosStep2 + '</span></li>' +
-        '<li><span>' + UI.installIosStep3 + '</span></li></ol>';
+        '<li><span>' + UI.installIosStep3 + '</span></li></ol>' +
+        '<p class="text fine install-after">' + UI.installIosDone + '</p>';
     } else if (isAndroid()) {
       body = '<div data-install>' + installButton() + '</div>' +
         '<p class="text fine" data-install-note' + (installEvent ? ' hidden' : '') + '>' + UI.installAndroidMenu + '</p>';

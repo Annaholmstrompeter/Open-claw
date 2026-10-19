@@ -655,12 +655,17 @@ test('"Add to your phone": Android offers the browser\'s own install, iPhone get
   await t.page.evaluate(() => {
     const e = new Event('beforeinstallprompt', { cancelable: true });
     e.prompt = () => { window.__prompted = (window.__prompted || 0) + 1; return Promise.resolve(); };
+    e.userChoice = Promise.resolve({ outcome: 'accepted' });
     window.dispatchEvent(e);
   });
   await t.page.waitForSelector('[data-install-btn]');
   assert.equal(await t.page.locator('[data-install-note]').isHidden(), true);
   await t.page.click('[data-install-btn]');
   assert.equal(await t.page.evaluate(() => window.__prompted), 1, 'the browser\'s install prompt was asked for by the tap');
+  // it worked: the guest is taken to the front page, which says so (no install page left to keep tapping on)
+  await t.page.waitForSelector('.front-spa');
+  assert.match(await t.page.textContent('.front-menu .install-done'), /Added to your home screen/);
+  assert.equal(await t.page.locator('#stage a[data-install-go], #stage [data-install-btn]').count(), 0);
   assert.deepEqual(t.errors, []);
   assert.equal(await t.page.evaluate(() => window.__prompted), 1, 'Chrome: the install prompt at once, no hand-over');
   await t.ctx.close();
@@ -736,44 +741,60 @@ test('"Add to your phone": Android offers the browser\'s own install, iPhone get
   await ctx.close();
 });
 
-test('one tap installs: the "Add to your phone" link goes straight to the install dialog (Chrome) or to Chrome (Brave), with no page in between', async () => {
+test('one tap installs, and the guest can tell it worked: back on the front page, where the link now says "Added to your home screen"', async () => {
   const ANDROID = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36';
-  const offer = (page) => page.evaluate(() => {
+  const offer = (page, outcome = 'accepted') => page.evaluate((o) => {
     const e = new Event('beforeinstallprompt', { cancelable: true });
     e.prompt = () => { window.__prompted = (window.__prompted || 0) + 1; return Promise.resolve(); };
+    e.userChoice = Promise.resolve({ outcome: o });
     window.dispatchEvent(e);
-  });
-  // Chrome: the front page's link, the menu's link and the link after a ritual each ask for the install dialog at once
-  let ctx = await browser.newContext({ viewport: { width: DW, height: DH }, serviceWorkers: 'block', userAgent: ANDROID });
-  let page = await ctx.newPage();
-  await page.goto(srv.base + 'index.html?s=horizon-hill#/');
+  }, outcome);
+  const fresh = async (hash, ua = ANDROID) => {
+    const ctx = await browser.newContext({ viewport: { width: DW, height: DH }, serviceWorkers: 'block', userAgent: ua });
+    const page = await ctx.newPage();
+    await page.goto(srv.base + 'index.html?s=horizon-hill' + hash);
+    if (hash.includes('/r/')) await page.reload();
+    return { ctx, page };
+  };
+  // Chrome, from the front page: one tap, the install dialog at once, no page in between, and then the confirmation in the link's place
+  let { ctx, page } = await fresh('#/');
   await page.waitForSelector('.front-spa');
   await offer(page);
   await page.click('.front-menu a[data-install-go]');
   assert.equal(await page.evaluate(() => window.__prompted), 1, 'one tap, the browser\'s install dialog');
+  await page.waitForSelector('.front-menu .install-done');
+  assert.match(await page.textContent('.front-menu .install-done'), /Added to your home screen/);
+  await page.waitForSelector('.toast.on');
+  assert.match(await page.textContent('.toast'), /Added to your home screen/);
   assert.equal(await page.locator('.install').count(), 0, 'no page in between');
-  assert.equal(await page.locator('.front-spa').count(), 1, 'still where the guest was');
-  assert.equal(await page.locator('.front-menu a[data-install-go]').isVisible(), true);
-  // the menu's link does the same, and the menu closes
-  await offer(page);
+  assert.equal(await page.locator('#stage a[data-install-go]').count(), 0, 'nothing left to tap');
   await page.click('#menu-btn');
-  await page.click('#menu a[data-install-go]');
-  assert.equal(await page.evaluate(() => window.__prompted), 2);
-  assert.equal(await page.locator('#menu').isHidden(), true);
-  // once it is installed nothing asks again
-  await page.evaluate(() => window.dispatchEvent(new Event('appinstalled')));
-  assert.equal(await page.locator('.front-menu a[data-install-go]').isHidden(), true);
+  assert.equal(await page.locator('#menu a[data-install-go]').isHidden(), true, 'nor in the menu');
   await ctx.close();
-  // after a ritual
-  ctx = await browser.newContext({ viewport: { width: DW, height: DH }, serviceWorkers: 'block', userAgent: ANDROID });
-  page = await ctx.newPage();
-  await page.goto(srv.base + 'index.html?s=horizon-hill#/r/presence/done');
-  await page.reload();
+  // the guest says no to the dialog: nothing changes
+  ({ ctx, page } = await fresh('#/'));
+  await page.waitForSelector('.front-spa');
+  await offer(page, 'dismissed');
+  await page.click('.front-menu a[data-install-go]');
+  assert.equal(await page.evaluate(() => window.__prompted), 1);
+  await page.waitForTimeout(400);
+  assert.equal(await page.locator('.front-menu .install-done').count(), 0);
+  assert.equal(await page.locator('.front-menu a[data-install-go]').count(), 1, 'the link is still there to try again');
+  await ctx.close();
+  // from the page after a ritual: it worked, so back to the front page
+  ({ ctx, page } = await fresh('#/r/presence/done'));
   await page.waitForSelector('.spa-thanks');
   await offer(page);
   await page.click('.end a[data-install-go]');
-  assert.equal(await page.evaluate(() => window.__prompted), 1);
-  assert.equal(await page.locator('.spa-thanks').count(), 1, 'still on the page after the ritual');
+  await page.waitForSelector('.front-spa');
+  assert.match(await page.textContent('.front-menu .install-done'), /Added to your home screen/);
+  await ctx.close();
+  // the phone reports the install by itself (appinstalled), whatever the guest was doing
+  ({ ctx, page } = await fresh('#/rituals'));
+  await page.waitForSelector('.carousel, .list, [data-page]');
+  await page.evaluate(() => window.dispatchEvent(new Event('appinstalled')));
+  await page.waitForSelector('.front-spa');
+  assert.equal(await page.locator('.front-menu .install-done').count(), 1);
   await ctx.close();
   // Brave: the same one tap hands over to Chrome (no words, no choice on the page); if nothing takes over, its own install follows
   ctx = await browser.newContext({ viewport: { width: DW, height: DH }, serviceWorkers: 'block', userAgent: ANDROID });
@@ -791,14 +812,14 @@ test('one tap installs: the "Add to your phone" link goes straight to the instal
   assert.equal(await page.locator('.install').count(), 0, 'no page in between');
   assert.doesNotMatch(await page.textContent('body'), /chrome/i);
   await page.waitForFunction(() => window.__prompted === 1, null, { timeout: 5000 });
+  await page.waitForSelector('.front-menu .install-done');
   await ctx.close();
-  // not offered by the browser (iPhone, or Android before the browser has offered it): the link leads to the steps
-  ctx = await browser.newContext({ viewport: { width: DW, height: DH }, serviceWorkers: 'block', userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1' });
-  page = await ctx.newPage();
-  await page.goto(srv.base + 'index.html?s=horizon-hill#/');
+  // not offered by the browser (iPhone, or Android before the browser has offered it): the link leads to the steps, which end by saying where the app will be
+  ({ ctx, page } = await fresh('#/', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1'));
   await page.waitForSelector('.front-spa');
   await page.click('.front-menu a[data-install-go]');
   await page.waitForSelector('.install-steps');
+  assert.match(await page.textContent('.install-after'), /home screen/);
   await ctx.close();
 });
 
